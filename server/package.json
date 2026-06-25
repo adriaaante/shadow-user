@@ -1,0 +1,13 @@
+{
+  "name": "driftly-licensing-server",
+  "version": "1.0.0",
+  "description": "Driftly licensing & subscription server (reference). Issues Ed25519-signed license tokens; card-on-file 3-day trial; auto-charge; past_due blocking. Pluggable payment provider (mock | tbank | yookassa).",
+  "private": true,
+  "license": "SEE LICENSE IN ../LICENSE",
+  "main": "index.js",
+  "scripts": {
+    "keygen": "node keygen.js",
+    "start": "node index.js",
+    "test": "node test.js"
+  }
+}

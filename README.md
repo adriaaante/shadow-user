@@ -5,9 +5,11 @@
 **Keep your session alive — and measure it.**
 Поддерживайте рабочую сессию активной — и измеряйте её.
 
-A small, beautiful, free desktop app that generates *synthetic user activity* on a
-schedule and **measures** activity with and without it — so you can benchmark it against
-any external activity-monitoring tool. Local-only. No telemetry. No accounts.
+A small, beautiful app that generates *synthetic user activity* on a schedule and
+**measures** activity with and without it — so you can benchmark it against any external
+activity-monitoring tool. Available as a **web app** (no install) and a **desktop app**,
+unlocked by **one subscription** with a **3-day free trial**. Activity data is local-only —
+no telemetry.
 
 </div>
 
@@ -17,11 +19,14 @@ any external activity-monitoring tool. Local-only. No telemetry. No accounts.
 
 | Path        | What it is |
 |-------------|------------|
-| `PLAN.md`   | Master plan & architecture — the source of truth linking app + site |
+| `PLAN.md`   | Master plan & architecture — the source of truth linking everything |
 | `app/`      | The Driftly desktop application (Electron, cross-platform) |
-| `docs/`     | The marketing & download website (static, SEO-optimized, RU/EN) — also the GitHub Pages publish folder |
+| `docs/`     | Marketing/download website **and** the no-install web app (`docs/app/`) — GitHub Pages publish folder |
+| `shared/`   | Shared entitlement + license code (one source of truth for web, desktop, server) |
+| `server/`   | Licensing & subscription backend (accounts, signed licenses, trial, payments) |
 | `LICENSE`   | Proprietary license — all rights reserved to the owner |
-| `PRIVACY.md`| Privacy statement — no data is collected |
+| `PRIVACY.md`| Privacy statement — activity data is local; only email/billing when you subscribe |
+| `TERMS.md`  | Subscription terms / public-offer template |
 
 ## What Driftly does
 
@@ -75,6 +80,28 @@ Upload the artifacts to **GitHub Releases**; the website download buttons point 
 cd docs
 python3 -m http.server 8080   # then open http://localhost:8080
 ```
+
+## Subscription (single subscription · web + desktop)
+
+Driftly is a paid product with a **card-on-file 3-day free trial**. **One subscription, tied
+to your email account, unlocks BOTH the web and desktop apps.** After the trial it renews
+automatically; if a charge fails the apps show a **"необходимо оплатить"** paywall until paid.
+
+The licensing/subscription backend lives in [`server/`](./server) and is fully runnable in
+dev with mock payments. Payments plug into **T‑Bank (Tinkoff)** or **YooKassa (ЮKassa)**:
+
+```bash
+cd server
+npm run keygen   # one-time: Ed25519 keypair (private stays local; public → shared/)
+npm start        # http://localhost:8787  (mock provider)
+npm test         # 17-step lifecycle test: trial → charge → past_due → retry → active
+```
+
+Until you deploy the server and point the clients at it, both apps run in **preview mode**
+(open access + a banner). Set the API URL (in-app Subscription panel, `DRIFTLY_LICENSE_API`,
+or `?api=` for the web app) to activate real gating. Card data is handled by the payment
+provider — never by Driftly. See [`server/README.md`](./server/README.md), [`TERMS.md`](./TERMS.md)
+and [`PRIVACY.md`](./PRIVACY.md).
 
 ## Responsible use
 

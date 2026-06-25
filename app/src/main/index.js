@@ -17,6 +17,7 @@ const monitor = require('./monitor');
 const generator = require('./generator');
 const scheduler = require('./scheduler');
 const backend = require('./input-backend');
+const license = require('./license');
 
 let win = null;
 let tray = null;
@@ -26,6 +27,8 @@ app.isQuiting = false;
 
 /* --------------------------- engine reconciliation --------------------------- */
 function desiredGeneratorOn() {
+  // A valid subscription (or preview mode) is required to run the generator.
+  if (!license.currentEntitlement().access) return false;
   const mode = store.getConfig().runMode;
   if (mode === 'off') return false;
   if (mode === 'always') return true;
@@ -61,6 +64,7 @@ function status() {
     backendMode: backend.mode,         // 'real' | 'simulation'
     monitorMode: monitor.mode,         // 'global' | 'self-report'
     genStats: generator.stats,
+    license: license.info(),           // subscription/entitlement state
   };
 }
 
@@ -105,6 +109,16 @@ function registerIpc() {
   });
 
   ipcMain.handle('app:openDataFolder', () => shell.openPath(store.paths().dir));
+
+  // ---- subscription / licensing ----
+  ipcMain.handle('license:get', () => license.info());
+  ipcMain.handle('license:setApi', async (_e, url) => { const i = await license.setApi(url); reconcile(); return i; });
+  ipcMain.handle('license:signIn', async (_e, email) => { const r = await license.signIn(email); reconcile(); return { result: r, info: license.info() }; });
+  ipcMain.handle('license:startTrial', async (_e, card) => { const r = await license.startTrial(card); reconcile(); return { result: r, info: license.info() }; });
+  ipcMain.handle('license:retry', async () => { const r = await license.retry(); reconcile(); return { result: r, info: license.info() }; });
+  ipcMain.handle('license:cancel', async () => { const r = await license.cancel(); reconcile(); return { result: r, info: license.info() }; });
+  ipcMain.handle('license:signOut', async () => { const i = license.signOut(); reconcile(); return i; });
+  ipcMain.handle('license:refresh', async () => { const i = await license.refresh(); reconcile(); return i; });
 }
 
 /* --------------------------------- window ---------------------------------- */
@@ -199,12 +213,17 @@ if (!gotLock) {
   app.whenReady().then(() => {
     store.init(app.getPath('userData'));
     metrics.load(store.loadMetrics());
+    license.init(store);
 
     monitor.onActivity((ev) => metrics.record(ev));
     monitor.start();
 
     scheduler.start(() => reconcile());
     applyConfig();
+
+    // refresh subscription state now and periodically (auto-applies past_due block)
+    license.refresh().then(() => { reconcile(); pushStatus(); });
+    setInterval(() => { license.refresh().then(() => { reconcile(); pushStatus(); }); }, 60000);
 
     registerIpc();
     createWindow();

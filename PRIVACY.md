@@ -1,11 +1,27 @@
 # Privacy Statement — Driftly
 
-**Short version: Driftly does not collect your data. Nothing leaves your computer.**
+**Short version: your activity data never leaves your computer. The only data we process is
+the minimum needed to run your subscription (your email + billing state) — and card details
+are handled by the payment provider, never by us.**
 
-## What we collect
-**Nothing.** Driftly has no accounts, no sign-up, no analytics, no telemetry, no crash
-reporting, and makes no network calls to us. We do not receive any information about you,
-your activity, or your device.
+## Activity data — always local
+Driftly's core (settings, activity metrics, charts) has **no analytics and no telemetry**.
+Your activity data — what you type, click, or measure — is **never uploaded**. It stays on
+your device (see "What stays on your device" below). This is true on both the web and
+desktop versions.
+
+## Subscription data — only if you subscribe
+Driftly is a paid product with a free trial. To run a subscription that works across the web
+and desktop apps, the licensing server processes the minimum necessary:
+- **Your email** — to identify your account and unlock both apps with one subscription.
+- **Billing state** — your plan status (trialing / active / past_due / canceled) and renewal
+  dates, so access can be granted or paused.
+
+**Card data is NOT handled by Driftly.** All payments are processed by the payment provider
+(**T‑Bank** or **YooKassa**), who securely store and charge your card. Driftly never sees or
+stores your card number. If you never start a trial/subscription, no account is created.
+
+You can cancel anytime and request deletion of your account data via the contact below.
 
 ## What stays on your device
 All settings and activity metrics are stored **locally** on your own computer:

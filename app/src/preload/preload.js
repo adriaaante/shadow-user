@@ -19,6 +19,16 @@ contextBridge.exposeInMainWorld('driftly', {
 
   openDataFolder: () => ipcRenderer.invoke('app:openDataFolder'),
 
+  // subscription / licensing
+  licenseGet: () => ipcRenderer.invoke('license:get'),
+  licenseSetApi: (url) => ipcRenderer.invoke('license:setApi', url),
+  licenseSignIn: (email) => ipcRenderer.invoke('license:signIn', email),
+  licenseStartTrial: (card) => ipcRenderer.invoke('license:startTrial', card),
+  licenseRetry: () => ipcRenderer.invoke('license:retry'),
+  licenseCancel: () => ipcRenderer.invoke('license:cancel'),
+  licenseSignOut: () => ipcRenderer.invoke('license:signOut'),
+  licenseRefresh: () => ipcRenderer.invoke('license:refresh'),
+
   onTick: (cb) => ipcRenderer.on('tick', (_e, data) => cb(data)),
   onStatus: (cb) => ipcRenderer.on('status', (_e, data) => cb(data)),
   onConfigChanged: (cb) => ipcRenderer.on('config:changed', (_e, data) => cb(data)),

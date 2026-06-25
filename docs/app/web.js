@@ -140,8 +140,15 @@
 
   /* -------------------------------- events ------------------------------ */
   document.querySelectorAll('#runmode button').forEach((b) => b.addEventListener('click', () => {
+    if (b.dataset.mode === 'on' && window.DriftlyGate && !window.DriftlyGate.allowed()) { window.DriftlyGate.show(); return; }
     cfg.running = b.dataset.mode === 'on'; saveCfg(); if (cfg.running) startGen(); else stopGen(); renderStatus();
   }));
+  // Stop the engine immediately if access is revoked (e.g. trial ended / past_due).
+  window.addEventListener('driftly-access-changed', () => {
+    if (window.DriftlyGate && !window.DriftlyGate.allowed() && cfg.running) {
+      cfg.running = false; saveCfg(); stopGen(); renderStatus();
+    }
+  });
   document.querySelectorAll('#levels button').forEach((b) => b.addEventListener('click', () => { cfg.level = b.dataset.level; saveCfg(); renderRates(); }));
   $('intensity').addEventListener('input', (e) => { cfg.intensity = +e.target.value; $('intensity-val').textContent = e.target.value; renderRates(); });
   $('intensity').addEventListener('change', saveCfg);
@@ -151,7 +158,7 @@
   $('exp-csv').addEventListener('click', () => { download('driftly-web-metrics.csv', M.csv(), 'text/csv'); toast(t('exported')); });
   $('exp-json').addEventListener('click', () => { download('driftly-web-metrics.json', M.json(), 'application/json'); toast(t('exported')); });
   $('reset').addEventListener('click', () => { M.reset(); refreshCharts(); toast(t('reset')); });
-  document.querySelectorAll('#lang-ru,#lang-en').forEach((b) => b.addEventListener('click', () => { lang = b.id.endsWith('ru') ? 'ru' : 'en'; localStorage.setItem('driftly.lang', lang); applyLang(); }));
+  document.querySelectorAll('#lang-ru,#lang-en').forEach((b) => b.addEventListener('click', () => { lang = b.id.endsWith('ru') ? 'ru' : 'en'; localStorage.setItem('driftly.lang', lang); applyLang(); window.dispatchEvent(new Event('driftly-lang-changed')); }));
   let toastTimer; function toast(m) { const el = $('toast'); el.textContent = m; el.classList.add('show'); clearTimeout(toastTimer); toastTimer = setTimeout(() => el.classList.remove('show'), 2200); }
 
   /* --------------------------------- loop ------------------------------- */

@@ -30,6 +30,11 @@ const DEFAULT_CONFIG = {
     minimizeToTray: true,
     launchAtLogin: false,
   },
+  account: {
+    api: '',      // licensing server base URL ('' → preview mode)
+    token: null,  // account token (this device's session)
+    license: null, // cached signed license token (verified offline)
+  },
 };
 
 function deepMerge(base, patch) {

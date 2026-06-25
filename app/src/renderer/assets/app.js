@@ -15,7 +15,8 @@
       const on = i % 30 < 20;
       return { ts: now - (120 - i) * 60000, genEnabled: on, synthetic: on ? 25 + Math.round(20 * Math.abs(Math.sin(i / 6))) : 0, real: Math.round(12 * Math.abs(Math.sin(i / 9 + 1))), total: 0 };
     });
-    const status = () => ({ runMode: cfg.runMode, generatorOn: cfg.runMode !== 'off', scheduleActive: true, minutesUntilScheduleChange: 42, backendMode: 'simulation', monitorMode: 'self-report', genStats: { actions: 128 } });
+    const previewLicense = { api: '', preview: true, online: false, signedIn: false, entitlement: { plan: 'preview', status: 'preview', access: true, blocked: false, isPro: true, needsPayment: false, reason: 'preview', preview: true, features: [], trialDaysLeft: 0, account: null, renewsAt: null } };
+    const status = () => ({ runMode: cfg.runMode, generatorOn: cfg.runMode !== 'off', scheduleActive: true, minutesUntilScheduleChange: 42, backendMode: 'simulation', monitorMode: 'self-report', genStats: { actions: 128 }, license: previewLicense });
     return {
       getInitial: () => Promise.resolve({ config: cfg, status: status(), paths: { dir: '/preview' } }),
       patchConfig: (p) => { cfg = deepAssign(cfg, p); return Promise.resolve({ config: cfg, status: status() }); },
@@ -28,6 +29,14 @@
       openDataFolder: () => Promise.resolve(true),
       onTick: (cb) => setInterval(() => cb({ live: { gauge: 38 + Math.round(24 * Math.random()), eventsPer10s: 16 + Math.round(8 * Math.random()), synthetic: 12, real: 4 }, status: status() }), 1000),
       onStatus: () => {}, onConfigChanged: () => {},
+      licenseGet: () => Promise.resolve(previewLicense),
+      licenseSetApi: () => Promise.resolve(previewLicense),
+      licenseSignIn: () => Promise.resolve({ result: { ok: false }, info: previewLicense }),
+      licenseStartTrial: () => Promise.resolve({ result: { ok: false }, info: previewLicense }),
+      licenseRetry: () => Promise.resolve({ result: { ok: false }, info: previewLicense }),
+      licenseCancel: () => Promise.resolve({ result: { ok: false }, info: previewLicense }),
+      licenseSignOut: () => Promise.resolve(previewLicense),
+      licenseRefresh: () => Promise.resolve(previewLicense),
     };
     function deepAssign(b, p) { for (const k in p) { b[k] = (p[k] && typeof p[k] === 'object' && !Array.isArray(p[k])) ? deepAssign(b[k] || {}, p[k]) : p[k]; } return b; }
   }());
@@ -41,6 +50,15 @@
       exported: 'Файл сохранён', resetOk: 'Метрики сброшены',
       monNote: 'Измерение реального ввода требует нативного модуля. Текущий режим мониторинга: ',
       runOn: 'Driftly активна', runWait: 'Driftly ждёт расписания', runOff: 'Driftly выключена',
+      subPreview: 'Демо-режим: сервер лицензий не подключён — доступ открыт.', previewTitle: 'Демо-режим',
+      signInFirst: 'Войдите в аккаунт, чтобы управлять подпиской.', online: 'на связи', offline: 'нет связи',
+      startTrial: 'Подключить карту — 3 дня бесплатно', trialActive: 'Пробный период', daysLeft: 'дн. осталось',
+      subActive: 'Подписка активна', renews: 'Продление', inactive: 'Подписка неактивна',
+      pastDue: 'Необходимо оплатить', pastDueDesc: 'Списание не прошло. Оплатите, чтобы продолжить.',
+      retryPay: 'Повторить оплату', cancelSub: 'Отменить подписку', goSub: 'Открыть подписку',
+      pwTitle: 'Требуется подписка', pwTextNone: 'Подключите карту и получите 3 дня бесплатно. Доступ к Driftly — и в вебе, и в десктопе.',
+      apiSaved: 'Сервер сохранён', trialStarted: '3 дня бесплатно активированы!', payRetried: 'Оплата повторно проведена.',
+      needEmail: 'Введите корректный email.', testCard: 'тестовая карта (демо):', cardOk: 'успешно', cardFail: 'нет средств',
       days: ['Пн', 'Вт', 'Ср', 'Чт', 'Пт', 'Сб', 'Вс'] },
     en: { active: 'Active', paused: 'Paused', waiting: 'Waiting for schedule', moves: 'moves/min', clicks: 'clicks/min', scrolls: 'scrolls/min',
       bReal: 'Real input', bSim: 'Simulation', mGlobal: 'Global monitoring', mSelf: 'Synthetic only',
@@ -48,6 +66,15 @@
       exported: 'File saved', resetOk: 'Metrics reset',
       monNote: 'Measuring real input requires a native module. Current monitor mode: ',
       runOn: 'Driftly is active', runWait: 'Driftly waits for schedule', runOff: 'Driftly is off',
+      subPreview: 'Demo mode: no licensing server connected — access is open.', previewTitle: 'Demo mode',
+      signInFirst: 'Sign in to manage your subscription.', online: 'online', offline: 'offline',
+      startTrial: 'Add a card — 3 days free', trialActive: 'Free trial', daysLeft: 'days left',
+      subActive: 'Subscription active', renews: 'Renews', inactive: 'Subscription inactive',
+      pastDue: 'Payment required', pastDueDesc: 'The charge failed. Please pay to continue.',
+      retryPay: 'Retry payment', cancelSub: 'Cancel subscription', goSub: 'Open subscription',
+      pwTitle: 'Subscription required', pwTextNone: 'Add a card and get 3 days free. Driftly unlocks on web and desktop.',
+      apiSaved: 'Server saved', trialStarted: '3 free days activated!', payRetried: 'Payment retried.',
+      needEmail: 'Enter a valid email.', testCard: 'test card (demo):', cardOk: 'success', cardFail: 'no funds',
       days: ['Mo', 'Tu', 'We', 'Th', 'Fr', 'Sa', 'Su'] },
   };
   const t = (k) => L[lang][k];
@@ -64,7 +91,7 @@
     document.getElementById('lang-en').classList.toggle('active', lang === 'en');
     document.getElementById('set-ru').classList.toggle('active', lang === 'ru');
     document.getElementById('set-en').classList.toggle('active', lang === 'en');
-    renderDays(); renderRanges(); renderRates(); renderBadges(); renderStatus(); renderSchedule();
+    renderDays(); renderRanges(); renderRates(); renderBadges(); renderStatus(); renderSchedule(); renderLicense();
   }
 
   /* --------------------------------- state ----------------------------------- */
@@ -81,6 +108,7 @@
     activity: { ru: ['Активность', 'Уровень и поведение генератора'], en: ['Activity', 'Generator level & behavior'] },
     schedule: { ru: ['Расписание', 'Рабочие дни и диапазоны времени'], en: ['Schedule', 'Working days & time ranges'] },
     compare: { ru: ['Сравнение', 'Shadow vs Passive · экспорт'], en: ['Compare', 'Shadow vs Passive · export'] },
+    subscription: { ru: ['Подписка', 'Единая подписка на веб и десктоп'], en: ['Subscription', 'One subscription for web & desktop'] },
     settings: { ru: ['Настройки', 'Язык, приватность, система'], en: ['Settings', 'Language, privacy, system'] },
   };
   function showView(name) {
@@ -227,6 +255,83 @@
   $('opt-tray').addEventListener('change', (e) => patch({ prefs: { minimizeToTray: e.target.checked } }));
   $('opt-login').addEventListener('change', (e) => patch({ prefs: { launchAtLogin: e.target.checked } }));
 
+  /* ------------------------------ subscription ------------------------------- */
+  function fmtDate(ms) { try { return new Date(ms).toLocaleDateString(lang === 'ru' ? 'ru-RU' : 'en-US'); } catch (_) { return ''; } }
+  function statusBox(cls, ic, title, desc) { return `<div class="sub-status ${cls}"><span class="ic">${ic}</span><div><div class="t">${title}</div><div class="d">${desc || ''}</div></div></div>`; }
+  function trialBlock() {
+    return `<button class="btn primary btn-lg" data-act="trial">${t('startTrial')}</button>
+      <div class="devcard">${t('testCard')}<select id="dev-card"><option value="tok_ok">${t('cardOk')}</option><option value="tok_insufficient">${t('cardFail')}</option></select></div>`;
+  }
+  function cancelBlock() { return `<button class="btn ghost" data-act="cancel" style="margin-top:12px">${t('cancelSub')}</button>`; }
+
+  function licInfo() { return status && status.license; }
+
+  function renderLicense() {
+    const info = licInfo(); if (!info) return;
+    const e = info.entitlement || {};
+    const blocked = !!e.blocked && !info.preview;
+
+    // banner
+    const bn = $('subbanner');
+    if (info.preview) { bn.style.display = 'flex'; bn.className = 'subbanner preview'; bn.innerHTML = `<span>${t('subPreview')}</span>`; }
+    else if (e.reason === 'trial') { bn.style.display = 'flex'; bn.className = 'subbanner'; bn.innerHTML = `<span>✨ ${t('trialActive')}: ${e.trialDaysLeft} ${t('daysLeft')}</span><button class="btn" data-go-sub>${t('goSub')}</button>`; }
+    else if (e.needsPayment) { bn.style.display = 'flex'; bn.className = 'subbanner warn'; bn.innerHTML = `<span>⚠ ${t('pastDue')}</span><button class="btn" data-go-sub>${t('retryPay')}</button>`; }
+    else bn.style.display = 'none';
+
+    // paywall overlay
+    const pw = $('paywall');
+    if (blocked) {
+      pw.style.display = 'flex';
+      $('pw-title').textContent = e.needsPayment ? t('pastDue') : t('pwTitle');
+      $('pw-text').textContent = e.needsPayment ? t('pastDueDesc') : t('pwTextNone');
+      $('pw-cta').textContent = t('goSub');
+      const rb = $('pw-retry');
+      if (e.needsPayment) { rb.style.display = 'inline-flex'; rb.textContent = t('retryPay'); } else rb.style.display = 'none';
+    } else pw.style.display = 'none';
+
+    // gate run controls
+    document.querySelectorAll('#runmode button').forEach((b) => { b.disabled = blocked; b.style.opacity = blocked ? '.4' : ''; b.style.pointerEvents = blocked ? 'none' : ''; });
+
+    // subscription view
+    $('price-main').textContent = '490 ₽';
+    $('sub-api').value = info.api || '';
+    $('sub-api-state').textContent = info.preview ? t('subPreview') : `${info.api} · ${info.online ? t('online') : t('offline')}`;
+    $('sub-signin').style.display = info.signedIn ? 'none' : 'block';
+    $('sub-signedin').style.display = info.signedIn ? 'block' : 'none';
+    if (info.signedIn) $('sub-who').textContent = e.account || '';
+
+    const box = $('sub-state');
+    if (info.preview) { box.innerHTML = statusBox('trial', '✨', t('previewTitle'), t('subPreview')); return; }
+    if (!info.signedIn) { box.innerHTML = statusBox('', '👤', t('signInFirst'), ''); return; }
+    if (e.reason === 'trial') box.innerHTML = statusBox('trial', '✨', t('trialActive'), `${e.trialDaysLeft} ${t('daysLeft')}`) + cancelBlock();
+    else if (e.reason === 'active') box.innerHTML = statusBox('ok', '✓', t('subActive'), `${t('renews')}: ${fmtDate(e.renewsAt)}`) + cancelBlock();
+    else if (e.needsPayment) box.innerHTML = statusBox('bad', '⚠', t('pastDue'), t('pastDueDesc')) + `<button class="btn primary" data-act="retry">${t('retryPay')}</button>`;
+    else box.innerHTML = statusBox('', '🔓', t('inactive'), '') + trialBlock();
+  }
+
+  function applyInfo(info) { if (!status) status = {}; status.license = info; renderLicense(); renderStatus(); }
+
+  async function doTrial() { const card = ($('dev-card') && $('dev-card').value) || 'tok_ok'; const r = await api.licenseStartTrial(card); applyInfo(r.info); toast(r.info.entitlement && r.info.entitlement.access ? t('trialStarted') : t('pastDue')); }
+  async function doRetry() { const r = await api.licenseRetry(); applyInfo(r.info); toast(r.info.entitlement && r.info.entitlement.access ? t('payRetried') : t('pastDue')); }
+  async function doCancel() { const r = await api.licenseCancel(); applyInfo(r.info); }
+
+  $('btn-signin').addEventListener('click', async () => {
+    const email = $('sub-email').value.trim();
+    if (!/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(email)) { toast(t('needEmail')); return; }
+    const r = await api.licenseSignIn(email);
+    if (r.result && r.result.ok) applyInfo(r.info); else toast(t('needEmail'));
+  });
+  $('btn-signout').addEventListener('click', async () => applyInfo(await api.licenseSignOut()));
+  $('btn-setapi').addEventListener('click', async () => { const info = await api.licenseSetApi($('sub-api').value.trim()); applyInfo(info); toast(t('apiSaved')); });
+  $('pw-cta').addEventListener('click', () => showView('subscription'));
+  $('pw-retry').addEventListener('click', doRetry);
+  document.addEventListener('click', (ev) => {
+    const a = ev.target.closest('[data-act],[data-go-sub]'); if (!a) return;
+    if (a.hasAttribute('data-go-sub')) { showView('subscription'); return; }
+    const act = a.dataset.act;
+    if (act === 'trial') doTrial(); else if (act === 'retry') doRetry(); else if (act === 'cancel') doCancel();
+  });
+
   /* ---------------------------------- tick ----------------------------------- */
   api.onTick((data) => {
     if (data.live) {
@@ -235,10 +340,10 @@
       $('kpi-syn').textContent = data.live.synthetic;
       $('kpi-real').textContent = data.live.real;
     }
-    if (data.status) { status = data.status; renderStatus(); renderBadges(); renderSchedule(); }
+    if (data.status) { status = data.status; renderStatus(); renderBadges(); renderSchedule(); renderLicense(); }
   });
-  api.onStatus((s) => { status = s; renderStatus(); renderBadges(); renderSchedule(); });
-  api.onConfigChanged((d) => { cfg = d.config; status = d.status; renderStatus(); renderBadges(); });
+  api.onStatus((s) => { status = s; renderStatus(); renderBadges(); renderSchedule(); renderLicense(); });
+  api.onConfigChanged((d) => { cfg = d.config; status = d.status; renderStatus(); renderBadges(); renderLicense(); });
 
   setInterval(refreshCharts, 2500);
   window.addEventListener('resize', refreshCharts);
@@ -248,7 +353,7 @@
     const r = await api.getInitial();
     cfg = r.config; status = r.status; lang = (cfg.prefs && cfg.prefs.lang) || 'ru';
     $('opt-tray').checked = cfg.prefs.minimizeToTray; $('opt-login').checked = cfg.prefs.launchAtLogin;
-    applyLang(); renderActivity(); renderStatus(); renderBadges(); renderSchedule();
+    applyLang(); renderActivity(); renderStatus(); renderBadges(); renderSchedule(); renderLicense();
     window.Charts.gauge($('gauge'), 0);
     const deep = (location.hash || '').replace('#', '');
     showView(TITLES[deep] ? deep : 'dashboard');

@@ -61,6 +61,25 @@ body{overflow:auto;background:radial-gradient(1200px 600px at 80% -10%,rgba(124,
 .actions-row{display:flex;gap:10px;flex-wrap:wrap}
 .note.info{background:var(--grad-soft);border:1px solid var(--border2);border-radius:var(--radius);padding:14px 16px;font-size:13px;color:var(--muted);line-height:1.6;margin-bottom:18px}
 .mode-note{font-size:11.5px;color:var(--dim);margin-top:8px}
+/* subscription + paywall */
+.plan-head{display:flex;align-items:flex-start;justify-content:space-between;gap:16px;margin-bottom:16px}
+.price b{font-family:var(--font-display);font-size:28px;background:var(--grad);-webkit-background-clip:text;background-clip:text;color:transparent}
+.price span{font-size:12px;color:var(--muted);margin-left:4px}
+.sub-status{display:flex;align-items:center;gap:12px;padding:14px 16px;border-radius:var(--radius);background:var(--s2);border:1px solid var(--border);margin-bottom:14px}
+.sub-status .ic{font-size:22px}
+.sub-status.ok{border-color:rgba(45,212,191,.4);background:rgba(45,212,191,.08)}
+.sub-status.trial{border-color:var(--border2);background:var(--grad-soft)}
+.sub-status.bad{border-color:rgba(240,86,110,.45);background:rgba(240,86,110,.10)}
+.sub-status .t{font-family:var(--font-display);font-weight:600;font-size:15px}
+.sub-status .d{font-size:12.5px;color:var(--muted)}
+.devcard{display:flex;gap:8px;align-items:center;margin-top:10px;font-size:11.5px;color:var(--dim)}
+.devcard select{background:var(--s2);border:1px solid var(--border);color:var(--text);border-radius:8px;padding:6px 8px}
+.note.warn{background:rgba(240,86,110,.10);border:1px solid rgba(240,86,110,.45);color:#f2c2cb}
+.btn.danger{color:var(--danger);border-color:rgba(240,86,110,.3)}
+.btn-lg{padding:13px 26px;font-size:15px}
+.paywall{position:fixed;inset:0;z-index:200;display:flex;align-items:center;justify-content:center;padding:30px;background:rgba(8,8,12,.82);backdrop-filter:blur(8px)}
+.paywall-box{max-width:440px;width:100%;text-align:center;display:flex;flex-direction:column;align-items:center;padding:34px}
+.paywall-box h2{font-size:24px}
 .foot{text-align:center;margin-top:26px;font-size:12px}
 .toast{position:fixed;bottom:22px;left:50%;transform:translateX(-50%) translateY(20px);background:var(--s3);border:1px solid var(--border2);border-radius:12px;padding:12px 20px;font-size:13px;opacity:0;pointer-events:none;transition:.3s;z-index:50}
 .toast.show{opacity:1;transform:translateX(-50%) translateY(0)}

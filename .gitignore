@@ -9,6 +9,10 @@ config.json
 metrics.json
 *.log
 
+# licensing server secrets & data (NEVER commit the private key)
+server/.keys/
+server/.data/
+
 # OS / editor
 .DS_Store
 Thumbs.db
