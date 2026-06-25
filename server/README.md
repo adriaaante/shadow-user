@@ -107,21 +107,26 @@ until when / cancelled can't be trusted to the client and can't be recomputed, s
 persist `email → {status, trialEndsAt, currentPeriodEnd, canceled, provider ids}` (+ sign-in codes
 + account tokens). **Card data is never stored here — the provider (T‑Bank/YooKassa) holds it.**
 
-This server ships with tier 1; upgrade only when scale demands it:
-1. **JSON file** (`server/.data/accounts.json`), written **atomically** (temp + rename, so a crash
-   can't corrupt it). Zero deps, zero cost — correct for a **single instance** at low/medium volume.
-2. **Embedded SQLite** (`better-sqlite3`) — still $0/one file, but transactional; for frequent writes.
-3. **Managed free-tier DB** (Cloudflare D1/KV, Turso, Supabase, Upstash) — only if you run **multiple
-   instances** or go serverless (a file can't be shared across instances).
+Storage is **embedded SQLite** (`server/store.js`) via Node's built-in **`node:sqlite`** — real
+transactions + WAL durability, **zero external dependencies** (no native module to compile on the
+host; requires **Node ≥ 22.5**). One file: `server/.data/driftly.db`. It prints a harmless
+`ExperimentalWarning` (the API is stable in Node 24+).
 
-To swap the store, replace `loadDb()`/`saveDb()` + the `db.{accounts,tokens,codes}` access in
-`index.js`; nothing else changes. There is no cheaper-than-this path that is still correct — a pure
-"no storage" design can't answer "is this email's subscription active?" securely.
+1. **Embedded SQLite (current)** — $0, one file, transactional, durable. Correct for a **single
+   instance** at low/medium volume.
+2. **Managed free-tier DB** (Cloudflare D1/KV, Turso, Supabase, Upstash) — only if you run **multiple
+   instances** or go serverless (one file can't be shared across instances).
+
+To swap the store, reimplement `server/store.js` (same `getAccount/putAccount/emailForToken/
+putToken/getCode/putCode/delCode` interface); nothing else changes. There is no cheaper path that
+is still correct — a "no storage" design can't answer "is this email's subscription active?" securely.
 
 ## Security / production notes
 - **Never commit `server/.keys/`** (the private key) — it's gitignored. Only the public key
   is committed.
 - Replace the email-only sign-in with real auth (magic link / OTP) before launch.
-- Run behind HTTPS; restrict CORS to your domains; move the JSON store to a real DB.
+- Run behind HTTPS; restrict CORS to your domains; move to a managed DB only if multi-instance.
+- Back up `server/.data/driftly.db` (it holds all subscription state); on graceful shutdown SQLite
+  checkpoints the WAL automatically.
 - Verify webhook signatures (T‑Bank `Token`; for YooKassa, allowlist IPs + re-fetch the
   payment via the API).

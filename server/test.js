@@ -30,6 +30,8 @@ async function signIn(email) {
   const v = await api('POST', '/v1/auth/verify', null, { email: String(email).toLowerCase(), code: q.json.devCode });
   return v.json;
 }
+// push an account's trial end into the past, directly in the store (simulates time passing)
+function expireTrial(email) { const a = srv.store.getAccount(email); a.trialEndsAt = Date.now() - 1000; srv.store.putAccount(a); }
 
 (async () => {
   await new Promise((res) => srv.server.listen(process.env.PORT, res));
@@ -65,7 +67,7 @@ async function signIn(email) {
   ok('tampered token rejected', verifyNode.verify(bad, PUB) === null);
 
   // simulate the trial ending, then the auto-charge succeeds → active
-  srv.db.accounts['alice@example.com'].trialEndsAt = Date.now() - 1000; srv.saveDb();
+  expireTrial('alice@example.com');
   r = await api('GET', '/v1/status', tokA);
   ok('expired trial before charge → blocked(expired)', r.json.entitlement.blocked === true);
   r = await api('POST', '/v1/billing/retry', tokA); // drives chargeRecurring (mock: success)
@@ -74,7 +76,7 @@ async function signIn(email) {
   // ---- failure path: insufficient funds → past_due (blocked) ----
   const tokB = (await signIn('bob@example.com')).accountToken;
   await api('POST', '/v1/billing/start-trial', tokB, { card: 'tok_insufficient' });
-  srv.db.accounts['bob@example.com'].trialEndsAt = Date.now() - 1000; srv.saveDb();
+  expireTrial('bob@example.com');
   r = await api('POST', '/v1/billing/retry', tokB); // charge fails
   ok('failed charge → past_due', r.json.account.status === 'past_due');
   ok('past_due → blocked + needsPayment (необходимо оплатить)', r.json.entitlement.blocked === true && r.json.entitlement.needsPayment === true);
@@ -101,12 +103,19 @@ async function signIn(email) {
   r = await api('POST', '/v1/billing/resume', tokC);
   ok('resume clears cancellation', r.json.account.canceled === false);
   await api('POST', '/v1/billing/cancel', tokC);
-  srv.db.accounts['carol@example.com'].trialEndsAt = Date.now() - 1000; srv.saveDb();
+  expireTrial('carol@example.com');
   r = await api('POST', '/v1/billing/retry', tokC);
   ok('cancelled trial ends → expired & blocked, NOT past_due', r.json.account.status === 'expired' && r.json.entitlement.blocked === true && r.json.entitlement.needsPayment === false);
 
   // unauthorized
   r = await api('GET', '/v1/status', 'badtoken'); ok('bad token → 401', r.code === 401);
+
+  // durability: billing state survives a restart (close + reopen the SQLite file)
+  r = await api('GET', '/v1/status', tokA); // alice is active from earlier
+  srv.store.close();
+  srv.store.init(path.join(__dirname, '.data', 'driftly.db'));
+  const persisted = srv.store.getAccount('alice@example.com');
+  ok('SQLite persists across restart', !!persisted && persisted.status === 'active' && persisted.email === 'alice@example.com');
 
   console.log(out.join('\n'));
   console.log(`\nRESULT: ${pass} passed, ${fail} failed`);
