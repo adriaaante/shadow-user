@@ -1,0 +1,19 @@
+{
+  "name": "Driftly — эмулятор активности и измерение",
+  "short_name": "Driftly",
+  "description": "Driftly генерирует гуманизированную активность по расписанию и измеряет её. Бесплатно, локально, без сбора данных.",
+  "start_url": "./",
+  "scope": "./",
+  "display": "standalone",
+  "theme_color": "#08080c",
+  "background_color": "#08080c",
+  "lang": "ru",
+  "icons": [
+    {
+      "src": "assets/img/logo.svg",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "any maskable"
+    }
+  ]
+}

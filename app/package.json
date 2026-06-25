@@ -1,0 +1,37 @@
+{
+  "name": "driftly",
+  "productName": "Driftly",
+  "version": "1.0.0",
+  "description": "Keep your session alive — and measure it. Synthetic activity generator + activity benchmark. Local-only, no telemetry.",
+  "author": "The Driftly Owner",
+  "license": "SEE LICENSE IN ../LICENSE",
+  "private": true,
+  "main": "src/main/index.js",
+  "scripts": {
+    "start": "electron .",
+    "dev": "electron . --dev",
+    "dist": "electron-builder",
+    "dist:win": "electron-builder --win",
+    "dist:mac": "electron-builder --mac",
+    "dist:linux": "electron-builder --linux",
+    "check": "node -e \"['src/main/index.js','src/main/store.js','src/main/input-backend.js','src/main/generator.js','src/main/monitor.js','src/main/metrics.js','src/main/scheduler.js','src/preload/preload.js'].forEach(f=>require('child_process').execSync('node --check '+f,{stdio:'inherit'}));console.log('syntax ok')\""
+  },
+  "devDependencies": {
+    "electron": "^31.0.0",
+    "electron-builder": "^24.13.3"
+  },
+  "optionalDependencies": {
+    "@nut-tree-fork/nut-js": "^4.2.0",
+    "uiohook-napi": "^1.5.4"
+  },
+  "build": {
+    "appId": "app.driftly.desktop",
+    "productName": "Driftly",
+    "directories": { "output": "release", "buildResources": "build" },
+    "files": ["src/**/*", "package.json"],
+    "win": { "target": ["nsis"], "icon": "build/icon.png" },
+    "mac": { "target": ["dmg"], "icon": "build/icon.png", "category": "public.app-category.utilities" },
+    "linux": { "target": ["AppImage"], "icon": "build/icon.png", "category": "Utility" },
+    "nsis": { "oneClick": false, "allowToChangeInstallationDirectory": true }
+  }
+}

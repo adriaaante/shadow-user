@@ -1,0 +1,33 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="630" viewBox="0 0 1200 630" role="img" aria-label="Driftly — keep your session alive and measure it">
+  <defs>
+    <linearGradient id="bg" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#0b0b12"/>
+      <stop offset="1" stop-color="#08080c"/>
+    </linearGradient>
+    <linearGradient id="g" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#7c5cff"/>
+      <stop offset="1" stop-color="#2dd4bf"/>
+    </linearGradient>
+    <linearGradient id="gt" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#7c5cff" stop-opacity=".5"/>
+      <stop offset="1" stop-color="#7c5cff" stop-opacity="0"/>
+    </linearGradient>
+    <radialGradient id="glow" cx="0.8" cy="0.2" r="0.6">
+      <stop offset="0" stop-color="#7c5cff" stop-opacity=".35"/>
+      <stop offset="1" stop-color="#7c5cff" stop-opacity="0"/>
+    </radialGradient>
+  </defs>
+  <rect width="1200" height="630" fill="url(#bg)"/>
+  <rect width="1200" height="630" fill="url(#glow)"/>
+  <!-- logo -->
+  <g transform="translate(96 96) scale(2.1)">
+    <path d="M14 14 L30 50 L33 36 L47 33 Z" fill="url(#gt)" transform="translate(-6 4)"/>
+    <path d="M14 14 L30 50 L33 36 L47 33 Z" fill="url(#g)" stroke="#f2f2f8" stroke-width="1.4" stroke-linejoin="round"/>
+    <circle cx="48" cy="16" r="3.4" fill="#2dd4bf"/>
+  </g>
+  <text x="232" y="168" font-family="'Space Grotesk',Inter,sans-serif" font-size="64" font-weight="700" fill="#f2f2f8">Driftly</text>
+  <text x="96" y="320" font-family="'Space Grotesk',Inter,sans-serif" font-size="72" font-weight="700" fill="#f2f2f8">Поддерживайте сессию</text>
+  <text x="96" y="404" font-family="'Space Grotesk',Inter,sans-serif" font-size="72" font-weight="700" fill="url(#g)">активной — и измеряйте её</text>
+  <text x="96" y="500" font-family="Inter,sans-serif" font-size="34" fill="rgba(242,242,248,.6)">Эмулятор активности · anti-idle · измерение · 100% локально</text>
+  <text x="96" y="566" font-family="Inter,sans-serif" font-size="28" fill="#2dd4bf">Windows · macOS · Linux · бесплатно</text>
+</svg>

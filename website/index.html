@@ -1,0 +1,464 @@
+<!DOCTYPE html>
+<html lang="ru" data-lang="ru">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Driftly — эмулятор активности, anti-idle и измерение | бесплатно</title>
+<meta name="description" content="Driftly — бесплатная программа активности для Windows, macOS и Linux. Гуманизированный эмулятор активности (anti-idle, shadow user) генерирует движения мыши и клики по расписанию, измеряет активность и сравнивает Shadow и Passive режимы. 100% локально, без сбора данных.">
+<meta name="keywords" content="программа активности, эмулятор активности, anti-idle, измерение активности, shadow user, keep computer active, мышь не засыпает, имитация активности, движение мыши">
+<meta name="robots" content="index,follow,max-image-preview:large">
+<meta name="theme-color" content="#08080c">
+<meta name="author" content="The Driftly Owner">
+<link rel="canonical" href="https://driftly.app/">
+
+<!-- Open Graph -->
+<meta property="og:type" content="website">
+<meta property="og:title" content="Driftly — эмулятор активности и измерение">
+<meta property="og:description" content="Поддерживайте рабочую сессию активной — и измеряйте её. Бесплатная программа активности (anti-idle / shadow user) для Windows, macOS и Linux. Локально, без сбора данных.">
+<meta property="og:image" content="https://driftly.app/assets/img/og.svg">
+<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="630">
+<meta property="og:url" content="https://driftly.app/">
+<meta property="og:site_name" content="Driftly">
+<meta property="og:locale" content="ru_RU">
+<meta property="og:locale:alternate" content="en_US">
+
+<!-- Twitter -->
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:title" content="Driftly — эмулятор активности и измерение">
+<meta name="twitter:description" content="Поддерживайте рабочую сессию активной — и измеряйте её. Бесплатно, локально, без сбора данных.">
+<meta name="twitter:image" content="https://driftly.app/assets/img/og.svg">
+
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Cdefs%3E%3ClinearGradient id='g' x1='0' y1='0' x2='1' y2='1'%3E%3Cstop offset='0' stop-color='%237c5cff'/%3E%3Cstop offset='1' stop-color='%232dd4bf'/%3E%3C/linearGradient%3E%3C/defs%3E%3Crect width='64' height='64' rx='14' fill='%2308080c'/%3E%3Cpath d='M16 14 L31 48 L34 35 L47 32 Z' fill='url(%23g)' stroke='%23f2f2f8' stroke-width='1.4' stroke-linejoin='round'/%3E%3Ccircle cx='48' cy='17' r='3' fill='%232dd4bf'/%3E%3C/svg%3E">
+<link rel="apple-touch-icon" href="assets/img/logo.svg">
+<link rel="manifest" href="site.webmanifest">
+
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Space+Grotesk:wght@500;600;700&display=swap">
+
+<link rel="stylesheet" href="assets/css/site.css">
+
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "SoftwareApplication",
+  "name": "Driftly",
+  "applicationCategory": "UtilitiesApplication",
+  "operatingSystem": "Windows, macOS, Linux",
+  "softwareVersion": "1.0",
+  "description": "Driftly генерирует гуманизированную синтетическую активность (движение мыши, клики, прокрутка) по расписанию, чтобы рабочая станция не считалась простаивающей, и измеряет активность, сравнивая режимы Shadow и Passive, а также синтетические и реальные события. Бесплатно, локально, без сбора данных.",
+  "url": "https://driftly.app/",
+  "image": "https://driftly.app/assets/img/og.svg",
+  "downloadUrl": "https://github.com/adriaaante/shadow-user/releases/latest",
+  "license": "https://driftly.app/#license",
+  "offers": {
+    "@type": "Offer",
+    "price": "0",
+    "priceCurrency": "RUB"
+  }
+}
+</script>
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "FAQPage",
+  "mainEntity": [
+    {"@type":"Question","name":"Это бесплатно?","acceptedAnswer":{"@type":"Answer","text":"Да. Driftly можно скачать и использовать бесплатно. Все права принадлежат владельцу; это проприетарное ПО, но плата за загрузку и использование не взимается."}},
+    {"@type":"Question","name":"Собираете ли вы данные?","acceptedAnswer":{"@type":"Answer","text":"Нет. Driftly не имеет аккаунтов, аналитики, телеметрии и не делает сетевых запросов к нам. Все настройки и метрики хранятся локально на вашем компьютере."}},
+    {"@type":"Question","name":"На каких операционных системах работает Driftly?","acceptedAnswer":{"@type":"Answer","text":"Driftly — кроссплатформенное настольное приложение на Electron и работает на Windows, macOS и Linux."}},
+    {"@type":"Question","name":"Это безопасно и ответственно?","acceptedAnswer":{"@type":"Answer","text":"Driftly предназначен для автоматизации, anti-idle и тестирования на системах, которыми вы владеете или которые вам разрешено использовать. Нажатия клавиш по умолчанию отключены и используют безопасные клавиши; есть режим паузы при реальной активности."}},
+    {"@type":"Question","name":"Чем измерение отличается от генерации активности?","acceptedAnswer":{"@type":"Answer","text":"Генерация создаёт синтетические события (движения, клики, прокрутку). Измерение непрерывно считает события и вычисляет оценку активности, разделяя синтетические и реальные события и сравнивая режимы Shadow и Passive."}},
+    {"@type":"Question","name":"Можно ли сравнить Driftly с другой программой измерения?","acceptedAnswer":{"@type":"Answer","text":"Да. Driftly производит контролируемую известную активность и экспортирует свои метрики в CSV/JSON, чтобы вы могли сопоставить их с результатами внешней программы измерения активности."}}
+  ]
+}
+</script>
+<script defer src="assets/js/site.js"></script>
+</head>
+<body>
+<div class="grain" aria-hidden="true"></div>
+
+<!-- ===== NAV ===== -->
+<header class="nav" id="top">
+  <div class="wrap nav-inner">
+    <a class="brand" href="#top" aria-label="Driftly — на главную">
+      <svg class="brand-mark" viewBox="0 0 64 64" aria-hidden="true">
+        <defs>
+          <linearGradient id="nmg" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#7c5cff"/><stop offset="1" stop-color="#2dd4bf"/></linearGradient>
+          <linearGradient id="nmt" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#7c5cff" stop-opacity=".5"/><stop offset="1" stop-color="#7c5cff" stop-opacity="0"/></linearGradient>
+        </defs>
+        <path d="M14 14 L30 50 L33 36 L47 33 Z" fill="url(#nmt)" transform="translate(-5 4)"/>
+        <path d="M14 14 L30 50 L33 36 L47 33 Z" fill="url(#nmg)" stroke="#f2f2f8" stroke-width="1.4" stroke-linejoin="round"/>
+        <circle cx="48" cy="16" r="3.2" fill="#2dd4bf"/>
+      </svg>
+      <span class="brand-name">Driftly</span>
+    </a>
+
+    <nav class="nav-links" id="navLinks" aria-label="Основная навигация">
+      <a href="#features" data-ru="Возможности" data-en="Features">Возможности</a>
+      <a href="#how" data-ru="Как работает" data-en="How it works">Как работает</a>
+      <a href="#levels" data-ru="Уровни" data-en="Levels">Уровни</a>
+      <a href="#compare" data-ru="Сравнение" data-en="Compare">Сравнение</a>
+      <a href="#privacy" data-ru="Приватность" data-en="Privacy">Приватность</a>
+      <a href="#faq" data-ru="FAQ" data-en="FAQ">FAQ</a>
+    </nav>
+
+    <div class="nav-actions">
+      <div class="lang-toggle" role="group" aria-label="Язык / Language">
+        <button type="button" data-lang-btn="ru" class="active" aria-pressed="true">RU</button>
+        <button type="button" data-lang-btn="en" aria-pressed="false">EN</button>
+      </div>
+      <a class="btn btn-primary nav-dl" href="#download" data-ru="Скачать" data-en="Download">Скачать</a>
+      <button class="hamburger" id="hamburger" aria-label="Меню" aria-expanded="false" aria-controls="navLinks">
+        <span></span><span></span><span></span>
+      </button>
+    </div>
+  </div>
+</header>
+<div class="nav-scrim" id="navScrim" hidden></div>
+
+<main>
+
+<!-- ===== HERO ===== -->
+<section class="hero">
+  <div class="wrap hero-grid">
+    <div class="hero-copy reveal">
+      <span class="pill" data-ru="Эмулятор активности · anti-idle · измерение" data-en="Activity emulator · anti-idle · measurement">Эмулятор активности · anti-idle · измерение</span>
+      <h1 data-ru="Поддерживайте рабочую сессию активной — и измеряйте её." data-en="Keep your session alive — and measure it.">Поддерживайте рабочую сессию активной — и измеряйте её.</h1>
+      <p class="lead" data-ru="Driftly — небольшое бесплатное настольное приложение, которое генерирует гуманизированную активность по расписанию, чтобы компьютер не считался простаивающим, и непрерывно измеряет её, сравнивая режимы Shadow и Passive." data-en="Driftly is a small, free desktop app that generates humanized activity on a schedule so your computer never registers as idle — and continuously measures it, comparing Shadow and Passive modes.">Driftly — небольшое бесплатное настольное приложение, которое генерирует гуманизированную активность по расписанию, чтобы компьютер не считался простаивающим, и непрерывно измеряет её, сравнивая режимы Shadow и Passive.</p>
+      <div class="hero-cta">
+        <a class="btn btn-primary btn-lg" href="#download" data-ru="Скачать бесплатно" data-en="Download free">Скачать бесплатно</a>
+        <a class="btn btn-ghost btn-lg" href="#how" data-ru="Как это работает" data-en="How it works">Как это работает</a>
+      </div>
+      <p class="trustline">
+        <span data-ru="бесплатно" data-en="free">бесплатно</span> ·
+        <span data-ru="локально" data-en="local">локально</span> ·
+        <span data-ru="без сбора данных" data-en="no data collection">без сбора данных</span>
+      </p>
+    </div>
+
+    <div class="hero-demo reveal" aria-hidden="false">
+      <div class="appwin" role="img" aria-label="Анимированная демонстрация: курсор плавно дрейфует и кликает, а датчик активности и график Shadow vs Passive обновляются в реальном времени.">
+        <div class="appwin-bar">
+          <span class="dot dot-r"></span><span class="dot dot-y"></span><span class="dot dot-g"></span>
+          <span class="appwin-title">Driftly</span>
+          <span class="appwin-live"><i></i><span data-ru="генерация" data-en="generating">генерация</span></span>
+        </div>
+        <div class="appwin-body">
+          <canvas id="demoCanvas" width="520" height="300"></canvas>
+        </div>
+      </div>
+      <div class="demo-glow" aria-hidden="true"></div>
+    </div>
+  </div>
+</section>
+
+<!-- ===== FEATURES ===== -->
+<section id="features" class="section">
+  <div class="wrap">
+    <header class="section-head reveal">
+      <span class="eyebrow" data-ru="Возможности" data-en="Features">Возможности</span>
+      <h2 data-ru="Всё, что нужно, чтобы оставаться активным — и доказать это" data-en="Everything to stay active — and prove it">Всё, что нужно, чтобы оставаться активным — и доказать это</h2>
+    </header>
+    <div class="grid cards-6">
+      <article class="card reveal">
+        <div class="ic ic-brand" aria-hidden="true">↗</div>
+        <h3 data-ru="Синтетическая активность" data-en="Synthetic activity">Синтетическая активность</h3>
+        <p data-ru="Гуманизированные движения мыши, клики, прокрутка и опциональные безопасные нажатия клавиш — с плавными траекториями и микро-джиттером." data-en="Humanized mouse movement, clicks, scroll and optional safe keystrokes — eased paths with micro-jitter.">Гуманизированные движения мыши, клики, прокрутка и опциональные безопасные нажатия клавиш — с плавными траекториями и микро-джиттером.</p>
+      </article>
+      <article class="card reveal">
+        <div class="ic ic-accent" aria-hidden="true">⚡</div>
+        <h3 data-ru="Уровни активности" data-en="Activity levels">Уровни активности</h3>
+        <p data-ru="Gentle, Balanced, Energetic или своя интенсивность 1–100. Подбирайте темп под задачу." data-en="Gentle, Balanced, Energetic or a custom 1–100 intensity. Tune the pace to your task.">Gentle, Balanced, Energetic или своя интенсивность 1–100. Подбирайте темп под задачу.</p>
+      </article>
+      <article class="card reveal">
+        <div class="ic ic-brand" aria-hidden="true">🗓</div>
+        <h3 data-ru="Расписание" data-en="Schedule">Расписание</h3>
+        <p data-ru="Рабочие часы, дни недели и несколько диапазонов времени. Опциональная пауза при реальной активности — чтобы не мешать вам." data-en="Working hours, weekdays and multiple time ranges. Optional pause on real activity so it never fights you.">Рабочие часы, дни недели и несколько диапазонов времени. Опциональная пауза при реальной активности — чтобы не мешать вам.</p>
+      </article>
+      <article class="card reveal">
+        <div class="ic ic-accent" aria-hidden="true">📊</div>
+        <h3 data-ru="Измерение и сравнение" data-en="Measure & compare">Измерение и сравнение</h3>
+        <p data-ru="Shadow против Passive, синтетические против реальных событий. Поминутная оценка активности в реальном времени." data-en="Shadow vs Passive, synthetic vs real events. Per-minute activity scoring in real time.">Shadow против Passive, синтетические против реальных событий. Поминутная оценка активности в реальном времени.</p>
+      </article>
+      <article class="card reveal">
+        <div class="ic ic-brand" aria-hidden="true">⤓</div>
+        <h3 data-ru="Экспорт CSV / JSON" data-en="Export CSV / JSON">Экспорт CSV / JSON</h3>
+        <p data-ru="Выгружайте метрики, чтобы сравнить Driftly с внешней программой измерения активности." data-en="Export metrics to benchmark Driftly against an external activity-measuring program.">Выгружайте метрики, чтобы сравнить Driftly с внешней программой измерения активности.</p>
+      </article>
+      <article class="card reveal">
+        <div class="ic ic-accent" aria-hidden="true">🔒</div>
+        <h3 data-ru="100% локально" data-en="100% local">100% локально</h3>
+        <p data-ru="Без аккаунтов, телеметрии и сбора данных. Всё хранится только на вашем компьютере." data-en="No accounts, no telemetry, no data collection. Everything stays on your machine.">Без аккаунтов, телеметрии и сбора данных. Всё хранится только на вашем компьютере.</p>
+      </article>
+    </div>
+  </div>
+</section>
+
+<!-- ===== HOW ===== -->
+<section id="how" class="section section-alt">
+  <div class="wrap">
+    <header class="section-head reveal">
+      <span class="eyebrow" data-ru="Как работает" data-en="How it works">Как работает</span>
+      <h2 data-ru="Три шага — от запуска до сравнения" data-en="Three steps — from launch to comparison">Три шага — от запуска до сравнения</h2>
+    </header>
+    <ol class="steps">
+      <li class="step reveal">
+        <span class="step-n">1</span>
+        <h3 data-ru="Скачайте и запустите" data-en="Download and run">Скачайте и запустите</h3>
+        <p data-ru="Установите Driftly на Windows, macOS или Linux. Приложение запускается даже без нативных модулей — в режиме симуляции." data-en="Install Driftly on Windows, macOS or Linux. It runs even without native modules — in simulation mode.">Установите Driftly на Windows, macOS или Linux. Приложение запускается даже без нативных модулей — в режиме симуляции.</p>
+      </li>
+      <li class="step reveal">
+        <span class="step-n">2</span>
+        <h3 data-ru="Настройте уровень и расписание" data-en="Set level and schedule">Настройте уровень и расписание</h3>
+        <p data-ru="Выберите уровень активности, рабочие часы, дни недели и диапазоны времени. При желании включите паузу на реальной активности." data-en="Choose an activity level, working hours, weekdays and time ranges. Optionally enable pause on real activity.">Выберите уровень активности, рабочие часы, дни недели и диапазоны времени. При желании включите паузу на реальной активности.</p>
+      </li>
+      <li class="step reveal">
+        <span class="step-n">3</span>
+        <h3 data-ru="Измеряйте и сравнивайте" data-en="Measure and compare">Измеряйте и сравнивайте</h3>
+        <p data-ru="Наблюдайте поминутную активность, сравнивайте Shadow и Passive и экспортируйте метрики в CSV/JSON для бенчмарка против другой программы." data-en="Watch per-minute activity, compare Shadow and Passive, and export metrics to CSV/JSON to benchmark against another tool.">Наблюдайте поминутную активность, сравнивайте Shadow и Passive и экспортируйте метрики в CSV/JSON для бенчмарка против другой программы.</p>
+      </li>
+    </ol>
+  </div>
+</section>
+
+<!-- ===== LEVELS ===== -->
+<section id="levels" class="section">
+  <div class="wrap">
+    <header class="section-head reveal">
+      <span class="eyebrow" data-ru="Уровни активности" data-en="Activity levels">Уровни активности</span>
+      <h2 data-ru="От лёгких касаний до энергичной работы" data-en="From gentle nudges to energetic work">От лёгких касаний до энергичной работы</h2>
+      <p class="section-sub" data-ru="Значения — приблизительные показатели в минуту; все движения гуманизированы (плавные траектории, джиттер, случайные интервалы)." data-en="Values are approximate per-minute rates; all movement is humanized (eased paths, jitter, randomized intervals).">Значения — приблизительные показатели в минуту; все движения гуманизированы (плавные траектории, джиттер, случайные интервалы).</p>
+    </header>
+    <div class="grid cards-4">
+      <article class="level-card reveal">
+        <h3>Gentle</h3>
+        <p class="level-tag" data-ru="небольшие плавные касания" data-en="small eased nudges">небольшие плавные касания</p>
+        <ul class="level-rates">
+          <li><b>~6</b><span data-ru="движений/мин" data-en="moves/min">движений/мин</span></li>
+          <li><b>~0.5</b><span data-ru="кликов/мин" data-en="clicks/min">кликов/мин</span></li>
+          <li><b>~1</b><span data-ru="прокруток/мин" data-en="scrolls/min">прокруток/мин</span></li>
+        </ul>
+        <div class="level-meter"><i style="width:18%"></i></div>
+      </article>
+      <article class="level-card reveal featured">
+        <span class="level-badge" data-ru="по умолчанию" data-en="default">по умолчанию</span>
+        <h3>Balanced</h3>
+        <p class="level-tag" data-ru="средние плавные траектории" data-en="medium eased paths">средние плавные траектории</p>
+        <ul class="level-rates">
+          <li><b>~18</b><span data-ru="движений/мин" data-en="moves/min">движений/мин</span></li>
+          <li><b>~2</b><span data-ru="кликов/мин" data-en="clicks/min">кликов/мин</span></li>
+          <li><b>~3</b><span data-ru="прокруток/мин" data-en="scrolls/min">прокруток/мин</span></li>
+        </ul>
+        <div class="level-meter"><i style="width:50%"></i></div>
+      </article>
+      <article class="level-card reveal">
+        <h3>Energetic</h3>
+        <p class="level-tag" data-ru="более крупные траектории" data-en="larger eased paths">более крупные траектории</p>
+        <ul class="level-rates">
+          <li><b>~40</b><span data-ru="движений/мин" data-en="moves/min">движений/мин</span></li>
+          <li><b>~5</b><span data-ru="кликов/мин" data-en="clicks/min">кликов/мин</span></li>
+          <li><b>~6</b><span data-ru="прокруток/мин" data-en="scrolls/min">прокруток/мин</span></li>
+        </ul>
+        <div class="level-meter"><i style="width:88%"></i></div>
+      </article>
+      <article class="level-card reveal">
+        <h3>Custom</h3>
+        <p class="level-tag" data-ru="интенсивность 1–100" data-en="intensity 1–100">интенсивность 1–100</p>
+        <ul class="level-rates">
+          <li><b>1–100</b><span data-ru="ваша интенсивность" data-en="your intensity">ваша интенсивность</span></li>
+          <li><b>↔</b><span data-ru="маппинг на диапазоны" data-en="mapped to ranges">маппинг на диапазоны</span></li>
+          <li><b>✓</b><span data-ru="полный контроль" data-en="full control">полный контроль</span></li>
+        </ul>
+        <div class="level-meter level-meter-custom"><i style="width:66%"></i></div>
+      </article>
+    </div>
+  </div>
+</section>
+
+<!-- ===== COMPARE ===== -->
+<section id="compare" class="section section-alt">
+  <div class="wrap compare-grid">
+    <div class="reveal">
+      <span class="eyebrow" data-ru="Измерение и сравнение" data-en="Measure & compare">Измерение и сравнение</span>
+      <h2 data-ru="Не просто эмулятор — измеритель" data-en="Not just an emulator — a measurer">Не просто эмулятор — измеритель</h2>
+      <p class="section-sub" data-ru="Driftly непрерывно измеряет активность и сравнивает её двумя способами." data-en="Driftly continuously measures activity and compares it two ways.">Driftly непрерывно измеряет активность и сравнивает её двумя способами.</p>
+      <ul class="compare-list">
+        <li>
+          <b data-ru="Shadow против Passive" data-en="Shadow vs Passive">Shadow против Passive</b>
+          <span data-ru="В режиме Shadow Driftly генерирует активность; в Passive — только наблюдает за реальным человеком. Каждая поминутная корзина помечается, что позволяет сравнить активность «с Driftly» и «без него»." data-en="In Shadow mode Driftly generates activity; in Passive it only watches the real human. Each per-minute bucket is tagged so you can compare activity 'with Driftly' vs 'human alone'.">В режиме Shadow Driftly генерирует активность; в Passive — только наблюдает за реальным человеком. Каждая поминутная корзина помечается, что позволяет сравнить активность «с Driftly» и «без него».</span>
+        </li>
+        <li>
+          <b data-ru="Синтетические против реальных" data-en="Synthetic vs Real">Синтетические против реальных</b>
+          <span data-ru="Перед инъекцией события генератор оставляет короткоживущий «отпечаток». Монитор сопоставляет события хука: совпало — синтетическое, иначе — реальное. Так Driftly различает свой вывод и ввод человека." data-en="Before injecting an event the generator leaves a short-lived fingerprint. The monitor matches hook events: a match is synthetic, otherwise real. That is how Driftly tells its output from the human's input.">Перед инъекцией события генератор оставляет короткоживущий «отпечаток». Монитор сопоставляет события хука: совпало — синтетическое, иначе — реальное. Так Driftly различает свой вывод и ввод человека.</span>
+        </li>
+        <li>
+          <b data-ru="Экспорт для бенчмарка" data-en="Export to benchmark">Экспорт для бенчмарка</b>
+          <span data-ru="Driftly производит контролируемую известную активность и экспортирует метрики в CSV/JSON — сопоставьте их с результатами внешней программы измерения активности." data-en="Driftly produces controlled, known activity and exports metrics to CSV/JSON — compare them against the results of an external activity-measuring program.">Driftly производит контролируемую известную активность и экспортирует метрики в CSV/JSON — сопоставьте их с результатами внешней программы измерения активности.</span>
+        </li>
+      </ul>
+    </div>
+    <div class="compare-chart reveal" aria-hidden="true">
+      <div class="chart-head">
+        <span class="legend"><i class="lg-brand"></i><span>Shadow</span></span>
+        <span class="legend"><i class="lg-dim"></i><span>Passive</span></span>
+      </div>
+      <svg viewBox="0 0 320 200" class="chart-svg" role="img" aria-label="Стилизованный график: активность в режиме Shadow выше, чем в Passive.">
+        <g stroke="rgba(255,255,255,.06)" stroke-width="1">
+          <line x1="0" y1="50" x2="320" y2="50"/>
+          <line x1="0" y1="100" x2="320" y2="100"/>
+          <line x1="0" y1="150" x2="320" y2="150"/>
+        </g>
+        <g>
+          <rect x="14"  y="70"  width="20" height="120" rx="5" fill="url(#cbar)"/>
+          <rect x="58"  y="48"  width="20" height="142" rx="5" fill="url(#cbar)"/>
+          <rect x="102" y="86"  width="20" height="104" rx="5" fill="url(#cbar)"/>
+          <rect x="146" y="40"  width="20" height="150" rx="5" fill="url(#cbar)"/>
+          <rect x="190" y="64"  width="20" height="126" rx="5" fill="url(#cbar)"/>
+          <rect x="234" y="54"  width="20" height="136" rx="5" fill="url(#cbar)"/>
+          <rect x="278" y="78"  width="20" height="112" rx="5" fill="url(#cbar)"/>
+        </g>
+        <g fill="rgba(242,242,248,.22)">
+          <rect x="20"  y="150" width="8" height="40" rx="3"/>
+          <rect x="64"  y="158" width="8" height="32" rx="3"/>
+          <rect x="108" y="146" width="8" height="44" rx="3"/>
+          <rect x="152" y="162" width="8" height="28" rx="3"/>
+          <rect x="196" y="152" width="8" height="38" rx="3"/>
+          <rect x="240" y="156" width="8" height="34" rx="3"/>
+          <rect x="284" y="150" width="8" height="40" rx="3"/>
+        </g>
+        <defs>
+          <linearGradient id="cbar" x1="0" y1="0" x2="0" y2="1">
+            <stop offset="0" stop-color="#9d86ff"/>
+            <stop offset="1" stop-color="#2dd4bf"/>
+          </linearGradient>
+        </defs>
+      </svg>
+      <p class="chart-cap" data-ru="Пример: активность заметно выше, когда Driftly работает (Shadow)." data-en="Example: activity is clearly higher while Driftly runs (Shadow).">Пример: активность заметно выше, когда Driftly работает (Shadow).</p>
+    </div>
+  </div>
+</section>
+
+<!-- ===== PRIVACY ===== -->
+<section id="privacy" class="section">
+  <div class="wrap privacy-wrap reveal">
+    <span class="eyebrow" data-ru="Приватность" data-en="Privacy">Приватность</span>
+    <h2 class="privacy-head" data-ru="Никакого сбора данных. Всё хранится локально." data-en="No data collection. Everything stays local.">Никакого сбора данных. Всё хранится локально.</h2>
+    <div class="grid cards-4 privacy-cards">
+      <div class="pcard">
+        <h3 data-ru="Мы собираем — ничего" data-en="We collect — nothing">Мы собираем — ничего</h3>
+        <p data-ru="Нет аккаунтов, регистрации, аналитики, телеметрии и отчётов о сбоях. Никаких сетевых запросов к нам." data-en="No accounts, sign-up, analytics, telemetry or crash reporting. No network calls to us.">Нет аккаунтов, регистрации, аналитики, телеметрии и отчётов о сбоях. Никаких сетевых запросов к нам.</p>
+      </div>
+      <div class="pcard">
+        <h3 data-ru="Данные остаются у вас" data-en="Data stays with you">Данные остаются у вас</h3>
+        <p data-ru="config.json и metrics.json лежат в стандартной папке приложения вашей ОС и никогда не выгружаются. Удалите их в любой момент." data-en="config.json and metrics.json live in your OS app-data folder and are never uploaded. Delete them anytime.">config.json и metrics.json лежат в стандартной папке приложения вашей ОС и никогда не выгружаются. Удалите их в любой момент.</p>
+      </div>
+      <div class="pcard">
+        <h3 data-ru="Только счётчики, не контент" data-en="Counts, not content">Только счётчики, не контент</h3>
+        <p data-ru="Driftly считает события (движение, клики, прокрутка, клавиши) для оценки активности. Содержимое ввода не логируется — никогда." data-en="Driftly counts events to compute activity scores. The content of what you type is never logged.">Driftly считает события (движение, клики, прокрутка, клавиши) для оценки активности. Содержимое ввода не логируется — никогда.</p>
+      </div>
+      <div class="pcard">
+        <h3 data-ru="Без третьих сторон" data-en="No third parties">Без третьих сторон</h3>
+        <p data-ru="Driftly не встраивает сторонние трекеры и не передаёт данные третьим лицам. Сайт статический и не ставит трекинг-куки." data-en="No third-party trackers and no data sent to third parties. The site is static and sets no tracking cookies.">Driftly не встраивает сторонние трекеры и не передаёт данные третьим лицам. Сайт статический и не ставит трекинг-куки.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ===== DOWNLOAD ===== -->
+<section id="download" class="section section-alt">
+  <div class="wrap">
+    <header class="section-head reveal">
+      <span class="eyebrow" data-ru="Загрузка" data-en="Download">Загрузка</span>
+      <h2 data-ru="Скачайте Driftly — бесплатно" data-en="Download Driftly — free">Скачайте Driftly — бесплатно</h2>
+      <p class="section-sub" data-ru="Доступно для Windows, macOS и Linux. Установщики публикуются в GitHub Releases." data-en="Available for Windows, macOS and Linux. Installers are published on GitHub Releases.">Доступно для Windows, macOS и Linux. Установщики публикуются в GitHub Releases.</p>
+    </header>
+    <div class="grid cards-3 dl-grid">
+      <article class="dl-card reveal">
+        <div class="os-ic" aria-hidden="true">⊞</div>
+        <h3>Windows</h3>
+        <p data-ru="Установщик .exe (10/11)" data-en=".exe installer (10/11)">Установщик .exe (10/11)</p>
+        <a class="btn btn-primary btn-block" href="https://github.com/adriaaante/shadow-user/releases/latest" rel="noopener" data-ru="Скачать для Windows" data-en="Download for Windows">Скачать для Windows</a>
+      </article>
+      <article class="dl-card reveal">
+        <div class="os-ic" aria-hidden="true"></div>
+        <h3>macOS</h3>
+        <p data-ru="Образ .dmg (Intel / Apple Silicon)" data-en=".dmg image (Intel / Apple Silicon)">Образ .dmg (Intel / Apple Silicon)</p>
+        <a class="btn btn-primary btn-block" href="https://github.com/adriaaante/shadow-user/releases/latest" rel="noopener" data-ru="Скачать для macOS" data-en="Download for macOS">Скачать для macOS</a>
+      </article>
+      <article class="dl-card reveal">
+        <div class="os-ic" aria-hidden="true">🐧</div>
+        <h3>Linux</h3>
+        <p data-ru="AppImage / .deb" data-en="AppImage / .deb">AppImage / .deb</p>
+        <a class="btn btn-primary btn-block" href="https://github.com/adriaaante/shadow-user/releases/latest" rel="noopener" data-ru="Скачать для Linux" data-en="Download for Linux">Скачать для Linux</a>
+      </article>
+    </div>
+    <p class="dl-note reveal" data-ru="Бесплатно. Все права принадлежат владельцу." data-en="Free. All rights reserved to the owner.">Бесплатно. Все права принадлежат владельцу.</p>
+  </div>
+</section>
+
+<!-- ===== FAQ ===== -->
+<section id="faq" class="section">
+  <div class="wrap faq-wrap">
+    <header class="section-head reveal">
+      <span class="eyebrow" data-ru="Вопросы" data-en="FAQ">Вопросы</span>
+      <h2 data-ru="Частые вопросы" data-en="Frequently asked questions">Частые вопросы</h2>
+    </header>
+    <div class="faq" id="faqList">
+      <details class="faq-item reveal">
+        <summary><span data-ru="Это бесплатно?" data-en="Is it free?">Это бесплатно?</span><span class="faq-icon" aria-hidden="true"></span></summary>
+        <div class="faq-a"><p data-ru="Да. Driftly можно скачать и использовать бесплатно. Все права принадлежат владельцу: это проприетарное ПО, но плата за загрузку и использование не взимается." data-en="Yes. Driftly is free to download and use. All rights are reserved to the owner: it is proprietary software, but there is no charge to download or use it.">Да. Driftly можно скачать и использовать бесплатно. Все права принадлежат владельцу: это проприетарное ПО, но плата за загрузку и использование не взимается.</p></div>
+      </details>
+      <details class="faq-item reveal">
+        <summary><span data-ru="Собираете ли вы данные?" data-en="Do you collect data?">Собираете ли вы данные?</span><span class="faq-icon" aria-hidden="true"></span></summary>
+        <div class="faq-a"><p data-ru="Нет. Нет аккаунтов, аналитики и телеметрии, нет сетевых запросов к нам. Настройки и метрики хранятся локально на вашем компьютере." data-en="No. No accounts, analytics or telemetry, and no network calls to us. Settings and metrics are stored locally on your computer.">Нет. Нет аккаунтов, аналитики и телеметрии, нет сетевых запросов к нам. Настройки и метрики хранятся локально на вашем компьютере.</p></div>
+      </details>
+      <details class="faq-item reveal">
+        <summary><span data-ru="На каких ОС работает?" data-en="Which OSes are supported?">На каких ОС работает?</span><span class="faq-icon" aria-hidden="true"></span></summary>
+        <div class="faq-a"><p data-ru="Driftly — кроссплатформенное приложение на Electron: Windows, macOS и Linux." data-en="Driftly is a cross-platform Electron app: Windows, macOS and Linux.">Driftly — кроссплатформенное приложение на Electron: Windows, macOS и Linux.</p></div>
+      </details>
+      <details class="faq-item reveal">
+        <summary><span data-ru="Это безопасно и ответственно?" data-en="Is it safe and responsible?">Это безопасно и ответственно?</span><span class="faq-icon" aria-hidden="true"></span></summary>
+        <div class="faq-a"><p data-ru="Driftly предназначен для автоматизации, anti-idle и тестирования на системах, которыми вы владеете или которые вам разрешено использовать. Нажатия клавиш по умолчанию отключены и используют безопасные клавиши; есть пауза при реальной активности." data-en="Driftly is for automation, anti-idle and testing on systems you own or are authorized to use. Keystrokes are off by default and use safe keys; there is a pause-on-real-activity option.">Driftly предназначен для автоматизации, anti-idle и тестирования на системах, которыми вы владеете или которые вам разрешено использовать. Нажатия клавиш по умолчанию отключены и используют безопасные клавиши; есть пауза при реальной активности.</p></div>
+      </details>
+      <details class="faq-item reveal">
+        <summary><span data-ru="Чем измерение отличается от генерации?" data-en="How does measuring differ from generating?">Чем измерение отличается от генерации?</span><span class="faq-icon" aria-hidden="true"></span></summary>
+        <div class="faq-a"><p data-ru="Генерация создаёт синтетические события (движения, клики, прокрутку). Измерение непрерывно считает события и вычисляет оценку активности, разделяя синтетические и реальные события и сравнивая режимы Shadow и Passive." data-en="Generation creates synthetic events (moves, clicks, scroll). Measurement continuously counts events and computes an activity score, separating synthetic from real and comparing Shadow vs Passive.">Генерация создаёт синтетические события (движения, клики, прокрутку). Измерение непрерывно считает события и вычисляет оценку активности, разделяя синтетические и реальные события и сравнивая режимы Shadow и Passive.</p></div>
+      </details>
+      <details class="faq-item reveal">
+        <summary><span data-ru="Можно ли сравнить с другой программой?" data-en="Can I compare it to another program?">Можно ли сравнить с другой программой?</span><span class="faq-icon" aria-hidden="true"></span></summary>
+        <div class="faq-a"><p data-ru="Да. Driftly производит контролируемую известную активность и экспортирует метрики в CSV/JSON, чтобы вы сопоставили их с результатами внешней программы измерения активности." data-en="Yes. Driftly produces controlled, known activity and exports metrics to CSV/JSON so you can compare them against an external activity-measuring program.">Да. Driftly производит контролируемую известную активность и экспортирует метрики в CSV/JSON, чтобы вы сопоставили их с результатами внешней программы измерения активности.</p></div>
+      </details>
+    </div>
+  </div>
+</section>
+
+</main>
+
+<!-- ===== FOOTER ===== -->
+<footer class="footer" id="license">
+  <div class="wrap footer-inner">
+    <div class="footer-brand">
+      <a class="brand" href="#top" aria-label="Driftly — на главную">
+        <svg class="brand-mark" viewBox="0 0 64 64" aria-hidden="true">
+          <path d="M14 14 L30 50 L33 36 L47 33 Z" fill="url(#nmg)" stroke="#f2f2f8" stroke-width="1.4" stroke-linejoin="round"/>
+          <circle cx="48" cy="16" r="3.2" fill="#2dd4bf"/>
+        </svg>
+        <span class="brand-name">Driftly</span>
+      </a>
+      <p class="footer-tag" data-ru="Поддерживайте рабочую сессию активной — и измеряйте её." data-en="Keep your session alive — and measure it.">Поддерживайте рабочую сессию активной — и измеряйте её.</p>
+    </div>
+    <nav class="footer-links" aria-label="Footer">
+      <a href="#privacy" data-ru="Приватность" data-en="Privacy">Приватность</a>
+      <a href="#license" data-ru="Лицензия" data-en="License">Лицензия</a>
+      <a href="https://github.com/adriaaante/shadow-user" rel="noopener">GitHub</a>
+    </nav>
+  </div>
+  <div class="wrap footer-bottom">
+    <p class="footer-resp" data-ru="Ответственное использование: только для систем, которыми вы владеете или которые вам разрешено использовать." data-en="Responsible use: only on systems you own or are authorized to use.">Ответственное использование: только для систем, которыми вы владеете или которые вам разрешено использовать.</p>
+    <p class="footer-copy">© <span id="year">2026</span> Driftly. <span data-ru="Все права принадлежат владельцу." data-en="All rights reserved to the owner.">Все права принадлежат владельцу.</span></p>
+  </div>
+</footer>
+
+</body>
+</html>

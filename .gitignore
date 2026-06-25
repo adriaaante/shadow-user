@@ -1,0 +1,17 @@
+# dependencies & build output
+node_modules/
+app/node_modules/
+app/release/
+app/dist/
+
+# local runtime data (created at runtime, never committed)
+config.json
+metrics.json
+*.log
+
+# OS / editor
+.DS_Store
+Thumbs.db
+.vscode/
+.idea/
+*.tmp

@@ -1,0 +1,41 @@
+Driftly — Proprietary Software License
+Copyright (c) 2026 The Driftly Owner. All rights reserved.
+
+1. Ownership
+   Driftly, including its source code, design, name, logo, website and all related
+   materials in this repository (the "Software"), is owned exclusively by the copyright
+   holder (the "Owner"). All rights are reserved by the Owner.
+
+2. Grant of use
+   The Owner grants you a personal, non-exclusive, non-transferable, revocable license to
+   download, install and run unmodified copies of the Software, free of charge, for your
+   own use.
+
+3. Restrictions
+   You may NOT, without the Owner's prior written permission:
+   (a) sell, sublicense, rent, lease or otherwise commercially distribute the Software;
+   (b) modify, adapt, translate or create derivative works of the Software;
+   (c) reverse engineer, decompile or disassemble the Software except to the extent this
+       restriction is prohibited by applicable law;
+   (d) remove or alter any proprietary notices, the name or the logo.
+
+4. No data collection
+   The Software does not collect, transmit or sell user data. See PRIVACY.md.
+
+5. Responsible use
+   The Software is intended for automation, anti-idle and testing/benchmarking on systems
+   you own or are authorized to use. You are solely responsible for your use of the
+   Software and for compliance with all applicable policies and laws.
+
+6. No warranty
+   THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED,
+   INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR
+   PURPOSE AND NONINFRINGEMENT.
+
+7. Limitation of liability
+   IN NO EVENT SHALL THE OWNER BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY ARISING
+   FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+   SOFTWARE.
+
+8. Termination
+   This license terminates automatically if you breach any of its terms.

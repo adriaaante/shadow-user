@@ -1,0 +1,20 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" role="img" aria-label="Driftly logo">
+  <defs>
+    <linearGradient id="dg" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#7c5cff"/>
+      <stop offset="1" stop-color="#2dd4bf"/>
+    </linearGradient>
+    <linearGradient id="dgt" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#7c5cff" stop-opacity=".55"/>
+      <stop offset="1" stop-color="#7c5cff" stop-opacity="0"/>
+    </linearGradient>
+  </defs>
+  <!-- drifting shadow trail -->
+  <path d="M14 14 L30 50 L33 36 L47 33 Z" fill="url(#dgt)" transform="translate(-7 5)"/>
+  <path d="M14 14 L30 50 L33 36 L47 33 Z" fill="url(#dgt)" opacity=".55" transform="translate(-3.5 2.5)"/>
+  <!-- cursor arrow -->
+  <path d="M14 14 L30 50 L33 36 L47 33 Z" fill="url(#dg)" stroke="#f2f2f8" stroke-width="1.4" stroke-linejoin="round"/>
+  <!-- orbiting dot -->
+  <circle cx="48" cy="16" r="3.4" fill="#2dd4bf"/>
+  <circle cx="48" cy="16" r="7" fill="none" stroke="#2dd4bf" stroke-opacity=".35" stroke-width="1"/>
+</svg>

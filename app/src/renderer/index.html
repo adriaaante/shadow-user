@@ -1,0 +1,227 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src https://fonts.gstatic.com; img-src 'self' data:; script-src 'self'">
+<title>Driftly</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;600;700&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="assets/theme.css">
+<link rel="stylesheet" href="assets/app.css">
+</head>
+<body>
+<div class="app">
+  <!-- ░░ SIDEBAR ░░ -->
+  <aside class="side">
+    <div class="brand">
+      <svg class="logo" viewBox="0 0 48 48" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+        <defs><linearGradient id="lg" x1="0" y1="0" x2="48" y2="48">
+          <stop offset="0" stop-color="#7c5cff"/><stop offset="1" stop-color="#2dd4bf"/></linearGradient></defs>
+        <path d="M14 10 L14 36 L21 29 L26 39 L30 37 L25 27 L34 27 Z" fill="url(#lg)"/>
+        <path d="M16 14 L16 30 L21.5 24.5 L25 32 L18 14 Z" fill="rgba(124,92,255,.35)"/>
+        <circle cx="35" cy="13" r="3.4" fill="#2dd4bf"/>
+      </svg>
+      <div class="name">Drift<b>ly</b></div>
+    </div>
+    <div class="nav-item active" data-view="dashboard">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><rect x="3" y="3" width="8" height="8" rx="2"/><rect x="13" y="3" width="8" height="8" rx="2"/><rect x="3" y="13" width="8" height="8" rx="2"/><rect x="13" y="13" width="8" height="8" rx="2"/></svg>
+      <span data-ru="Дашборд" data-en="Dashboard">Дашборд</span>
+    </div>
+    <div class="nav-item" data-view="activity">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M3 12h4l3 8 4-16 3 8h4"/></svg>
+      <span data-ru="Активность" data-en="Activity">Активность</span>
+    </div>
+    <div class="nav-item" data-view="schedule">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></svg>
+      <span data-ru="Расписание" data-en="Schedule">Расписание</span>
+    </div>
+    <div class="nav-item" data-view="compare">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M4 19V9m5 10V5m5 14v-7m5 7V8"/></svg>
+      <span data-ru="Сравнение" data-en="Compare">Сравнение</span>
+    </div>
+    <div class="nav-item" data-view="settings">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="12" cy="12" r="3"/><path d="M19 12a7 7 0 0 0-.1-1l2-1.6-2-3.4-2.3 1a7 7 0 0 0-1.7-1l-.4-2.5h-4l-.4 2.5a7 7 0 0 0-1.7 1l-2.3-1-2 3.4 2 1.6a7 7 0 0 0 0 2l-2 1.6 2 3.4 2.3-1a7 7 0 0 0 1.7 1l.4 2.5h4l.4-2.5a7 7 0 0 0 1.7-1l2.3 1 2-3.4-2-1.6c.1-.3.1-.7.1-1z"/></svg>
+      <span data-ru="Настройки" data-en="Settings">Настройки</span>
+    </div>
+    <div class="spacer"></div>
+    <div class="foot">
+      <span data-ru="Локально · без сбора данных" data-en="Local · no data collection">Локально · без сбора данных</span><br>
+      Driftly v<span id="ver">1.0.0</span>
+    </div>
+  </aside>
+
+  <!-- ░░ MAIN ░░ -->
+  <main class="main">
+    <div class="topbar">
+      <div>
+        <h1 id="vtitle" data-ru="Дашборд" data-en="Dashboard">Дашборд</h1>
+        <div class="sub" id="vsub" data-ru="Статус и живая активность" data-en="Status & live activity">Статус и живая активность</div>
+      </div>
+      <div class="badges">
+        <span class="chip" id="badge-backend"><span class="dot"></span><span></span></span>
+        <span class="chip" id="badge-monitor"><span class="dot"></span><span></span></span>
+        <span class="seg" style="padding:3px"><button id="lang-ru" class="active">RU</button><button id="lang-en">EN</button></span>
+      </div>
+    </div>
+
+    <!-- ===== DASHBOARD ===== -->
+    <section class="view active" id="view-dashboard">
+      <div class="card glow hero-card" style="margin-bottom:18px">
+        <div>
+          <div class="statusline">
+            <span class="statusdot" id="statusdot"></span>
+            <span class="status-big" id="statustext" data-ru="Пауза" data-en="Paused">Пауза</span>
+          </div>
+          <p class="muted" id="statushint" style="margin-bottom:18px" data-ru="Выберите режим работы." data-en="Choose a run mode.">Выберите режим работы.</p>
+          <div class="seg" id="runmode" style="margin-bottom:18px">
+            <button data-mode="schedule" data-ru="По расписанию" data-en="On schedule">По расписанию</button>
+            <button data-mode="always" data-ru="Всегда" data-en="Always">Всегда</button>
+            <button data-mode="off" data-ru="Выкл" data-en="Off">Выкл</button>
+          </div>
+          <div class="kpis">
+            <div class="kpi"><div class="n" id="kpi-events">0</div><div class="l" data-ru="событий / 10с" data-en="events / 10s">событий / 10с</div></div>
+            <div class="kpi"><div class="n syn" id="kpi-syn">0</div><div class="l" data-ru="синтетические" data-en="synthetic">синтетические</div></div>
+            <div class="kpi"><div class="n real" id="kpi-real">0</div><div class="l" data-ru="реальные (вы)" data-en="real (you)">реальные (вы)</div></div>
+          </div>
+        </div>
+        <div class="gauge-wrap">
+          <canvas id="gauge" width="200" height="200"></canvas>
+        </div>
+      </div>
+
+      <div class="card chart-card">
+        <h3 data-ru="Активность за час" data-en="Activity, last hour">Активность за час</h3>
+        <div class="hint" data-ru="Фиолетовые зоны — когда работал генератор Driftly." data-en="Violet bands mark when the Driftly generator was running.">Фиолетовые зоны — когда работал генератор Driftly.</div>
+        <canvas id="dash-chart"></canvas>
+        <div class="legend">
+          <div class="it"><span class="sw" style="background:#9d86ff"></span><span data-ru="Синтетическая (Driftly)" data-en="Synthetic (Driftly)">Синтетическая (Driftly)</span></div>
+          <div class="it"><span class="sw" style="background:#2dd4bf"></span><span data-ru="Реальная (вы)" data-en="Real (you)">Реальная (вы)</span></div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ===== ACTIVITY ===== -->
+    <section class="view" id="view-activity">
+      <div class="card" style="margin-bottom:18px">
+        <h3 data-ru="Уровень активности" data-en="Activity level">Уровень активности</h3>
+        <div class="hint" data-ru="Насколько интенсивно Driftly имитирует активность." data-en="How intensely Driftly simulates activity.">Насколько интенсивно Driftly имитирует активность.</div>
+        <div class="levels" id="levels">
+          <div class="level" data-level="gentle"><div class="ic">🌙</div><div class="t" data-ru="Спокойный" data-en="Gentle">Спокойный</div><div class="r" data-ru="~6 движ/мин<br>лёгкие касания" data-en="~6 moves/min<br>light nudges">~6 движ/мин<br>лёгкие касания</div></div>
+          <div class="level" data-level="balanced"><div class="ic">⚖️</div><div class="t" data-ru="Сбалансир." data-en="Balanced">Сбалансир.</div><div class="r" data-ru="~18 движ/мин<br>2 клика/мин" data-en="~18 moves/min<br>2 clicks/min">~18 движ/мин<br>2 клика/мин</div></div>
+          <div class="level" data-level="energetic"><div class="ic">⚡</div><div class="t" data-ru="Энергичный" data-en="Energetic">Энергичный</div><div class="r" data-ru="~40 движ/мин<br>5 кликов/мин" data-en="~40 moves/min<br>5 clicks/min">~40 движ/мин<br>5 кликов/мин</div></div>
+          <div class="level" data-level="custom"><div class="ic">🎚️</div><div class="t" data-ru="Свой" data-en="Custom">Свой</div><div class="r" data-ru="ползунок 1–100" data-en="slider 1–100">ползунок 1–100</div></div>
+        </div>
+        <div id="custom-wrap" style="margin-top:18px;display:none">
+          <div style="display:flex;justify-content:space-between;margin-bottom:8px">
+            <span class="muted" data-ru="Интенсивность" data-en="Intensity">Интенсивность</span><b id="intensity-val" style="font-family:var(--font-display)">50</b>
+          </div>
+          <input type="range" id="intensity" min="1" max="100" value="50">
+        </div>
+        <div class="rates" id="rates"></div>
+      </div>
+
+      <div class="card">
+        <h3 data-ru="Поведение" data-en="Behavior">Поведение</h3>
+        <div class="hint" data-ru="Что именно делает генератор." data-en="What the generator actually does.">Что именно делает генератор.</div>
+        <div class="row"><div><div class="label" data-ru="Клики мышью" data-en="Mouse clicks">Клики мышью</div><div class="desc" data-ru="Иногда кликать левой кнопкой." data-en="Occasionally left-click.">Иногда кликать левой кнопкой.</div></div><label class="switch"><input type="checkbox" id="opt-clicks"><span></span></label></div>
+        <div class="row"><div><div class="label" data-ru="Прокрутка" data-en="Scroll">Прокрутка</div><div class="desc" data-ru="Небольшая прокрутка колесом." data-en="Small wheel scrolls.">Небольшая прокрутка колесом.</div></div><label class="switch"><input type="checkbox" id="opt-scroll"><span></span></label></div>
+        <div class="row"><div><div class="label" data-ru="Безопасные клавиши" data-en="Safe keystrokes">Безопасные клавиши</div><div class="desc" data-ru="Нажатие безвредных клавиш (Shift). По умолчанию выключено." data-en="Press harmless keys (Shift). Off by default.">Нажатие безвредных клавиш (Shift). По умолчанию выключено.</div></div><label class="switch"><input type="checkbox" id="opt-keys"><span></span></label></div>
+        <div class="row"><div><div class="label" data-ru="Уступать пользователю" data-en="Yield to the user">Уступать пользователю</div><div class="desc" data-ru="Если вы сами двигаете мышь — Driftly делает паузу." data-en="If you move the mouse, Driftly backs off.">Если вы сами двигаете мышь — Driftly делает паузу.</div></div><label class="switch"><input type="checkbox" id="opt-pause"><span></span></label></div>
+      </div>
+    </section>
+
+    <!-- ===== SCHEDULE ===== -->
+    <section class="view" id="view-schedule">
+      <div class="card" style="margin-bottom:18px">
+        <h3 data-ru="Дни недели" data-en="Weekdays">Дни недели</h3>
+        <div class="hint" data-ru="В какие дни Driftly работает по расписанию." data-en="Which days Driftly runs on schedule.">В какие дни Driftly работает по расписанию.</div>
+        <div class="days" id="days"></div>
+        <h3 style="margin-top:8px" data-ru="Диапазоны времени" data-en="Time ranges">Диапазоны времени</h3>
+        <div class="hint" data-ru="Рабочие окна в течение дня. Можно несколько." data-en="Working windows during the day. Add as many as you like.">Рабочие окна в течение дня. Можно несколько.</div>
+        <div id="ranges"></div>
+        <button class="btn ghost" id="add-range" style="margin-top:6px">+ <span data-ru="Добавить диапазон" data-en="Add range">Добавить диапазон</span></button>
+      </div>
+      <div class="card">
+        <div class="statusline">
+          <span class="statusdot" id="sched-dot"></span>
+          <span class="status-big" id="sched-text" data-ru="—" data-en="—">—</span>
+        </div>
+        <p class="muted" id="sched-hint"></p>
+        <div class="note" style="margin-top:14px" data-ru="Расписание только включает и выключает генератор. Измерение активности (для сравнения) идёт всегда." data-en="The schedule only turns the generator on and off. Activity measurement (for comparison) runs at all times.">Расписание только включает и выключает генератор. Измерение активности (для сравнения) идёт всегда.</div>
+      </div>
+    </section>
+
+    <!-- ===== COMPARE ===== -->
+    <section class="view" id="view-compare">
+      <div class="grid g2" style="margin-bottom:18px">
+        <div class="card">
+          <h3 data-ru="Shadow vs Passive" data-en="Shadow vs Passive">Shadow vs Passive</h3>
+          <div class="hint" data-ru="Средняя активность когда Driftly работал и когда работали только вы." data-en="Average activity while Driftly ran vs you alone.">Средняя активность когда Driftly работал и когда работали только вы.</div>
+          <div class="compare-bars">
+            <div class="cmp"><div class="top"><span data-ru="Shadow (Driftly вкл.)" data-en="Shadow (Driftly on)">Shadow (Driftly вкл.)</span><b id="cmp-shadow-v">0</b></div><div class="bar"><i id="cmp-shadow" style="background:var(--grad);width:0%"></i></div></div>
+            <div class="cmp"><div class="top"><span data-ru="Passive (только вы)" data-en="Passive (you only)">Passive (только вы)</span><b id="cmp-passive-v">0</b></div><div class="bar"><i id="cmp-passive" style="background:#2dd4bf;width:0%"></i></div></div>
+          </div>
+        </div>
+        <div class="card">
+          <h3 data-ru="Синтетика vs Реальные" data-en="Synthetic vs Real">Синтетика vs Реальные</h3>
+          <div class="hint" data-ru="Средний вклад источников событий." data-en="Average contribution by event source.">Средний вклад источников событий.</div>
+          <div class="compare-bars">
+            <div class="cmp"><div class="top"><span data-ru="Синтетические" data-en="Synthetic">Синтетические</span><b id="cmp-syn-v">0</b></div><div class="bar"><i id="cmp-syn" style="background:#9d86ff;width:0%"></i></div></div>
+            <div class="cmp"><div class="top"><span data-ru="Реальные" data-en="Real">Реальные</span><b id="cmp-real-v">0</b></div><div class="bar"><i id="cmp-real" style="background:#2dd4bf;width:0%"></i></div></div>
+          </div>
+        </div>
+      </div>
+
+      <div class="card chart-card" style="margin-bottom:18px">
+        <h3 data-ru="История активности" data-en="Activity history">История активности</h3>
+        <div class="hint" data-ru="Последние 2 часа поминутно. Используйте экспорт, чтобы сверить с внешней программой измерения." data-en="Last 2 hours per minute. Use export to compare with an external measuring program.">Последние 2 часа поминутно. Используйте экспорт, чтобы сверить с внешней программой измерения.</div>
+        <canvas id="cmp-chart"></canvas>
+        <div class="legend">
+          <div class="it"><span class="sw" style="background:#9d86ff"></span><span data-ru="Синтетическая" data-en="Synthetic">Синтетическая</span></div>
+          <div class="it"><span class="sw" style="background:#2dd4bf"></span><span data-ru="Реальная" data-en="Real">Реальная</span></div>
+          <div class="it"><span class="sw" style="background:rgba(124,92,255,.4)"></span><span data-ru="окно Shadow" data-en="Shadow window">окно Shadow</span></div>
+        </div>
+      </div>
+
+      <div class="card">
+        <h3 data-ru="Экспорт для бенчмарка" data-en="Export for benchmarking">Экспорт для бенчмарка</h3>
+        <div class="hint" data-ru="Выгрузите метрики Driftly и сравните их с результатами другой программы, измеряющей ту же активность." data-en="Export Driftly's metrics and compare them with another program measuring the same activity.">Выгрузите метрики Driftly и сравните их с результатами другой программы, измеряющей ту же активность.</div>
+        <div class="actions-row">
+          <button class="btn primary" id="exp-csv" data-ru="Экспорт CSV" data-en="Export CSV">Экспорт CSV</button>
+          <button class="btn" id="exp-json" data-ru="Экспорт JSON" data-en="Export JSON">Экспорт JSON</button>
+          <button class="btn ghost" id="open-folder" data-ru="Папка с данными" data-en="Data folder">Папка с данными</button>
+          <button class="btn danger" id="reset-metrics" data-ru="Сбросить" data-en="Reset">Сбросить</button>
+        </div>
+        <div class="mode-note" id="monitor-note"></div>
+      </div>
+    </section>
+
+    <!-- ===== SETTINGS ===== -->
+    <section class="view" id="view-settings">
+      <div class="card" style="margin-bottom:18px">
+        <h3 data-ru="Общие" data-en="General">Общие</h3>
+        <div class="row"><div><div class="label" data-ru="Язык" data-en="Language">Язык</div></div>
+          <div class="seg"><button id="set-ru" data-mode="ru">RU</button><button id="set-en" data-mode="en">EN</button></div></div>
+        <div class="row"><div><div class="label" data-ru="Сворачивать в трей" data-en="Minimize to tray">Сворачивать в трей</div><div class="desc" data-ru="Закрытие окна прячет Driftly в системный трей." data-en="Closing the window hides Driftly to the tray.">Закрытие окна прячет Driftly в системный трей.</div></div><label class="switch"><input type="checkbox" id="opt-tray"><span></span></label></div>
+        <div class="row"><div><div class="label" data-ru="Запуск при входе" data-en="Launch at login">Запуск при входе</div><div class="desc" data-ru="Автозапуск Driftly вместе с системой." data-en="Start Driftly with your system.">Автозапуск Driftly вместе с системой.</div></div><label class="switch"><input type="checkbox" id="opt-login"><span></span></label></div>
+      </div>
+      <div class="card" style="margin-bottom:18px">
+        <h3 data-ru="Приватность" data-en="Privacy">Приватность</h3>
+        <div class="note" data-ru="<b>Driftly не собирает данные.</b> Нет аккаунтов, аналитики и телеметрии. Все настройки и метрики хранятся только на вашем компьютере." data-en="<b>Driftly collects no data.</b> No accounts, analytics or telemetry. All settings and metrics stay on your computer only.">…</div>
+      </div>
+      <div class="card">
+        <h3 data-ru="Ответственное использование" data-en="Responsible use">Ответственное использование</h3>
+        <div class="note" data-ru="Driftly предназначен для автоматизации, защиты от простоя и тестирования на системах, которыми вы владеете или которые вам разрешено использовать. Все права на программу принадлежат владельцу." data-en="Driftly is for automation, anti-idle and testing on systems you own or are authorized to use. All rights to the software are reserved by the owner.">…</div>
+        <div class="mode-note" style="margin-top:12px">© 2026 Driftly — <span data-ru="все права защищены" data-en="all rights reserved">все права защищены</span>.</div>
+      </div>
+    </section>
+  </main>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script src="assets/chart.js"></script>
+<script src="assets/app.js"></script>
+</body>
+</html>
