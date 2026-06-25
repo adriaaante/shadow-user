@@ -83,13 +83,9 @@
     return blocked('none', account, status);
   }
 
-  function has(entitlement, feature) {
-    return !!entitlement && entitlement.access && entitlement.features.indexOf(feature) !== -1;
-  }
-
   return {
     TRIAL_DAYS: TRIAL_DAYS, FEATURES: FEATURES, PLAN: PLAN,
     blocked: function (r) { return blocked(r); },
-    compute: compute, has: has,
+    compute: compute,
   };
 }));

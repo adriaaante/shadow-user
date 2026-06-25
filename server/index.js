@@ -39,7 +39,16 @@ console.log('[server] mailer:', mailer.name);
 /* ------------------------------- store ------------------------------- */
 let db = { accounts: {}, tokens: {}, codes: {} };
 function loadDb() { try { db = JSON.parse(fs.readFileSync(DATA_PATH, 'utf8')); } catch (e) { db = { accounts: {}, tokens: {}, codes: {} }; } if (!db.codes) db.codes = {}; }
-function saveDb() { try { fs.mkdirSync(DATA_DIR, { recursive: true }); fs.writeFileSync(DATA_PATH, JSON.stringify(db, null, 2)); } catch (e) {} }
+// Atomic write: serialize to a temp file then rename, so a crash mid-write can
+// never corrupt accounts.json (a plain writeFileSync could leave it half-written).
+function saveDb() {
+  try {
+    fs.mkdirSync(DATA_DIR, { recursive: true });
+    const tmp = DATA_PATH + '.tmp';
+    fs.writeFileSync(tmp, JSON.stringify(db, null, 2));
+    fs.renameSync(tmp, DATA_PATH);
+  } catch (e) {}
+}
 loadDb();
 
 function publicAccount(acc) {

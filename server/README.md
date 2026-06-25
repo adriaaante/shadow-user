@@ -101,6 +101,23 @@ If the chosen provider has no keys, the server falls back to **mock** and logs a
 Plug the API call where each TODO is, map the provider's webhook events to account status,
 and the rest of the flow (trial, blocking, license issuance) already works.
 
+## Storage — do you need a database?
+**You need durable storage of billing state, but it's tiny and essentially free.** Who paid /
+until when / cancelled can't be trusted to the client and can't be recomputed, so the server must
+persist `email → {status, trialEndsAt, currentPeriodEnd, canceled, provider ids}` (+ sign-in codes
++ account tokens). **Card data is never stored here — the provider (T‑Bank/YooKassa) holds it.**
+
+This server ships with tier 1; upgrade only when scale demands it:
+1. **JSON file** (`server/.data/accounts.json`), written **atomically** (temp + rename, so a crash
+   can't corrupt it). Zero deps, zero cost — correct for a **single instance** at low/medium volume.
+2. **Embedded SQLite** (`better-sqlite3`) — still $0/one file, but transactional; for frequent writes.
+3. **Managed free-tier DB** (Cloudflare D1/KV, Turso, Supabase, Upstash) — only if you run **multiple
+   instances** or go serverless (a file can't be shared across instances).
+
+To swap the store, replace `loadDb()`/`saveDb()` + the `db.{accounts,tokens,codes}` access in
+`index.js`; nothing else changes. There is no cheaper-than-this path that is still correct — a pure
+"no storage" design can't answer "is this email's subscription active?" securely.
+
 ## Security / production notes
 - **Never commit `server/.keys/`** (the private key) — it's gitignored. Only the public key
   is committed.
