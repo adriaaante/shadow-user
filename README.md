@@ -19,7 +19,7 @@ any external activity-monitoring tool. Local-only. No telemetry. No accounts.
 |-------------|------------|
 | `PLAN.md`   | Master plan & architecture — the source of truth linking app + site |
 | `app/`      | The Driftly desktop application (Electron, cross-platform) |
-| `website/`  | The marketing & download website (static, SEO-optimized, RU/EN) |
+| `docs/`     | The marketing & download website (static, SEO-optimized, RU/EN) — also the GitHub Pages publish folder |
 | `LICENSE`   | Proprietary license — all rights reserved to the owner |
 | `PRIVACY.md`| Privacy statement — no data is collected |
 
@@ -35,6 +35,16 @@ any external activity-monitoring tool. Local-only. No telemetry. No accounts.
 - **Exports** metrics to CSV / JSON so you can compare Driftly's numbers against an
   external program that measures the same activity.
 - **Local-only** — nothing leaves your computer.
+
+## Two ways to use Driftly
+
+- **Desktop app** (`app/`) — full power: drives the real OS cursor and measures
+  system-wide activity. Recommended for real benchmarking against an external tool.
+- **No-install web app** (`docs/app/`) — runs in any modern browser, nothing to install.
+  It simulates activity in an on-page sandbox, keeps the screen awake (Wake Lock), and
+  measures activity **on the page** (Shadow vs Passive, synthetic vs real, CSV/JSON export).
+  A browser cannot control the OS cursor or measure system-wide activity — that's the
+  desktop app's job. Live at `…/app/` once GitHub Pages is enabled.
 
 ## Run the app (development)
 
@@ -62,7 +72,7 @@ Upload the artifacts to **GitHub Releases**; the website download buttons point 
 ## Preview the website
 
 ```bash
-cd website
+cd docs
 python3 -m http.server 8080   # then open http://localhost:8080
 ```
 

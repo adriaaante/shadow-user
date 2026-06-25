@@ -135,8 +135,9 @@ Keystrokes default to *safe no-op keys* (e.g. Shift) and are **off by default**.
 ## 4. Architecture (website)
 
 ```
-website/
+docs/                          (GitHub Pages publish folder)
 ├─ index.html                 Landing + download (RU primary, EN toggle), SEO-complete
+├─ app/                        No-install web app (PWA) — runs in the browser
 ├─ assets/css/site.css        Brand theme (shares tokens with the app)
 ├─ assets/js/site.js          Nav, language toggle, animated live demo, reveal-on-scroll
 ├─ assets/img/                Logo, OG image, screenshots (SVG where possible)

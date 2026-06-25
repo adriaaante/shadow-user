@@ -1,0 +1,19 @@
+{
+  "name": "Driftly Web",
+  "short_name": "Driftly",
+  "description": "Driftly в браузере без установки: имитация активности, Wake Lock и измерение активности. Локально, без сбора данных.",
+  "start_url": ".",
+  "scope": ".",
+  "display": "standalone",
+  "background_color": "#08080c",
+  "theme_color": "#08080c",
+  "lang": "ru",
+  "icons": [
+    {
+      "src": "icon.svg",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "any maskable"
+    }
+  ]
+}
