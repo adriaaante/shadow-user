@@ -64,6 +64,7 @@ function issueLicense(acc, privateKeyPem, now) {
     sub: acc.email,
     plan: acc.plan || 'free',
     status: acc.status || 'free',
+    canceled: !!acc.canceled,
     trialEndsAt: acc.trialEndsAt || null,
     currentPeriodEnd: acc.currentPeriodEnd || null,
     iat: now,

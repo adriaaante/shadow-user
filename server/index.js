@@ -19,6 +19,10 @@ const crypto = require('crypto');
 const lib = require('./lib');
 const entitlement = require('../shared/entitlement');
 const providers = require('./providers');
+const mailers = require('./mailer');
+
+const AUTH_CODE_TTL = 10 * 60 * 1000; // sign-in code valid 10 minutes
+function hashCode(email, code) { return crypto.createHash('sha256').update(email + ':' + code).digest('hex'); }
 
 const PORT = parseInt(process.env.PORT || '8787', 10);
 const DATA_DIR = path.join(__dirname, '.data');
@@ -29,10 +33,12 @@ try { PRIVATE_KEY = lib.loadPrivateKey(); } catch (e) { console.warn('[server]',
 
 const provider = providers.select();
 console.log('[server] payment provider:', provider.name);
+const mailer = mailers.select();
+console.log('[server] mailer:', mailer.name);
 
 /* ------------------------------- store ------------------------------- */
-let db = { accounts: {}, tokens: {} };
-function loadDb() { try { db = JSON.parse(fs.readFileSync(DATA_PATH, 'utf8')); } catch (e) { db = { accounts: {}, tokens: {} }; } }
+let db = { accounts: {}, tokens: {}, codes: {} };
+function loadDb() { try { db = JSON.parse(fs.readFileSync(DATA_PATH, 'utf8')); } catch (e) { db = { accounts: {}, tokens: {}, codes: {} }; } if (!db.codes) db.codes = {}; }
 function saveDb() { try { fs.mkdirSync(DATA_DIR, { recursive: true }); fs.writeFileSync(DATA_PATH, JSON.stringify(db, null, 2)); } catch (e) {} }
 loadDb();
 
@@ -97,10 +103,32 @@ const server = http.createServer(async (req, res) => {
       });
     }
 
-    if (p === '/v1/account' && req.method === 'POST') {
+    // ---- passwordless sign-in (email code). Proves the user owns the email
+    // before any subscription is tied to it — so signing in on another device
+    // is secure, and you can't take over someone else's billing by typing their
+    // address. Swap the console mailer for real email in mailer.js. ----
+    if (p === '/v1/auth/request' && req.method === 'POST') {
       const body = JSON.parse((await readBody(req)) || '{}');
       const email = String(body.email || '').trim().toLowerCase();
       if (!/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(email)) return send(res, 400, { error: 'invalid_email' });
+      const code = String(crypto.randomInt(0, 1000000)).padStart(6, '0');
+      db.codes[email] = { hash: hashCode(email, code), exp: Date.now() + AUTH_CODE_TTL, tries: 0 };
+      saveDb();
+      const r = await mailer.send(email, code);
+      const resp = { ok: true, sent: true };
+      if (mailer.name === 'console' && r && r.devCode) resp.devCode = r.devCode; // dev only
+      return send(res, 200, resp);
+    }
+    if (p === '/v1/auth/verify' && req.method === 'POST') {
+      const body = JSON.parse((await readBody(req)) || '{}');
+      const email = String(body.email || '').trim().toLowerCase();
+      const code = String(body.code || '').trim();
+      const rec = db.codes[email];
+      if (!rec) return send(res, 400, { error: 'no_code' });
+      if (Date.now() > rec.exp) { delete db.codes[email]; saveDb(); return send(res, 400, { error: 'code_expired' }); }
+      if (rec.tries >= 5) { delete db.codes[email]; saveDb(); return send(res, 429, { error: 'too_many_attempts' }); }
+      if (rec.hash !== hashCode(email, code)) { rec.tries++; saveDb(); return send(res, 401, { error: 'bad_code' }); }
+      delete db.codes[email];
       let acc = db.accounts[email];
       if (!acc) { acc = { email, plan: 'none', status: 'none' }; db.accounts[email] = acc; }
       const token = crypto.randomBytes(24).toString('hex');
@@ -131,8 +159,16 @@ const server = http.createServer(async (req, res) => {
     }
 
     if (p === '/v1/billing/cancel' && req.method === 'POST') {
+      // Stop future charges but KEEP access until the paid period / trial ends
+      // (legally required: a user who cancels during the free trial still gets
+      // the full trial; one who cancels mid-period keeps what they paid for).
       acc.canceled = true;
-      if (acc.status === 'trialing') acc.status = 'canceled';
+      saveDb();
+      return send(res, 200, stateResponse(acc));
+    }
+
+    if (p === '/v1/billing/resume' && req.method === 'POST') {
+      acc.canceled = false; // re-enable auto-renewal before the period ends
       saveDb();
       return send(res, 200, stateResponse(acc));
     }

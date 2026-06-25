@@ -20,6 +20,7 @@
   };
   var qApi = new URLSearchParams(location.search).get('api');
   if (qApi !== null) { state.api = qApi; localStorage.setItem('driftly.api', qApi); }
+  var dismissed = false; // paywall temporarily dismissed so the sign-in/pay panel stays reachable
 
   function preview() { return !state.api; }
   function persist() {
@@ -56,9 +57,13 @@
     state.online = true; persist(); emit();
     return j;
   }
-  async function signIn(email) {
+  async function authRequest(email) {
+    try { var r = await fetch(state.api + '/v1/auth/request', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ email: email }) }); return await r.json(); }
+    catch (e) { return { ok: false, error: 'offline' }; }
+  }
+  async function authVerify(email, code) {
     try {
-      var r = await fetch(state.api + '/v1/account', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ email: email }) });
+      var r = await fetch(state.api + '/v1/auth/verify', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ email: email, code: code }) });
       var j = await r.json();
       if (j.accountToken) { state.token = j.accountToken; persist(); await refresh(); return { ok: true }; }
       return { ok: false, error: j.error };
@@ -68,15 +73,15 @@
   // ---- gate API consumed by web.js ----
   window.DriftlyGate = {
     allowed: function () { return !!entitlement().access; },
-    show: function () { showView('subscription'); render(); },
+    show: function () { dismissed = false; render(); }, // re-show the paywall prompt
     refresh: refresh,
     entitlement: entitlement,
   };
 
   /* ------------------------------- rendering ------------------------------- */
   var L = {
-    ru: { preview: 'Демо-режим: сервер лицензий не подключён — доступ открыт.', signin: 'Войдите, чтобы управлять подпиской.', trial: 'Подключить карту — 3 дня бесплатно', trialActive: 'Пробный период', daysLeft: 'дн. осталось', active: 'Подписка активна', renews: 'Продление', inactive: 'Подписка неактивна', pastDue: 'Необходимо оплатить', pastDueDesc: 'Списание не прошло. Оплатите, чтобы продолжить.', retry: 'Повторить оплату', cancel: 'Отменить подписку', pwText: 'Подключите карту и получите 3 дня бесплатно. Driftly работает и в вебе, и в десктопе.', goSub: 'Открыть подписку', testCard: 'тестовая карта (демо):', ok: 'успешно', fail: 'нет средств', online: 'на связи', offline: 'нет связи' },
-    en: { preview: 'Demo mode: no licensing server — access is open.', signin: 'Sign in to manage your subscription.', trial: 'Add a card — 3 days free', trialActive: 'Free trial', daysLeft: 'days left', active: 'Subscription active', renews: 'Renews', inactive: 'Subscription inactive', pastDue: 'Payment required', pastDueDesc: 'The charge failed. Pay to continue.', retry: 'Retry payment', cancel: 'Cancel subscription', pwText: 'Add a card and get 3 days free. Driftly works on web and desktop.', goSub: 'Open subscription', testCard: 'test card (demo):', ok: 'success', fail: 'no funds', online: 'online', offline: 'offline' },
+    ru: { preview: 'Демо-режим: сервер лицензий не подключён — доступ открыт.', signin: 'Войдите, чтобы управлять подпиской.', trial: 'Подключить карту — 3 дня бесплатно', trialActive: 'Пробный период', daysLeft: 'дн. осталось', active: 'Подписка активна', renews: 'Продление', inactive: 'Подписка неактивна', pastDue: 'Необходимо оплатить', pastDueDesc: 'Списание не прошло. Оплатите, чтобы продолжить.', retry: 'Повторить оплату', cancel: 'Отменить подписку', pwText: 'Подключите карту и получите 3 дня бесплатно. Driftly работает и в вебе, и в десктопе.', goSub: 'Открыть подписку', testCard: 'тестовая карта (демо):', ok: 'успешно', fail: 'нет средств', online: 'на связи', offline: 'нет связи', sendCode: 'Код отправлен на почту', codeBad: 'Неверный код', resume: 'Возобновить', accessUntil: 'доступ до', trialCanceled: 'Пробный период отменён', subCanceled: 'Подписка отменена', noRenew: 'продление не произойдёт' },
+    en: { preview: 'Demo mode: no licensing server — access is open.', signin: 'Sign in to manage your subscription.', trial: 'Add a card — 3 days free', trialActive: 'Free trial', daysLeft: 'days left', active: 'Subscription active', renews: 'Renews', inactive: 'Subscription inactive', pastDue: 'Payment required', pastDueDesc: 'The charge failed. Pay to continue.', retry: 'Retry payment', cancel: 'Cancel subscription', pwText: 'Add a card and get 3 days free. Driftly works on web and desktop.', goSub: 'Open subscription', testCard: 'test card (demo):', ok: 'success', fail: 'no funds', online: 'online', offline: 'offline', sendCode: 'Code sent to your email', codeBad: 'Invalid code', resume: 'Resume', accessUntil: 'access until', trialCanceled: 'Trial cancelled', subCanceled: 'Subscription cancelled', noRenew: 'will not renew' },
   };
   function lang() { return localStorage.getItem('driftly.lang') || 'ru'; }
   function t(k) { return L[lang()][k]; }
@@ -95,12 +100,14 @@
       else if (e.needsPayment) { bn.style.display = 'flex'; bn.className = 'note warn'; bn.textContent = '⚠ ' + t('pastDue'); }
       else bn.style.display = 'none';
     }
-    // paywall
+    // paywall — dismissable so the sign-in / payment panel below stays reachable.
+    var blocked = e.blocked && !preview();
+    if (!blocked) dismissed = false; // reset so it reappears next time access is lost
     var pw = $('paywall');
     if (pw) {
-      var blocked = e.blocked && !preview();
-      pw.style.display = blocked ? 'flex' : 'none';
-      if (blocked) {
+      var show = blocked && !dismissed;
+      pw.style.display = show ? 'flex' : 'none';
+      if (show) {
         $('pw-title').textContent = e.needsPayment ? t('pastDue') : t('goSub');
         $('pw-text').textContent = e.needsPayment ? t('pastDueDesc') : t('pwText');
         $('pw-retry').style.display = e.needsPayment ? 'inline-flex' : 'none';
@@ -117,14 +124,19 @@
     var box = $('sub-state'); if (!box) return;
     if (preview()) { box.innerHTML = sb('trial', '✨', t('preview'), ''); return; }
     if (!state.token) { box.innerHTML = sb('', '👤', t('signin'), ''); return; }
-    if (e.reason === 'trial') box.innerHTML = sb('trial', '✨', t('trialActive'), e.trialDaysLeft + ' ' + t('daysLeft')) + cbtn();
-    else if (e.reason === 'active') box.innerHTML = sb('ok', '✓', t('active'), t('renews') + ': ' + fmt(e.renewsAt)) + cbtn();
+    if (e.reason === 'trial') box.innerHTML = e.canceled
+      ? sb('trial', '✨', t('trialCanceled'), t('accessUntil') + ' ' + fmt(e.renewsAt)) + rbtn()
+      : sb('trial', '✨', t('trialActive'), e.trialDaysLeft + ' ' + t('daysLeft')) + cbtn();
+    else if (e.reason === 'active') box.innerHTML = e.canceled
+      ? sb('ok', '✓', t('subCanceled'), t('accessUntil') + ' ' + fmt(e.renewsAt) + ' · ' + t('noRenew')) + rbtn()
+      : sb('ok', '✓', t('active'), t('renews') + ': ' + fmt(e.renewsAt)) + cbtn();
     else if (e.needsPayment) box.innerHTML = sb('bad', '⚠', t('pastDue'), t('pastDueDesc')) + '<button class="btn primary" data-acc="retry">' + t('retry') + '</button>';
     else box.innerHTML = sb('', '🔓', t('inactive'), '') + tbtn();
   }
   function sb(c, ic, ti, d) { return '<div class="sub-status ' + c + '"><span class="ic">' + ic + '</span><div><div class="t">' + ti + '</div><div class="d">' + (d || '') + '</div></div></div>'; }
   function tbtn() { return '<button class="btn primary btn-lg" data-acc="trial">' + t('trial') + '</button><div class="devcard">' + t('testCard') + '<select id="dev-card"><option value="tok_ok">' + t('ok') + '</option><option value="tok_insufficient">' + t('fail') + '</option></select></div>'; }
   function cbtn() { return '<button class="btn ghost" data-acc="cancel" style="margin-top:12px">' + t('cancel') + '</button>'; }
+  function rbtn() { return '<button class="btn primary" data-acc="resume" style="margin-top:12px">' + t('resume') + '</button>'; }
 
   /* -------------------------------- events --------------------------------- */
   document.addEventListener('click', function (ev) {
@@ -133,15 +145,28 @@
     if (act === 'trial') { var card = ($('dev-card') && $('dev-card').value) || 'tok_ok'; call('POST', '/v1/billing/start-trial', { card: card }); }
     else if (act === 'retry') call('POST', '/v1/billing/retry');
     else if (act === 'cancel') call('POST', '/v1/billing/cancel');
+    else if (act === 'resume') call('POST', '/v1/billing/resume');
   });
-  if ($('btn-signin')) $('btn-signin').addEventListener('click', async function () {
+  if ($('btn-getcode')) $('btn-getcode').addEventListener('click', async function () {
     var email = ($('sub-email').value || '').trim();
     if (!/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(email)) return;
-    await signIn(email);
+    var r = await authRequest(email);
+    if (r && r.ok) {
+      $('sub-step-code').style.display = 'flex';
+      $('sub-auth-note').textContent = t('sendCode') + (r.devCode ? ' (dev: ' + r.devCode + ')' : '');
+      if (r.devCode) $('sub-code').value = r.devCode;
+      $('sub-code').focus();
+    }
+  });
+  if ($('btn-verify')) $('btn-verify').addEventListener('click', async function () {
+    var email = ($('sub-email').value || '').trim();
+    var r = await authVerify(email, ($('sub-code').value || '').trim());
+    if (r && r.ok) { $('sub-step-code').style.display = 'none'; $('sub-auth-note').textContent = ''; }
+    else if ($('sub-auth-note')) $('sub-auth-note').textContent = t('codeBad');
   });
   if ($('btn-setapi')) $('btn-setapi').addEventListener('click', function () { state.api = ($('sub-api').value || '').trim().replace(/\/$/, ''); state.serverEnt = null; persist(); refresh(); });
   if ($('btn-signout')) $('btn-signout').addEventListener('click', function () { state.token = null; state.license = null; state.serverEnt = null; persist(); emit(); });
-  if ($('pw-cta')) $('pw-cta').addEventListener('click', function () { showView('subscription'); });
+  if ($('pw-cta')) $('pw-cta').addEventListener('click', function () { dismissed = true; render(); showView('subscription'); });
   if ($('pw-retry')) $('pw-retry').addEventListener('click', function () { call('POST', '/v1/billing/retry'); });
   window.addEventListener('driftly-lang-changed', render);
 

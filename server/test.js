@@ -25,6 +25,11 @@ async function api(method, p, token, body) {
   const r = await fetch(BASE + p, { method, headers, body: body ? JSON.stringify(body) : undefined });
   return { code: r.status, json: await r.json() };
 }
+async function signIn(email) {
+  const q = await api('POST', '/v1/auth/request', null, { email });
+  const v = await api('POST', '/v1/auth/verify', null, { email: String(email).toLowerCase(), code: q.json.devCode });
+  return v.json;
+}
 
 (async () => {
   await new Promise((res) => srv.server.listen(process.env.PORT, res));
@@ -33,9 +38,14 @@ async function api(method, p, token, body) {
   let r = await api('GET', '/v1/health'); ok('health ok + keys present', r.json.ok && r.json.keys);
   r = await api('GET', '/v1/config'); ok('config exposes 3-day trial + price', r.json.trialDays === 3 && r.json.price.rub === 490);
 
-  // ---- happy path: trial → active ----
-  r = await api('POST', '/v1/account', null, { email: 'Alice@Example.com' });
-  const tokA = r.json.accountToken; ok('account created + token', !!tokA && r.json.email === 'alice@example.com');
+  // ---- passwordless sign-in (email code) ----
+  const ar = await api('POST', '/v1/auth/request', null, { email: 'Alice@Example.com' });
+  ok('auth/request issues a 6-digit code', ar.json.ok && /^[0-9]{6}$/.test(ar.json.devCode || ''));
+  const wrong = ar.json.devCode === '000000' ? '111111' : '000000';
+  const badV = await api('POST', '/v1/auth/verify', null, { email: 'alice@example.com', code: wrong });
+  ok('wrong code rejected (401)', badV.code === 401);
+  const av = await api('POST', '/v1/auth/verify', null, { email: 'alice@example.com', code: ar.json.devCode });
+  const tokA = av.json.accountToken; ok('correct code → account token', !!tokA && av.json.email === 'alice@example.com');
 
   r = await api('GET', '/v1/status', tokA);
   ok('new account is blocked (no card)', r.json.entitlement.blocked === true && r.json.entitlement.reason === 'none');
@@ -62,8 +72,7 @@ async function api(method, p, token, body) {
   ok('after successful charge → active access', r.json.entitlement.access === true && r.json.entitlement.reason === 'active');
 
   // ---- failure path: insufficient funds → past_due (blocked) ----
-  r = await api('POST', '/v1/account', null, { email: 'bob@example.com' });
-  const tokB = r.json.accountToken;
+  const tokB = (await signIn('bob@example.com')).accountToken;
   await api('POST', '/v1/billing/start-trial', tokB, { card: 'tok_insufficient' });
   srv.db.accounts['bob@example.com'].trialEndsAt = Date.now() - 1000; srv.saveDb();
   r = await api('POST', '/v1/billing/retry', tokB); // charge fails
@@ -75,15 +84,26 @@ async function api(method, p, token, body) {
   r = await api('POST', '/v1/billing/retry', tokB);
   ok('retry after funds fixed → active', r.json.entitlement.access === true);
 
-  // ---- single subscription spans devices: same account, new token (e.g. desktop) ----
-  r = await api('POST', '/v1/account', null, { email: 'alice@example.com' });
-  const tokA2 = r.json.accountToken; // "sign in" on a second device
+  // ---- single subscription spans devices: same email, new sign-in (e.g. desktop) ----
+  const tokA2 = (await signIn('alice@example.com')).accountToken; // sign in on a 2nd device
   r = await api('GET', '/v1/status', tokA2);
   ok('same account on a 2nd device shares the subscription', r.json.entitlement.access === true);
 
-  // ---- cancel ----
+  // ---- cancel during ACTIVE: keep access until period end, stop renewal ----
   r = await api('POST', '/v1/billing/cancel', tokA2);
-  ok('cancel during active keeps access until period end', r.json.account.canceled === true);
+  ok('cancel during active keeps access', r.json.account.canceled === true && r.json.entitlement.access === true);
+
+  // ---- cancel during TRIAL: keep trial access; resume; cancelled trial → expired (no charge) ----
+  const tokC = (await signIn('carol@example.com')).accountToken;
+  await api('POST', '/v1/billing/start-trial', tokC, { card: 'tok_ok' });
+  r = await api('POST', '/v1/billing/cancel', tokC);
+  ok('cancel during trial keeps trial access', r.json.entitlement.access === true && r.json.entitlement.reason === 'trial' && r.json.entitlement.canceled === true);
+  r = await api('POST', '/v1/billing/resume', tokC);
+  ok('resume clears cancellation', r.json.account.canceled === false);
+  await api('POST', '/v1/billing/cancel', tokC);
+  srv.db.accounts['carol@example.com'].trialEndsAt = Date.now() - 1000; srv.saveDb();
+  r = await api('POST', '/v1/billing/retry', tokC);
+  ok('cancelled trial ends → expired & blocked, NOT past_due', r.json.account.status === 'expired' && r.json.entitlement.blocked === true && r.json.entitlement.needsPayment === false);
 
   // unauthorized
   r = await api('GET', '/v1/status', 'badtoken'); ok('bad token → 401', r.code === 401);

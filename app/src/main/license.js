@@ -65,10 +65,20 @@ async function refresh() {
   return info();
 }
 
-async function signIn(email) {
+// Passwordless sign-in: request a code by email, then verify it. This proves the
+// user owns the email before unlocking the subscription, so signing in on another
+// device is secure and one account = one subscription across web + desktop.
+async function authRequest(email) {
   if (isPreview()) return { ok: false, error: 'no_api' };
   try {
-    const r = await fetch(apiBase() + '/v1/account', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ email }) });
+    const r = await fetch(apiBase() + '/v1/auth/request', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ email }) });
+    return await r.json();
+  } catch (e) { state.online = false; state.lastError = String(e); return { ok: false, error: 'offline' }; }
+}
+async function authVerify(email, code) {
+  if (isPreview()) return { ok: false, error: 'no_api' };
+  try {
+    const r = await fetch(apiBase() + '/v1/auth/verify', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ email, code }) });
     const j = await r.json();
     if (j.accountToken) { state.token = j.accountToken; persist(); await refresh(); return { ok: true, email: j.email }; }
     return { ok: false, error: j.error || 'failed' };
@@ -78,8 +88,9 @@ async function signIn(email) {
 async function startTrial(card) { if (isPreview() || !state.token) return { ok: false, error: 'no_account' }; const j = await call('POST', '/v1/billing/start-trial', { card: card || 'tok_ok' }); if (j.license) { state.license = j.license; persist(); } return j; }
 async function retry() { if (isPreview() || !state.token) return { ok: false }; const j = await call('POST', '/v1/billing/retry'); if (j.license) { state.license = j.license; persist(); } return j; }
 async function cancel() { if (isPreview() || !state.token) return { ok: false }; const j = await call('POST', '/v1/billing/cancel'); if (j.license) { state.license = j.license; persist(); } return j; }
+async function resume() { if (isPreview() || !state.token) return { ok: false }; const j = await call('POST', '/v1/billing/resume'); if (j.license) { state.license = j.license; persist(); } return j; }
 
 function setApi(url) { state.api = (url || '').trim().replace(/\/$/, ''); persist(); return refresh(); }
 function signOut() { state.token = null; state.license = null; persist(); return info(); }
 
-module.exports = { init, info, refresh, signIn, startTrial, retry, cancel, setApi, signOut, currentEntitlement, isPreview };
+module.exports = { init, info, refresh, authRequest, authVerify, startTrial, retry, cancel, resume, setApi, signOut, currentEntitlement, isPreview };

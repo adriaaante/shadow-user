@@ -34,7 +34,9 @@ module.exports = {
   /** Attempt the recurring charge (called when the trial ends, or on retry). */
   async chargeRecurring(acc, now) {
     now = now || Date.now();
-    if (!acc.cardOnFile || acc.canceled) { acc.status = 'past_due'; return { ok: false, status: 'past_due' }; }
+    // Cancelled → don't charge; the subscription simply ends (not past_due).
+    if (acc.canceled) { acc.status = 'expired'; return { ok: false, status: 'expired' }; }
+    if (!acc.cardOnFile) { acc.status = 'past_due'; return { ok: false, status: 'past_due' }; }
     if (acc._simFail) { acc.status = 'past_due'; return { ok: false, status: 'past_due' }; }
     acc.status = 'active';
     acc.currentPeriodEnd = now + 30 * DAY;

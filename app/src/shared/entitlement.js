@@ -69,6 +69,7 @@
       return {
         plan: 'pro', status: status,
         access: true, blocked: false, isPro: true, needsPayment: false,
+        canceled: !!license.canceled,
         reason: trialing ? 'trial' : 'active',
         features: FEATURES.slice(),
         trialDaysLeft: trialing ? Math.max(0, Math.ceil((license.trialEndsAt - now) / DAY)) : 0,

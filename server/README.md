@@ -55,13 +55,24 @@ past those dates. The single source of truth for "what's unlocked" is
 |---|---|---|
 | `GET /v1/health` | — | liveness + provider + keys present |
 | `GET /v1/config` | — | provider, trial days, price |
-| `POST /v1/account` `{email}` | — | create/find account → `accountToken` |
+| `POST /v1/auth/request` `{email}` | — | email a 6-digit sign-in code (passwordless) |
+| `POST /v1/auth/verify` `{email,code}` | — | verify the code → `accountToken` |
 | `GET /v1/license` | Bearer | issue a fresh signed license token |
 | `GET /v1/status` | Bearer | account + license + entitlement |
 | `POST /v1/billing/start-trial` `{card}` | Bearer | attach card, start the 3-day trial |
 | `POST /v1/billing/retry` | Bearer | retry the charge (after `past_due`) |
-| `POST /v1/billing/cancel` | Bearer | cancel the subscription |
+| `POST /v1/billing/cancel` | Bearer | cancel — keeps access until period end, stops renewal |
+| `POST /v1/billing/resume` | Bearer | undo a cancellation before the period ends |
 | `POST /v1/webhooks/:provider` | provider sig | payment provider notifications |
+
+### Authentication (passwordless email code)
+Sign-in proves the user owns the email **before** any subscription is tied to it — so
+signing in on another device (one account = one subscription across web + desktop) is
+secure, and nobody can take over someone else's billing by typing their address. The
+code is sent via `mailer.js` (dev default `console` logs it and returns it in the
+response as `devCode`; wire SMTP/Resend/Postmark and select it with `DRIFTLY_MAILER`
+for production). Codes are single-use, expire in 10 minutes, and lock out after 5 wrong
+tries.
 
 ## Selecting a payment provider
 

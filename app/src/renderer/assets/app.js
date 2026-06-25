@@ -31,10 +31,12 @@
       onStatus: () => {}, onConfigChanged: () => {},
       licenseGet: () => Promise.resolve(previewLicense),
       licenseSetApi: () => Promise.resolve(previewLicense),
-      licenseSignIn: () => Promise.resolve({ result: { ok: false }, info: previewLicense }),
+      licenseAuthRequest: () => Promise.resolve({ ok: false, error: 'no_api' }),
+      licenseAuthVerify: () => Promise.resolve({ result: { ok: false }, info: previewLicense }),
       licenseStartTrial: () => Promise.resolve({ result: { ok: false }, info: previewLicense }),
       licenseRetry: () => Promise.resolve({ result: { ok: false }, info: previewLicense }),
       licenseCancel: () => Promise.resolve({ result: { ok: false }, info: previewLicense }),
+      licenseResume: () => Promise.resolve({ result: { ok: false }, info: previewLicense }),
       licenseSignOut: () => Promise.resolve(previewLicense),
       licenseRefresh: () => Promise.resolve(previewLicense),
     };
@@ -59,6 +61,8 @@
       pwTitle: 'Требуется подписка', pwTextNone: 'Подключите карту и получите 3 дня бесплатно. Доступ к Driftly — и в вебе, и в десктопе.',
       apiSaved: 'Сервер сохранён', trialStarted: '3 дня бесплатно активированы!', payRetried: 'Оплата повторно проведена.',
       needEmail: 'Введите корректный email.', testCard: 'тестовая карта (демо):', cardOk: 'успешно', cardFail: 'нет средств',
+      getCode: 'Получить код', sendCode: 'Код отправлен на почту', enterCode: 'Введите код из письма', codeBad: 'Неверный код',
+      resume: 'Возобновить', accessUntil: 'доступ до', trialCanceledNote: 'Пробный период отменён', subCanceledNote: 'Подписка отменена', noRenew: 'продление не произойдёт',
       days: ['Пн', 'Вт', 'Ср', 'Чт', 'Пт', 'Сб', 'Вс'] },
     en: { active: 'Active', paused: 'Paused', waiting: 'Waiting for schedule', moves: 'moves/min', clicks: 'clicks/min', scrolls: 'scrolls/min',
       bReal: 'Real input', bSim: 'Simulation', mGlobal: 'Global monitoring', mSelf: 'Synthetic only',
@@ -75,6 +79,8 @@
       pwTitle: 'Subscription required', pwTextNone: 'Add a card and get 3 days free. Driftly unlocks on web and desktop.',
       apiSaved: 'Server saved', trialStarted: '3 free days activated!', payRetried: 'Payment retried.',
       needEmail: 'Enter a valid email.', testCard: 'test card (demo):', cardOk: 'success', cardFail: 'no funds',
+      getCode: 'Get code', sendCode: 'Code sent to your email', enterCode: 'Enter the code from the email', codeBad: 'Invalid code',
+      resume: 'Resume', accessUntil: 'access until', trialCanceledNote: 'Trial cancelled', subCanceledNote: 'Subscription cancelled', noRenew: 'will not renew',
       days: ['Mo', 'Tu', 'We', 'Th', 'Fr', 'Sa', 'Su'] },
   };
   const t = (k) => L[lang][k];
@@ -111,12 +117,15 @@
     subscription: { ru: ['Подписка', 'Единая подписка на веб и десктоп'], en: ['Subscription', 'One subscription for web & desktop'] },
     settings: { ru: ['Настройки', 'Язык, приватность, система'], en: ['Settings', 'Language, privacy, system'] },
   };
+  let activeView = 'dashboard';
   function showView(name) {
+    activeView = name;
     document.querySelectorAll('.nav-item').forEach((n) => n.classList.toggle('active', n.dataset.view === name));
     document.querySelectorAll('.view').forEach((v) => v.classList.toggle('active', v.id === 'view-' + name));
     $('vtitle').textContent = TITLES[name][lang][0];
     $('vsub').textContent = TITLES[name][lang][1];
     refreshCharts();
+    if (typeof renderLicense === 'function') renderLicense(); // paywall is hidden on the subscription view
   }
   document.querySelectorAll('.nav-item').forEach((n) => n.addEventListener('click', () => showView(n.dataset.view)));
 
@@ -263,6 +272,7 @@
       <div class="devcard">${t('testCard')}<select id="dev-card"><option value="tok_ok">${t('cardOk')}</option><option value="tok_insufficient">${t('cardFail')}</option></select></div>`;
   }
   function cancelBlock() { return `<button class="btn ghost" data-act="cancel" style="margin-top:12px">${t('cancelSub')}</button>`; }
+  function resumeBlock() { return `<button class="btn primary" data-act="resume" style="margin-top:12px">${t('resume')}</button>`; }
 
   function licInfo() { return status && status.license; }
 
@@ -278,9 +288,10 @@
     else if (e.needsPayment) { bn.style.display = 'flex'; bn.className = 'subbanner warn'; bn.innerHTML = `<span>⚠ ${t('pastDue')}</span><button class="btn" data-go-sub>${t('retryPay')}</button>`; }
     else bn.style.display = 'none';
 
-    // paywall overlay
+    // paywall overlay — never cover the Subscription view itself (the user must
+    // be able to sign in / pay there to resolve the block).
     const pw = $('paywall');
-    if (blocked) {
+    if (blocked && activeView !== 'subscription') {
       pw.style.display = 'flex';
       $('pw-title').textContent = e.needsPayment ? t('pastDue') : t('pwTitle');
       $('pw-text').textContent = e.needsPayment ? t('pastDueDesc') : t('pwTextNone');
@@ -303,8 +314,12 @@
     const box = $('sub-state');
     if (info.preview) { box.innerHTML = statusBox('trial', '✨', t('previewTitle'), t('subPreview')); return; }
     if (!info.signedIn) { box.innerHTML = statusBox('', '👤', t('signInFirst'), ''); return; }
-    if (e.reason === 'trial') box.innerHTML = statusBox('trial', '✨', t('trialActive'), `${e.trialDaysLeft} ${t('daysLeft')}`) + cancelBlock();
-    else if (e.reason === 'active') box.innerHTML = statusBox('ok', '✓', t('subActive'), `${t('renews')}: ${fmtDate(e.renewsAt)}`) + cancelBlock();
+    if (e.reason === 'trial') box.innerHTML = e.canceled
+      ? statusBox('trial', '✨', t('trialCanceledNote'), `${t('accessUntil')} ${fmtDate(e.renewsAt)}`) + resumeBlock()
+      : statusBox('trial', '✨', t('trialActive'), `${e.trialDaysLeft} ${t('daysLeft')}`) + cancelBlock();
+    else if (e.reason === 'active') box.innerHTML = e.canceled
+      ? statusBox('ok', '✓', t('subCanceledNote'), `${t('accessUntil')} ${fmtDate(e.renewsAt)} · ${t('noRenew')}`) + resumeBlock()
+      : statusBox('ok', '✓', t('subActive'), `${t('renews')}: ${fmtDate(e.renewsAt)}`) + cancelBlock();
     else if (e.needsPayment) box.innerHTML = statusBox('bad', '⚠', t('pastDue'), t('pastDueDesc')) + `<button class="btn primary" data-act="retry">${t('retryPay')}</button>`;
     else box.innerHTML = statusBox('', '🔓', t('inactive'), '') + trialBlock();
   }
@@ -314,12 +329,25 @@
   async function doTrial() { const card = ($('dev-card') && $('dev-card').value) || 'tok_ok'; const r = await api.licenseStartTrial(card); applyInfo(r.info); toast(r.info.entitlement && r.info.entitlement.access ? t('trialStarted') : t('pastDue')); }
   async function doRetry() { const r = await api.licenseRetry(); applyInfo(r.info); toast(r.info.entitlement && r.info.entitlement.access ? t('payRetried') : t('pastDue')); }
   async function doCancel() { const r = await api.licenseCancel(); applyInfo(r.info); }
+  async function doResume() { const r = await api.licenseResume(); applyInfo(r.info); }
 
-  $('btn-signin').addEventListener('click', async () => {
+  // two-step passwordless sign-in
+  $('btn-getcode').addEventListener('click', async () => {
     const email = $('sub-email').value.trim();
     if (!/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(email)) { toast(t('needEmail')); return; }
-    const r = await api.licenseSignIn(email);
-    if (r.result && r.result.ok) applyInfo(r.info); else toast(t('needEmail'));
+    const r = await api.licenseAuthRequest(email);
+    if (r && r.ok) {
+      $('sub-step-code').style.display = 'flex';
+      $('sub-auth-note').textContent = t('sendCode') + (r.devCode ? ` (dev: ${r.devCode})` : '');
+      if (r.devCode) $('sub-code').value = r.devCode;
+      $('sub-code').focus();
+    } else toast(t('needEmail'));
+  });
+  $('btn-verify').addEventListener('click', async () => {
+    const email = $('sub-email').value.trim(); const code = $('sub-code').value.trim();
+    const r = await api.licenseAuthVerify(email, code);
+    if (r.result && r.result.ok) { $('sub-step-code').style.display = 'none'; $('sub-auth-note').textContent = ''; applyInfo(r.info); }
+    else toast(t('codeBad'));
   });
   $('btn-signout').addEventListener('click', async () => applyInfo(await api.licenseSignOut()));
   $('btn-setapi').addEventListener('click', async () => { const info = await api.licenseSetApi($('sub-api').value.trim()); applyInfo(info); toast(t('apiSaved')); });
@@ -329,7 +357,7 @@
     const a = ev.target.closest('[data-act],[data-go-sub]'); if (!a) return;
     if (a.hasAttribute('data-go-sub')) { showView('subscription'); return; }
     const act = a.dataset.act;
-    if (act === 'trial') doTrial(); else if (act === 'retry') doRetry(); else if (act === 'cancel') doCancel();
+    if (act === 'trial') doTrial(); else if (act === 'retry') doRetry(); else if (act === 'cancel') doCancel(); else if (act === 'resume') doResume();
   });
 
   /* ---------------------------------- tick ----------------------------------- */

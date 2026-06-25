@@ -220,8 +220,11 @@
         <h3 data-ru="Аккаунт" data-en="Account">Аккаунт</h3>
         <div class="hint" data-ru="Один аккаунт — одна подписка и в вебе, и в десктопе." data-en="One account — one subscription across web and desktop.">Один аккаунт — одна подписка и в вебе, и в десктопе.</div>
         <div id="sub-signin">
-          <div class="range-row"><input type="email" id="sub-email" placeholder="you@email.com" style="flex:1;min-width:0">
-            <button class="btn primary" id="btn-signin" data-ru="Войти" data-en="Sign in">Войти</button></div>
+          <div class="range-row" id="sub-step-email"><input type="email" id="sub-email" placeholder="you@email.com" style="flex:1;min-width:0">
+            <button class="btn primary" id="btn-getcode" data-ru="Получить код" data-en="Get code">Получить код</button></div>
+          <div class="range-row" id="sub-step-code" style="display:none"><input type="text" id="sub-code" inputmode="numeric" maxlength="6" placeholder="000000" style="flex:1;min-width:0">
+            <button class="btn primary" id="btn-verify" data-ru="Войти" data-en="Sign in">Войти</button></div>
+          <div class="mode-note" id="sub-auth-note"></div>
         </div>
         <div id="sub-signedin" style="display:none">
           <div class="row"><div class="label" data-ru="Вы вошли как" data-en="Signed in as">Вы вошли как</div><b id="sub-who"></b></div>
@@ -239,7 +242,8 @@
 
       <div class="card">
         <h3 data-ru="Условия" data-en="Terms">Условия</h3>
-        <div class="note" data-ru="При подключении карты первые 3 дня — бесплатно. Далее автоматически списывается абонентская плата (рекуррентный платёж) до отмены подписки. Отменить можно в любой момент. Если списание не прошло (недостаточно средств) — доступ приостанавливается до оплаты. Платежи обрабатываются через Т‑Банк или ЮKassa; данные карты Driftly не хранит и не передаёт третьим лицам." data-en="Connecting a card gives you the first 3 days free. After that, the subscription fee is charged automatically (recurring) until you cancel. Cancel anytime. If a charge fails (insufficient funds), access is paused until payment. Payments are processed by T-Bank or YooKassa; Driftly does not store card data.">…</div>
+        <div class="note" data-ru="При подключении карты первые 3 дня — бесплатно. Далее автоматически списывается абонентская плата (рекуррентный платёж) до отмены подписки. Отменить можно в любой момент — доступ сохранится до конца оплаченного периода. Если списание не прошло (недостаточно средств) — доступ приостанавливается до оплаты. Платежи обрабатываются через Т‑Банк или ЮKassa; данные карты Driftly не хранит и не передаёт третьим лицам." data-en="Connecting a card gives you the first 3 days free. After that, the subscription fee is charged automatically (recurring) until you cancel. Cancel anytime — access stays until the end of the paid period. If a charge fails (insufficient funds), access is paused until payment. Payments are processed by T-Bank or YooKassa; Driftly does not store card data.">…</div>
+        <div class="hint" style="margin-top:10px">support@driftly.app</div>
       </div>
     </section>
 

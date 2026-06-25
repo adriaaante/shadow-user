@@ -46,6 +46,8 @@ third-party platform (e.g. GitHub Pages), that host may keep standard server acc
 outside of our control.
 
 ## Contact
-For privacy questions, contact the Owner through the channel listed on the website.
+For any request — privacy, billing, cancellation, account deletion, or general
+support — write to **support@driftly.app**. We aim to respond within a few business
+days. (For data-protection matters you may also use privacy@driftly.app if configured.)
 
 _Last updated: 2026-06-25._
