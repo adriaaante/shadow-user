@@ -22,7 +22,7 @@
 периодически (раз в расчётный период) до отмены подписки. Подключая карту, пользователь даёт
 согласие на регулярные автоматические списания (рекуррентные платежи).
 
-**4. Стоимость.** Стоимость подписки: **149 ₽ в месяц** либо **1500 ₽ в год** (выгода ≈ 16%);
+**4. Стоимость.** Стоимость подписки: **249 ₽ в месяц** либо **2500 ₽ в год** (выгода ≈ 16%);
 актуальная цена указывается в приложении и на сайте на момент оформления. Правообладатель вправе
 изменять стоимость с предварительным уведомлением; изменение не затрагивает уже оплаченный период.
 По 54-ФЗ при оплате формируется кассовый чек (онлайн-касса платёжного провайдера) на email
@@ -63,7 +63,7 @@ Driftly is proprietary software (web + desktop) owned by the rights holder. A su
 grants the right to use it; **one subscription covers both the web and desktop versions**.
 Connecting a card starts a **3-day free trial**; afterwards the subscription fee is charged
 **automatically and recurrently** until cancelled (the user consents to recurring charges by
-adding a card). Price: 149 ₽/month or 1500 ₽/year (shown at checkout). Payments are processed by
+adding a card). Price: 249 ₽/month or 2500 ₽/year (shown at checkout). Payments are processed by
 **T‑Bank** or **YooKassa**; Driftly never stores card data. **If a charge fails, access to both
 apps is paused until payment succeeds.** Cancel anytime — access continues until the end of the
 paid period. Activity data is never collected (local only); only email + billing status are

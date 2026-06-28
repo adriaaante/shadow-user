@@ -38,8 +38,8 @@
   var PLAN = {
     id: 'pro', name: 'Driftly Pro',
     currency: 'RUB',
-    priceMonthly: 149, // ₽ / month
-    priceYearly: 1500, // ₽ / year (vs 12×149 = 1788 → save 288 ₽)
+    priceMonthly: 249, // ₽ / month
+    priceYearly: 2500, // ₽ / year (vs 12×249 = 2988 → save 488 ₽)
     trialDays: TRIAL_DAYS,
     features: FEATURES.slice(),
   };

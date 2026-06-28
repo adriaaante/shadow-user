@@ -267,7 +267,7 @@
   $('opt-login').addEventListener('change', (e) => patch({ prefs: { launchAtLogin: e.target.checked } }));
 
   /* ------------------------------ subscription ------------------------------- */
-  const PRICE = (window.DriftlyEntitlement && window.DriftlyEntitlement.PLAN) || { priceMonthly: 149, priceYearly: 1500, yearlyDiscountPct: 16 };
+  const PRICE = (window.DriftlyEntitlement && window.DriftlyEntitlement.PLAN) || { priceMonthly: 249, priceYearly: 2500, yearlyDiscountPct: 16 };
   let selectedInterval = 'month';
   function fmtDate(ms) { try { return new Date(ms).toLocaleDateString(lang === 'ru' ? 'ru-RU' : 'en-US'); } catch (_) { return ''; } }
   function statusBox(cls, ic, title, desc) { return `<div class="sub-status ${cls}"><span class="ic">${ic}</span><div><div class="t">${title}</div><div class="d">${desc || ''}</div></div></div>`; }

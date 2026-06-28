@@ -21,7 +21,7 @@
   var qApi = new URLSearchParams(location.search).get('api');
   if (qApi !== null) { state.api = qApi; localStorage.setItem('driftly.api', qApi); }
   var dismissed = false; // paywall temporarily dismissed so the sign-in/pay panel stays reachable
-  var PRICE = (Ent && Ent.PLAN) || { priceMonthly: 149, priceYearly: 1500, yearlyDiscountPct: 16 };
+  var PRICE = (Ent && Ent.PLAN) || { priceMonthly: 249, priceYearly: 2500, yearlyDiscountPct: 16 };
   var selectedInterval = 'month';
 
   function preview() { return !state.api; }
