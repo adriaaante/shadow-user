@@ -101,10 +101,10 @@ body::after{content:"";position:fixed;bottom:-20%;left:-15%;width:55vw;height:55
 .appwin-live i{width:8px;height:8px;border-radius:50%;background:var(--accent);box-shadow:0 0 10px var(--accent);animation:pulse 1.6s infinite}
 @keyframes pulse{0%,100%{opacity:1}50%{opacity:.3}}
 .appwin-body{padding:0;background:#0a0a11}
-/* Live canvas demo: renders instantly on a dark bg, loops forever with no seam
-   and no white flash. aspect-ratio sizes the box up front (no layout jump). */
-#demoCanvas{display:block;width:100%;height:auto;aspect-ratio:960/600;
-  background:#0a0a11;border-radius:0 0 var(--r-lg) var(--r-lg)}
+/* Real app screenshot in the hero window. width/height attrs reserve the box so
+   there's no layout jump; dark bg means no white flash even before it paints. */
+.appwin-shot{display:block;width:100%;height:auto;background:#0a0a11;
+  border-radius:0 0 var(--r-lg) var(--r-lg)}
 
 /* ============ sections ============ */
 .section{padding:84px 0}
