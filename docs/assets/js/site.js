@@ -33,6 +33,66 @@
   doc.querySelectorAll('[data-lang-btn]').forEach(function (b) {
     b.addEventListener('click', function () { applyLang(b.getAttribute('data-lang-btn')); });
   });
+  function curLang() { return doc.documentElement.getAttribute('data-lang') || 'ru'; }
+
+  /* ---------- desktop download availability ----------
+     The .exe/.dmg/.AppImage live in GitHub Releases. Until a release is
+     published, /releases/latest is an empty 404 page — so check the API first:
+       • no release  → buttons say "Скоро — сборка готовится" and don't navigate
+                       (the web-version CTA below stays the working path);
+       • release out → each button auto-wires to its real installer asset.
+     Transient API errors leave the original /releases/latest href intact. */
+  (function () {
+    var REPO = 'adriaaante/shadow-user';
+    // Strictly the three OS buttons in the download section (the pricing card
+    // also uses .dl-card, so don't match its trial CTA).
+    var dlBtns = [].slice.call(doc.querySelectorAll('#download .dl-card .btn-primary'));
+    if (!dlBtns.length) return;
+    function osOf(btn) {
+      var t = (btn.getAttribute('data-en') || '').toLowerCase();
+      if (t.indexOf('windows') >= 0) return 'win';
+      if (t.indexOf('macos') >= 0) return 'mac';
+      if (t.indexOf('linux') >= 0) return 'linux';
+      return null;
+    }
+    function assetFor(assets, os) {
+      if (!os) return null;
+      var rx = os === 'win' ? /\.exe$/i : os === 'mac' ? /\.dmg$/i : /(\.AppImage|\.deb|\.zip)$/i;
+      for (var i = 0; i < assets.length; i++) { if (rx.test(assets[i].name || '')) return assets[i].browser_download_url; }
+      return null;
+    }
+    function setPending() {
+      dlBtns.forEach(function (b) {
+        b.setAttribute('data-ru', 'Скоро — сборка готовится');
+        b.setAttribute('data-en', 'Coming soon — build in progress');
+        b.setAttribute('aria-disabled', 'true');
+        b.classList.add('is-pending');
+        b.removeAttribute('href');
+        b.addEventListener('click', function (e) {
+          e.preventDefault();
+          var web = doc.querySelector('.dl-soft-cta .btn');
+          if (web) { web.scrollIntoView({ behavior: 'smooth', block: 'center' }); web.focus({ preventScroll: true }); }
+        });
+      });
+      applyLang(curLang());
+    }
+    function wire(rel) {
+      var assets = (rel && rel.assets) || [];
+      dlBtns.forEach(function (b) {
+        var url = assetFor(assets, osOf(b));
+        if (url) { b.setAttribute('href', url); b.setAttribute('download', ''); }
+        // else: keep the existing /releases/latest href (release page works)
+      });
+    }
+    fetch('https://api.github.com/repos/' + REPO + '/releases/latest', { headers: { Accept: 'application/vnd.github+json' } })
+      .then(function (r) {
+        if (r.status === 404) { setPending(); return null; }   // no release yet
+        if (!r.ok) return null;                                 // transient → leave defaults
+        return r.json();
+      })
+      .then(function (rel) { if (rel) wire(rel); })
+      .catch(function () { /* offline/blocked → leave defaults */ });
+  }());
 
   /* ---------- mobile nav ---------- */
   var burger = doc.getElementById('hamburger');
