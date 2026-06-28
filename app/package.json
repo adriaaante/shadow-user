@@ -5,6 +5,7 @@
   "description": "Keep your session alive — and measure it. Synthetic activity generator + activity benchmark. Local-only, no telemetry.",
   "author": "The Driftly Owner",
   "license": "SEE LICENSE IN ../LICENSE",
+  "repository": "https://github.com/adriaaante/shadow-user",
   "private": true,
   "main": "src/main/index.js",
   "scripts": {

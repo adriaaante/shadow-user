@@ -1,0 +1,70 @@
+name: Сборка и публикация десктоп-установщиков
+
+# Запуск: вручную (вкладка Actions → этот workflow → "Run workflow"),
+# или автоматически при пуше тега вида v1.0.0
+on:
+  workflow_dispatch:
+    inputs:
+      version:
+        description: "Тег релиза (например v1.0.0)"
+        required: true
+        default: "v1.0.0"
+  push:
+    tags: ["v*"]
+
+permissions:
+  contents: write   # нужно, чтобы создать релиз и загрузить файлы
+
+jobs:
+  build:
+    name: Сборка (${{ matrix.os }})
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-latest, windows-latest, macos-latest]
+    runs-on: ${{ matrix.os }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+      - name: Установка зависимостей
+        working-directory: app
+        run: npm install --omit=optional --no-audit --no-fund
+      - name: Сборка установщика
+        working-directory: app
+        run: npm run dist
+        env:
+          # не пытаться подписывать сборку (выпускаем без подписи)
+          CSC_IDENTITY_AUTO_DISCOVERY: "false"
+      - uses: actions/upload-artifact@v4
+        with:
+          name: installer-${{ matrix.os }}
+          path: |
+            app/release/*.exe
+            app/release/*.dmg
+            app/release/*.AppImage
+          if-no-files-found: ignore
+
+  release:
+    name: Публикация релиза
+    needs: build
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/download-artifact@v4
+        with:
+          path: dist
+          merge-multiple: true
+      - name: Создать релиз с установщиками
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: ${{ github.event_name == 'push' && github.ref_name || inputs.version }}
+          name: Driftly ${{ github.event_name == 'push' && github.ref_name || inputs.version }}
+          files: dist/**
+          body: |
+            Установщики Driftly для Windows, macOS и Linux.
+
+            Приложение выпущено **без цифровой подписи** — при первом запуске система покажет предупреждение, это нормально:
+            • **Windows:** «Подробнее» → «Выполнить в любом случае».
+            • **macOS:** правый клик по приложению → «Открыть» → «Открыть».
+            • **Linux:** сделать AppImage исполняемым (chmod +x) и запустить.
