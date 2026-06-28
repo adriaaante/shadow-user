@@ -23,6 +23,7 @@ module.exports = {
     acc.cardOnFile = true;
     acc.canceled = false;
     acc.plan = 'pro';
+    acc.interval = (paymentData && paymentData.interval === 'year') ? 'year' : 'month';
     acc.status = 'trialing';
     acc.trialEndsAt = now + TRIAL_DAYS * DAY;
     acc.currentPeriodEnd = null;
@@ -39,7 +40,7 @@ module.exports = {
     if (!acc.cardOnFile) { acc.status = 'past_due'; return { ok: false, status: 'past_due' }; }
     if (acc._simFail) { acc.status = 'past_due'; return { ok: false, status: 'past_due' }; }
     acc.status = 'active';
-    acc.currentPeriodEnd = now + 30 * DAY;
+    acc.currentPeriodEnd = now + (acc.interval === 'year' ? 365 : 30) * DAY;
     return { ok: true, status: 'active', currentPeriodEnd: acc.currentPeriodEnd };
   },
 

@@ -63,6 +63,7 @@
       needEmail: 'Введите корректный email.', testCard: 'тестовая карта (демо):', cardOk: 'успешно', cardFail: 'нет средств',
       getCode: 'Получить код', sendCode: 'Код отправлен на почту', enterCode: 'Введите код из письма', codeBad: 'Неверный код',
       resume: 'Возобновить', accessUntil: 'доступ до', trialCanceledNote: 'Пробный период отменён', subCanceledNote: 'Подписка отменена', noRenew: 'продление не произойдёт',
+      monthly: 'Помесячно', yearly: 'За год', perMonth: '₽/мес', perYear: '₽/год', planYearWord: 'годовая', planMonthWord: 'месячная',
       days: ['Пн', 'Вт', 'Ср', 'Чт', 'Пт', 'Сб', 'Вс'] },
     en: { active: 'Active', paused: 'Paused', waiting: 'Waiting for schedule', moves: 'moves/min', clicks: 'clicks/min', scrolls: 'scrolls/min',
       bReal: 'Real input', bSim: 'Simulation', mGlobal: 'Global monitoring', mSelf: 'Synthetic only',
@@ -81,6 +82,7 @@
       needEmail: 'Enter a valid email.', testCard: 'test card (demo):', cardOk: 'success', cardFail: 'no funds',
       getCode: 'Get code', sendCode: 'Code sent to your email', enterCode: 'Enter the code from the email', codeBad: 'Invalid code',
       resume: 'Resume', accessUntil: 'access until', trialCanceledNote: 'Trial cancelled', subCanceledNote: 'Subscription cancelled', noRenew: 'will not renew',
+      monthly: 'Monthly', yearly: 'Yearly', perMonth: '₽/mo', perYear: '₽/yr', planYearWord: 'yearly', planMonthWord: 'monthly',
       days: ['Mo', 'Tu', 'We', 'Th', 'Fr', 'Sa', 'Su'] },
   };
   const t = (k) => L[lang][k];
@@ -265,12 +267,22 @@
   $('opt-login').addEventListener('change', (e) => patch({ prefs: { launchAtLogin: e.target.checked } }));
 
   /* ------------------------------ subscription ------------------------------- */
+  const PRICE = (window.DriftlyEntitlement && window.DriftlyEntitlement.PLAN) || { priceMonthly: 149, priceYearly: 1500, yearlyDiscountPct: 16 };
+  let selectedInterval = 'month';
   function fmtDate(ms) { try { return new Date(ms).toLocaleDateString(lang === 'ru' ? 'ru-RU' : 'en-US'); } catch (_) { return ''; } }
   function statusBox(cls, ic, title, desc) { return `<div class="sub-status ${cls}"><span class="ic">${ic}</span><div><div class="t">${title}</div><div class="d">${desc || ''}</div></div></div>`; }
+  function planToggle() {
+    const yr = selectedInterval === 'year';
+    return `<div class="plan-toggle">
+      <button class="${yr ? '' : 'on'}" data-interval="month"><b>${PRICE.priceMonthly} ${t('perMonth')}</b><span>${t('monthly')}</span></button>
+      <button class="${yr ? 'on' : ''}" data-interval="year"><b>${PRICE.priceYearly} ${t('perYear')}</b><span>${t('yearly')} · −${PRICE.yearlyDiscountPct}%</span></button>
+    </div>`;
+  }
   function trialBlock() {
-    return `<button class="btn primary btn-lg" data-act="trial">${t('startTrial')}</button>
+    return planToggle() + `<button class="btn primary btn-lg" data-act="trial">${t('startTrial')}</button>
       <div class="devcard">${t('testCard')}<select id="dev-card"><option value="tok_ok">${t('cardOk')}</option><option value="tok_insufficient">${t('cardFail')}</option></select></div>`;
   }
+  function planWord(e) { return e.interval === 'year' ? t('planYearWord') : t('planMonthWord'); }
   function cancelBlock() { return `<button class="btn ghost" data-act="cancel" style="margin-top:12px">${t('cancelSub')}</button>`; }
   function resumeBlock() { return `<button class="btn primary" data-act="resume" style="margin-top:12px">${t('resume')}</button>`; }
 
@@ -304,7 +316,7 @@
     document.querySelectorAll('#runmode button').forEach((b) => { b.disabled = blocked; b.style.opacity = blocked ? '.4' : ''; b.style.pointerEvents = blocked ? 'none' : ''; });
 
     // subscription view
-    $('price-main').textContent = '490 ₽';
+    $('price-main').textContent = PRICE.priceMonthly + ' ₽';
     $('sub-api').value = info.api || '';
     $('sub-api-state').textContent = info.preview ? t('subPreview') : `${info.api} · ${info.online ? t('online') : t('offline')}`;
     $('sub-signin').style.display = info.signedIn ? 'none' : 'block';
@@ -319,14 +331,14 @@
       : statusBox('trial', '✨', t('trialActive'), `${e.trialDaysLeft} ${t('daysLeft')}`) + cancelBlock();
     else if (e.reason === 'active') box.innerHTML = e.canceled
       ? statusBox('ok', '✓', t('subCanceledNote'), `${t('accessUntil')} ${fmtDate(e.renewsAt)} · ${t('noRenew')}`) + resumeBlock()
-      : statusBox('ok', '✓', t('subActive'), `${t('renews')}: ${fmtDate(e.renewsAt)}`) + cancelBlock();
+      : statusBox('ok', '✓', `${t('subActive')} · ${planWord(e)}`, `${t('renews')}: ${fmtDate(e.renewsAt)}`) + cancelBlock();
     else if (e.needsPayment) box.innerHTML = statusBox('bad', '⚠', t('pastDue'), t('pastDueDesc')) + `<button class="btn primary" data-act="retry">${t('retryPay')}</button>`;
     else box.innerHTML = statusBox('', '🔓', t('inactive'), '') + trialBlock();
   }
 
   function applyInfo(info) { if (!status) status = {}; status.license = info; renderLicense(); renderStatus(); }
 
-  async function doTrial() { const card = ($('dev-card') && $('dev-card').value) || 'tok_ok'; const r = await api.licenseStartTrial(card); applyInfo(r.info); toast(r.info.entitlement && r.info.entitlement.access ? t('trialStarted') : t('pastDue')); }
+  async function doTrial() { const card = ($('dev-card') && $('dev-card').value) || 'tok_ok'; const r = await api.licenseStartTrial(card, selectedInterval); applyInfo(r.info); toast(r.info.entitlement && r.info.entitlement.access ? t('trialStarted') : t('pastDue')); }
   async function doRetry() { const r = await api.licenseRetry(); applyInfo(r.info); toast(r.info.entitlement && r.info.entitlement.access ? t('payRetried') : t('pastDue')); }
   async function doCancel() { const r = await api.licenseCancel(); applyInfo(r.info); }
   async function doResume() { const r = await api.licenseResume(); applyInfo(r.info); }
@@ -354,9 +366,10 @@
   $('pw-cta').addEventListener('click', () => showView('subscription'));
   $('pw-retry').addEventListener('click', doRetry);
   document.addEventListener('click', (ev) => {
-    const a = ev.target.closest('[data-act],[data-go-sub]'); if (!a) return;
+    const a = ev.target.closest('[data-act],[data-go-sub],[data-interval]'); if (!a) return;
     if (a.hasAttribute('data-go-sub')) { showView('subscription'); return; }
     const act = a.dataset.act;
+    if (a.dataset.interval) { selectedInterval = a.dataset.interval; renderLicense(); return; }
     if (act === 'trial') doTrial(); else if (act === 'retry') doRetry(); else if (act === 'cancel') doCancel(); else if (act === 'resume') doResume();
   });
 

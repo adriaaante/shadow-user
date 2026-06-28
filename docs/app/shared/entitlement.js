@@ -37,11 +37,14 @@
 
   var PLAN = {
     id: 'pro', name: 'Driftly Pro',
-    priceMonthly: 4.99, currency: 'USD',
-    priceMonthlyRub: 490, currencyRub: 'RUB',
+    currency: 'RUB',
+    priceMonthly: 149, // ₽ / month
+    priceYearly: 1500, // ₽ / year (vs 12×149 = 1788 → save 288 ₽)
     trialDays: TRIAL_DAYS,
     features: FEATURES.slice(),
   };
+  // % saved by paying yearly instead of 12 monthly charges (rounded).
+  PLAN.yearlyDiscountPct = Math.round((1 - PLAN.priceYearly / (PLAN.priceMonthly * 12)) * 100);
 
   function blocked(reason, account, status) {
     return {
@@ -70,6 +73,7 @@
         plan: 'pro', status: status,
         access: true, blocked: false, isPro: true, needsPayment: false,
         canceled: !!license.canceled,
+        interval: license.interval || 'month',
         reason: trialing ? 'trial' : 'active',
         features: FEATURES.slice(),
         trialDaysLeft: trialing ? Math.max(0, Math.ceil((license.trialEndsAt - now) / DAY)) : 0,

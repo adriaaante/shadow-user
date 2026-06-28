@@ -158,7 +158,9 @@ class Metrics {
         scoreOf(b.synthetic), scoreOf(b.real),
       ]);
     });
-    return rows.map((r) => r.join(',')).join('\n');
+    // 'sep=,' + CRLF so Excel (incl. RU locale, which defaults to ';') splits
+    // the fields into separate columns. The BOM is added when writing the file.
+    return 'sep=,\r\n' + rows.map((r) => r.join(',')).join('\r\n');
   }
 
   reset() { this.buckets.clear(); this._recent = []; }

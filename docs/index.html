@@ -54,10 +54,10 @@
   "license": "https://driftly.app/#license",
   "offers": {
     "@type": "Offer",
-    "price": "490",
+    "price": "149",
     "priceCurrency": "RUB",
     "category": "subscription",
-    "description": "Driftly Pro — единая подписка на веб-версию и десктоп. 3 дня бесплатно при подключении карты, затем 490 ₽/мес (рекуррентный платёж) до отмены подписки."
+    "description": "Driftly Pro — единая подписка на веб-версию и десктоп. 3 дня бесплатно при подключении карты, затем 149 ₽/мес или 1500 ₽/год (−16%) (рекуррентный платёж) до отмены подписки."
   }
 }
 </script>
@@ -66,7 +66,7 @@
   "@context": "https://schema.org",
   "@type": "FAQPage",
   "mainEntity": [
-    {"@type":"Question","name":"Сколько стоит Driftly?","acceptedAnswer":{"@type":"Answer","text":"При подключении карты первые 3 дня бесплатны, далее — подписка Driftly Pro (например, 490 ₽ в месяц) с автопродлением до отмены. Одна подписка работает и в веб-версии, и в десктопе. Отменить можно в любой момент."}},
+    {"@type":"Question","name":"Сколько стоит Driftly?","acceptedAnswer":{"@type":"Answer","text":"При подключении карты первые 3 дня бесплатны, далее — подписка Driftly Pro: 149 ₽/мес или 1500 ₽/год (−16%) с автопродлением до отмены. Одна подписка работает и в веб-версии, и в десктопе. Отменить можно в любой момент."}},
     {"@type":"Question","name":"Собираете ли вы данные?","acceptedAnswer":{"@type":"Answer","text":"Driftly не собирает данные об активности — настройки и метрики хранятся локально на вашем компьютере, без аналитики и телеметрии. Для работы подписки используется только email и платёжный статус аккаунта; данные банковской карты обрабатывает платёжный провайдер (Т‑Банк или ЮKassa), Driftly их не хранит."}},
     {"@type":"Question","name":"На каких операционных системах работает Driftly?","acceptedAnswer":{"@type":"Answer","text":"Driftly — кроссплатформенное настольное приложение на Electron и работает на Windows, macOS и Linux."}},
     {"@type":"Question","name":"Это безопасно и ответственно?","acceptedAnswer":{"@type":"Answer","text":"Driftly предназначен для автоматизации, anti-idle и тестирования на системах, которыми вы владеете или которые вам разрешено использовать. Нажатия клавиш по умолчанию отключены и используют безопасные клавиши; есть режим паузы при реальной активности."}},
@@ -99,11 +99,13 @@
     <nav class="nav-links" id="navLinks" aria-label="Основная навигация">
       <a href="#features" data-ru="Возможности" data-en="Features">Возможности</a>
       <a href="#how" data-ru="Как работает" data-en="How it works">Как работает</a>
-      <a href="#levels" data-ru="Уровни" data-en="Levels">Уровни</a>
+      <a href="#gallery" class="nav-link-more" data-ru="Скриншоты" data-en="Screenshots">Скриншоты</a>
+      <a href="#levels" class="nav-link-more" data-ru="Уровни" data-en="Levels">Уровни</a>
       <a href="#compare" data-ru="Сравнение" data-en="Compare">Сравнение</a>
-      <a href="#privacy" data-ru="Приватность" data-en="Privacy">Приватность</a>
+      <a href="#privacy" class="nav-link-more" data-ru="Приватность" data-en="Privacy">Приватность</a>
       <a href="#pricing" data-ru="Подписка" data-en="Pricing">Подписка</a>
       <a href="#faq" data-ru="FAQ" data-en="FAQ">FAQ</a>
+      <a href="app/" class="nav-link-web" data-ru="Веб-версия" data-en="Web app">Веб-версия</a>
     </nav>
 
     <div class="nav-actions">
@@ -111,6 +113,7 @@
         <button type="button" data-lang-btn="ru" class="active" aria-pressed="true">RU</button>
         <button type="button" data-lang-btn="en" aria-pressed="false">EN</button>
       </div>
+      <a class="btn btn-ghost nav-web" href="app/" data-ru="Веб-версия" data-en="Web app">Веб-версия</a>
       <a class="btn btn-primary nav-dl" href="#download" data-ru="Скачать" data-en="Download">Скачать</a>
       <button class="hamburger" id="hamburger" aria-label="Меню" aria-expanded="false" aria-controls="navLinks">
         <span></span><span></span><span></span>
@@ -149,7 +152,9 @@
           <span class="appwin-live"><i></i><span data-ru="генерация" data-en="generating">генерация</span></span>
         </div>
         <div class="appwin-body">
-          <canvas id="demoCanvas" width="520" height="300"></canvas>
+          <video class="appwin-video" autoplay muted loop playsinline preload="metadata" poster="assets/video/web-demo-poster.jpg" aria-label="Живая демонстрация веб-приложения Driftly">
+            <source src="assets/video/web-demo.webm" type="video/webm">
+          </video>
         </div>
       </div>
       <div class="demo-glow" aria-hidden="true"></div>
@@ -223,6 +228,31 @@
         <p data-ru="Наблюдайте поминутную активность, сравнивайте Shadow и Passive и экспортируйте метрики в CSV/JSON для бенчмарка против другой программы." data-en="Watch per-minute activity, compare Shadow and Passive, and export metrics to CSV/JSON to benchmark against another tool.">Наблюдайте поминутную активность, сравнивайте Shadow и Passive и экспортируйте метрики в CSV/JSON для бенчмарка против другой программы.</p>
       </li>
     </ol>
+  </div>
+</section>
+
+<!-- ===== GALLERY ===== -->
+<section id="gallery" class="section section-alt">
+  <div class="wrap">
+    <header class="section-head reveal">
+      <span class="eyebrow" data-ru="Скриншоты" data-en="Screenshots">Скриншоты</span>
+      <h2 data-ru="Как это выглядит" data-en="A look inside">Как это выглядит</h2>
+      <p class="section-sub" data-ru="Реальные экраны Driftly: десктоп-дашборд, сравнение режимов и панель подписки." data-en="Real Driftly screens: desktop dashboard, mode comparison and the subscription panel.">Реальные экраны Driftly: десктоп-дашборд, сравнение режимов и панель подписки.</p>
+    </header>
+    <div class="grid cards-3 gallery-grid">
+      <figure class="shot-card reveal">
+        <img src="assets/shots/desktop-dashboard.png" alt="Driftly — дашборд десктоп-приложения с живым датчиком активности и графиком Shadow/Passive" loading="lazy" width="1280" height="800">
+        <figcaption data-ru="Дашборд: живая активность" data-en="Dashboard: live activity">Дашборд: живая активность</figcaption>
+      </figure>
+      <figure class="shot-card reveal">
+        <img src="assets/shots/desktop-compare.png" alt="Driftly — экран сравнения режимов Shadow и Passive" loading="lazy" width="1280" height="800">
+        <figcaption data-ru="Сравнение Shadow / Passive" data-en="Shadow / Passive comparison">Сравнение Shadow / Passive</figcaption>
+      </figure>
+      <figure class="shot-card reveal">
+        <img src="assets/shots/web-subscription.png" alt="Driftly — панель подписки с переключателем месяц/год" loading="lazy" width="1280" height="800">
+        <figcaption data-ru="Подписка: 149 ₽/мес или 1500 ₽/год" data-en="Subscription: 149 ₽/mo or 1500 ₽/yr">Подписка: 149 ₽/мес или 1500 ₽/год</figcaption>
+      </figure>
+    </div>
   </div>
 </section>
 
@@ -379,6 +409,9 @@
   .price-amount b{font-family:'Space Grotesk',sans-serif;font-size:2.4rem;line-height:1;letter-spacing:-1px}
   .price-amount span{color:var(--muted);font-size:1rem;font-weight:500}
   .price-amount-en{color:var(--dim);font-size:.85rem;margin:0 0 20px}
+  .price-annual{display:flex;align-items:center;gap:10px;flex-wrap:wrap;color:var(--muted);font-size:.92rem;font-weight:500;margin:0 0 20px}
+  .price-save{display:inline-flex;align-items:center;font-size:.72rem;font-weight:700;letter-spacing:.3px;color:#0a0a12;
+    background:var(--grad);border-radius:999px;padding:3px 10px}
   .price-list{display:grid;gap:11px;margin:0 0 20px;padding:0;list-style:none}
   .price-list li{position:relative;padding-left:26px;color:var(--text);font-size:.95rem}
   .price-list li::before{content:"✓";position:absolute;left:0;top:0;color:var(--accent);font-weight:700}
@@ -398,8 +431,11 @@
       <article class="dl-card price-card reveal featured">
         <span class="level-badge" data-ru="единая подписка" data-en="one subscription">единая подписка</span>
         <h3>Driftly Pro</h3>
-        <p class="price-amount"><b>490&nbsp;₽</b> <span data-ru="/ мес" data-en="/ mo">/ мес</span></p>
-        <p class="price-amount-en" data-ru="≈ $4.99 / мес" data-en="$4.99 /mo">≈ $4.99 / мес</p>
+        <p class="price-amount"><b>149&nbsp;₽</b> <span data-ru="/ мес" data-en="/ mo">/ мес</span></p>
+        <p class="price-annual">
+          <span data-ru="или 1500 ₽/год" data-en="or 1500 ₽/yr">или 1500 ₽/год</span>
+          <span class="price-save" data-ru="выгода 16%" data-en="save 16%">выгода 16%</span>
+        </p>
         <ul class="price-list">
           <li data-ru="Доступ к веб-версии и десктопу" data-en="Access to web and desktop">Доступ к веб-версии и десктопу</li>
           <li data-ru="Генерация активности" data-en="Activity generation">Генерация активности</li>
@@ -410,7 +446,7 @@
         <p class="price-trial" data-ru="3 дня бесплатно при подключении карты" data-en="3 days free when you add a card">3 дня бесплатно при подключении карты</p>
         <a class="btn btn-primary btn-block" href="app/#sub-panel" data-ru="Начать 3 дня бесплатно" data-en="Start 3 days free">Начать 3 дня бесплатно</a>
         <p class="price-methods" data-ru="Т‑Банк · ЮKassa · карта" data-en="T‑Bank · YooKassa · card">Т‑Банк · ЮKassa · карта</p>
-        <p class="price-fineprint" data-ru="3 дня бесплатно при подключении карты, затем 490 ₽/мес списываются автоматически (рекуррентный платёж) до отмены подписки. Отмена в любой момент. Если списание не прошло (недостаточно средств), доступ приостанавливается до оплаты. Оплата через Т‑Банк, ЮKassa или картой; данные карты не хранятся." data-en="3 days free when you add a card, then 490 ₽/mo is charged automatically (recurring payment) until you cancel. Cancel anytime. If a charge fails (insufficient funds), access is paused until payment. Payment via T‑Bank, YooKassa or card; card details are not stored.">3 дня бесплатно при подключении карты, затем 490 ₽/мес списываются автоматически (рекуррентный платёж) до отмены подписки. Отмена в любой момент. Если списание не прошло (недостаточно средств), доступ приостанавливается до оплаты. Оплата через Т‑Банк, ЮKassa или картой; данные карты не хранятся.</p>
+        <p class="price-fineprint" data-ru="3 дня бесплатно при подключении карты, затем 149 ₽/мес списываются автоматически (рекуррентный платёж) до отмены подписки. Отмена в любой момент. Если списание не прошло (недостаточно средств), доступ приостанавливается до оплаты. Оплата через Т‑Банк, ЮKassa или картой; данные карты не хранятся." data-en="3 days free when you add a card, then 149 ₽/mo is charged automatically (recurring payment) until you cancel. Cancel anytime. If a charge fails (insufficient funds), access is paused until payment. Payment via T‑Bank, YooKassa or card; card details are not stored.">3 дня бесплатно при подключении карты, затем 149 ₽/мес списываются автоматически (рекуррентный платёж) до отмены подписки. Отмена в любой момент. Если списание не прошло (недостаточно средств), доступ приостанавливается до оплаты. Оплата через Т‑Банк, ЮKassa или картой; данные карты не хранятся.</p>
       </article>
     </div>
   </div>
@@ -458,7 +494,7 @@
     <div class="faq" id="faqList">
       <details class="faq-item reveal">
         <summary><span data-ru="Сколько стоит Driftly?" data-en="How much does it cost?">Сколько стоит Driftly?</span><span class="faq-icon" aria-hidden="true"></span></summary>
-        <div class="faq-a"><p data-ru="При подключении карты первые 3 дня бесплатны, далее — подписка Driftly Pro (например, 490 ₽/мес) с автопродлением до отмены. Одна подписка работает и в веб-версии, и в десктопе. Отменить можно в любой момент; при неуспешном списании доступ приостанавливается до оплаты." data-en="Connecting a card gives you 3 free days, then a Driftly Pro subscription (e.g. 490 ₽/mo) that renews until you cancel. One subscription covers web and desktop. Cancel anytime; if a charge fails, access pauses until paid.">При подключении карты первые 3 дня бесплатны, далее — подписка Driftly Pro (например, 490 ₽/мес) с автопродлением до отмены. Одна подписка работает и в веб-версии, и в десктопе. Отменить можно в любой момент; при неуспешном списании доступ приостанавливается до оплаты.</p></div>
+        <div class="faq-a"><p data-ru="При подключении карты первые 3 дня бесплатны, далее — подписка Driftly Pro: 149 ₽/мес или 1500 ₽/год (−16%) с автопродлением до отмены. Одна подписка работает и в веб-версии, и в десктопе. Отменить можно в любой момент; при неуспешном списании доступ приостанавливается до оплаты." data-en="Connecting a card gives you 3 free days, then a Driftly Pro subscription: 149 ₽/mo or 1500 ₽/yr (−16%) that renews until you cancel. One subscription covers web and desktop. Cancel anytime; if a charge fails, access pauses until paid.">При подключении карты первые 3 дня бесплатны, далее — подписка Driftly Pro: 149 ₽/мес или 1500 ₽/год (−16%) с автопродлением до отмены. Одна подписка работает и в веб-версии, и в десктопе. Отменить можно в любой момент; при неуспешном списании доступ приостанавливается до оплаты.</p></div>
       </details>
       <details class="faq-item reveal">
         <summary><span data-ru="Собираете ли вы данные?" data-en="Do you collect data?">Собираете ли вы данные?</span><span class="faq-icon" aria-hidden="true"></span></summary>

@@ -42,6 +42,7 @@ function publicAccount(acc) {
     email: acc.email, plan: acc.plan || 'none', status: acc.status || 'none',
     trialEndsAt: acc.trialEndsAt || null, currentPeriodEnd: acc.currentPeriodEnd || null,
     cardOnFile: !!acc.cardOnFile, provider: acc.provider || provider.name, canceled: !!acc.canceled,
+    interval: acc.interval || 'month',
   };
 }
 
@@ -92,7 +93,12 @@ const server = http.createServer(async (req, res) => {
     if (p === '/v1/config') {
       return send(res, 200, {
         provider: provider.name, trialDays: entitlement.TRIAL_DAYS,
-        price: { usd: entitlement.PLAN.priceMonthly, rub: entitlement.PLAN.priceMonthlyRub },
+        price: {
+          currency: entitlement.PLAN.currency,
+          monthly: entitlement.PLAN.priceMonthly,
+          yearly: entitlement.PLAN.priceYearly,
+          yearlyDiscountPct: entitlement.PLAN.yearlyDiscountPct,
+        },
         keys: !!PRIVATE_KEY,
       });
     }
@@ -140,7 +146,7 @@ const server = http.createServer(async (req, res) => {
 
     if (p === '/v1/billing/start-trial' && req.method === 'POST') {
       const body = JSON.parse((await readBody(req)) || '{}');
-      const r = await provider.startTrial(acc, { card: body.card }, Date.now());
+      const r = await provider.startTrial(acc, { card: body.card, interval: body.interval }, Date.now());
       store.putAccount(acc);
       return send(res, 200, Object.assign({ provider: provider.name, result: r }, stateResponse(acc)));
     }

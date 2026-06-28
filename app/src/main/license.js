@@ -85,7 +85,7 @@ async function authVerify(email, code) {
   } catch (e) { state.online = false; state.lastError = String(e); return { ok: false, error: 'offline' }; }
 }
 
-async function startTrial(card) { if (isPreview() || !state.token) return { ok: false, error: 'no_account' }; const j = await call('POST', '/v1/billing/start-trial', { card: card || 'tok_ok' }); if (j.license) { state.license = j.license; persist(); } return j; }
+async function startTrial(card, interval) { if (isPreview() || !state.token) return { ok: false, error: 'no_account' }; const j = await call('POST', '/v1/billing/start-trial', { card: card || 'tok_ok', interval: interval === 'year' ? 'year' : 'month' }); if (j.license) { state.license = j.license; persist(); } return j; }
 async function retry() { if (isPreview() || !state.token) return { ok: false }; const j = await call('POST', '/v1/billing/retry'); if (j.license) { state.license = j.license; persist(); } return j; }
 async function cancel() { if (isPreview() || !state.token) return { ok: false }; const j = await call('POST', '/v1/billing/cancel'); if (j.license) { state.license = j.license; persist(); } return j; }
 async function resume() { if (isPreview() || !state.token) return { ok: false }; const j = await call('POST', '/v1/billing/resume'); if (j.license) { state.license = j.license; persist(); } return j; }

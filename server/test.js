@@ -38,7 +38,7 @@ function expireTrial(email) { const a = srv.store.getAccount(email); a.trialEnds
 
   // health/config
   let r = await api('GET', '/v1/health'); ok('health ok + keys present', r.json.ok && r.json.keys);
-  r = await api('GET', '/v1/config'); ok('config exposes 3-day trial + price', r.json.trialDays === 3 && r.json.price.rub === 490);
+  r = await api('GET', '/v1/config'); ok('config exposes 3-day trial + price', r.json.trialDays === 3 && r.json.price.monthly === 149 && r.json.price.yearly === 1500);
 
   // ---- passwordless sign-in (email code) ----
   const ar = await api('POST', '/v1/auth/request', null, { email: 'Alice@Example.com' });
@@ -106,6 +106,14 @@ function expireTrial(email) { const a = srv.store.getAccount(email); a.trialEnds
   expireTrial('carol@example.com');
   r = await api('POST', '/v1/billing/retry', tokC);
   ok('cancelled trial ends → expired & blocked, NOT past_due', r.json.account.status === 'expired' && r.json.entitlement.blocked === true && r.json.entitlement.needsPayment === false);
+
+  // ---- yearly plan: interval=year → ~365-day paid period ----
+  const tokD = (await signIn('dave@example.com')).accountToken;
+  await api('POST', '/v1/billing/start-trial', tokD, { card: 'tok_ok', interval: 'year' });
+  expireTrial('dave@example.com');
+  r = await api('POST', '/v1/billing/retry', tokD);
+  { const days = Math.round((r.json.account.currentPeriodEnd - Date.now()) / 86400000);
+    ok('yearly plan → ~365-day period', r.json.account.interval === 'year' && days > 360 && days <= 365); }
 
   // unauthorized
   r = await api('GET', '/v1/status', 'badtoken'); ok('bad token → 401', r.code === 401);

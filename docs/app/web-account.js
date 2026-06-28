@@ -21,6 +21,8 @@
   var qApi = new URLSearchParams(location.search).get('api');
   if (qApi !== null) { state.api = qApi; localStorage.setItem('driftly.api', qApi); }
   var dismissed = false; // paywall temporarily dismissed so the sign-in/pay panel stays reachable
+  var PRICE = (Ent && Ent.PLAN) || { priceMonthly: 149, priceYearly: 1500, yearlyDiscountPct: 16 };
+  var selectedInterval = 'month';
 
   function preview() { return !state.api; }
   function persist() {
@@ -80,8 +82,8 @@
 
   /* ------------------------------- rendering ------------------------------- */
   var L = {
-    ru: { preview: 'Демо-режим: сервер лицензий не подключён — доступ открыт.', signin: 'Войдите, чтобы управлять подпиской.', trial: 'Подключить карту — 3 дня бесплатно', trialActive: 'Пробный период', daysLeft: 'дн. осталось', active: 'Подписка активна', renews: 'Продление', inactive: 'Подписка неактивна', pastDue: 'Необходимо оплатить', pastDueDesc: 'Списание не прошло. Оплатите, чтобы продолжить.', retry: 'Повторить оплату', cancel: 'Отменить подписку', pwText: 'Подключите карту и получите 3 дня бесплатно. Driftly работает и в вебе, и в десктопе.', goSub: 'Открыть подписку', testCard: 'тестовая карта (демо):', ok: 'успешно', fail: 'нет средств', online: 'на связи', offline: 'нет связи', sendCode: 'Код отправлен на почту', codeBad: 'Неверный код', resume: 'Возобновить', accessUntil: 'доступ до', trialCanceled: 'Пробный период отменён', subCanceled: 'Подписка отменена', noRenew: 'продление не произойдёт' },
-    en: { preview: 'Demo mode: no licensing server — access is open.', signin: 'Sign in to manage your subscription.', trial: 'Add a card — 3 days free', trialActive: 'Free trial', daysLeft: 'days left', active: 'Subscription active', renews: 'Renews', inactive: 'Subscription inactive', pastDue: 'Payment required', pastDueDesc: 'The charge failed. Pay to continue.', retry: 'Retry payment', cancel: 'Cancel subscription', pwText: 'Add a card and get 3 days free. Driftly works on web and desktop.', goSub: 'Open subscription', testCard: 'test card (demo):', ok: 'success', fail: 'no funds', online: 'online', offline: 'offline', sendCode: 'Code sent to your email', codeBad: 'Invalid code', resume: 'Resume', accessUntil: 'access until', trialCanceled: 'Trial cancelled', subCanceled: 'Subscription cancelled', noRenew: 'will not renew' },
+    ru: { preview: 'Демо-режим: сервер лицензий не подключён — доступ открыт.', signin: 'Войдите, чтобы управлять подпиской.', trial: 'Подключить карту — 3 дня бесплатно', trialActive: 'Пробный период', daysLeft: 'дн. осталось', active: 'Подписка активна', renews: 'Продление', inactive: 'Подписка неактивна', pastDue: 'Необходимо оплатить', pastDueDesc: 'Списание не прошло. Оплатите, чтобы продолжить.', retry: 'Повторить оплату', cancel: 'Отменить подписку', pwText: 'Подключите карту и получите 3 дня бесплатно. Driftly работает и в вебе, и в десктопе.', goSub: 'Открыть подписку', testCard: 'тестовая карта (демо):', ok: 'успешно', fail: 'нет средств', online: 'на связи', offline: 'нет связи', sendCode: 'Код отправлен на почту', codeBad: 'Неверный код', resume: 'Возобновить', accessUntil: 'доступ до', trialCanceled: 'Пробный период отменён', subCanceled: 'Подписка отменена', noRenew: 'продление не произойдёт', monthly: 'Помесячно', yearly: 'За год', perMonth: '₽/мес', perYear: '₽/год', planYearWord: 'годовая', planMonthWord: 'месячная' },
+    en: { preview: 'Demo mode: no licensing server — access is open.', signin: 'Sign in to manage your subscription.', trial: 'Add a card — 3 days free', trialActive: 'Free trial', daysLeft: 'days left', active: 'Subscription active', renews: 'Renews', inactive: 'Subscription inactive', pastDue: 'Payment required', pastDueDesc: 'The charge failed. Pay to continue.', retry: 'Retry payment', cancel: 'Cancel subscription', pwText: 'Add a card and get 3 days free. Driftly works on web and desktop.', goSub: 'Open subscription', testCard: 'test card (demo):', ok: 'success', fail: 'no funds', online: 'online', offline: 'offline', sendCode: 'Code sent to your email', codeBad: 'Invalid code', resume: 'Resume', accessUntil: 'access until', trialCanceled: 'Trial cancelled', subCanceled: 'Subscription cancelled', noRenew: 'will not renew', monthly: 'Monthly', yearly: 'Yearly', perMonth: '₽/mo', perYear: '₽/yr', planYearWord: 'yearly', planMonthWord: 'monthly' },
   };
   function lang() { return localStorage.getItem('driftly.lang') || 'ru'; }
   function t(k) { return L[lang()][k]; }
@@ -129,20 +131,28 @@
       : sb('trial', '✨', t('trialActive'), e.trialDaysLeft + ' ' + t('daysLeft')) + cbtn();
     else if (e.reason === 'active') box.innerHTML = e.canceled
       ? sb('ok', '✓', t('subCanceled'), t('accessUntil') + ' ' + fmt(e.renewsAt) + ' · ' + t('noRenew')) + rbtn()
-      : sb('ok', '✓', t('active'), t('renews') + ': ' + fmt(e.renewsAt)) + cbtn();
+      : sb('ok', '✓', t('active') + ' · ' + (e.interval === 'year' ? t('planYearWord') : t('planMonthWord')), t('renews') + ': ' + fmt(e.renewsAt)) + cbtn();
     else if (e.needsPayment) box.innerHTML = sb('bad', '⚠', t('pastDue'), t('pastDueDesc')) + '<button class="btn primary" data-acc="retry">' + t('retry') + '</button>';
     else box.innerHTML = sb('', '🔓', t('inactive'), '') + tbtn();
   }
   function sb(c, ic, ti, d) { return '<div class="sub-status ' + c + '"><span class="ic">' + ic + '</span><div><div class="t">' + ti + '</div><div class="d">' + (d || '') + '</div></div></div>'; }
-  function tbtn() { return '<button class="btn primary btn-lg" data-acc="trial">' + t('trial') + '</button><div class="devcard">' + t('testCard') + '<select id="dev-card"><option value="tok_ok">' + t('ok') + '</option><option value="tok_insufficient">' + t('fail') + '</option></select></div>'; }
+  function ptoggle() {
+    var yr = selectedInterval === 'year';
+    return '<div class="plan-toggle">'
+      + '<button class="' + (yr ? '' : 'on') + '" data-interval="month"><b>' + PRICE.priceMonthly + ' ' + t('perMonth') + '</b><span>' + t('monthly') + '</span></button>'
+      + '<button class="' + (yr ? 'on' : '') + '" data-interval="year"><b>' + PRICE.priceYearly + ' ' + t('perYear') + '</b><span>' + t('yearly') + ' · −' + PRICE.yearlyDiscountPct + '%</span></button>'
+      + '</div>';
+  }
+  function tbtn() { return ptoggle() + '<button class="btn primary btn-lg" data-acc="trial">' + t('trial') + '</button><div class="devcard">' + t('testCard') + '<select id="dev-card"><option value="tok_ok">' + t('ok') + '</option><option value="tok_insufficient">' + t('fail') + '</option></select></div>'; }
   function cbtn() { return '<button class="btn ghost" data-acc="cancel" style="margin-top:12px">' + t('cancel') + '</button>'; }
   function rbtn() { return '<button class="btn primary" data-acc="resume" style="margin-top:12px">' + t('resume') + '</button>'; }
 
   /* -------------------------------- events --------------------------------- */
   document.addEventListener('click', function (ev) {
-    var a = ev.target.closest('[data-acc]'); if (!a) return;
+    var a = ev.target.closest('[data-acc],[data-interval]'); if (!a) return;
+    if (a.dataset.interval) { selectedInterval = a.dataset.interval; render(); return; }
     var act = a.dataset.acc;
-    if (act === 'trial') { var card = ($('dev-card') && $('dev-card').value) || 'tok_ok'; call('POST', '/v1/billing/start-trial', { card: card }); }
+    if (act === 'trial') { var card = ($('dev-card') && $('dev-card').value) || 'tok_ok'; call('POST', '/v1/billing/start-trial', { card: card, interval: selectedInterval }); }
     else if (act === 'retry') call('POST', '/v1/billing/retry');
     else if (act === 'cancel') call('POST', '/v1/billing/cancel');
     else if (act === 'resume') call('POST', '/v1/billing/resume');
