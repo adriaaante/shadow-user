@@ -73,17 +73,34 @@
       <div class="livegrid">
         <div class="gauge-wrap"><canvas id="gauge" width="160" height="160"></canvas></div>
         <div class="kpis">
-          <div class="kpi"><div class="n" id="kpi-events">0</div><div class="l" data-ru="событий / 10с" data-en="events / 10s">событий / 10с</div></div>
+          <div class="kpi"><div class="n" id="kpi-events">0</div><div class="l" data-ru="событий за час" data-en="events / hour">событий за час</div></div>
           <div class="kpi"><div class="n syn" id="kpi-syn">0</div><div class="l" data-ru="синтетические" data-en="synthetic">синтетические</div></div>
           <div class="kpi"><div class="n real" id="kpi-real">0</div><div class="l" data-ru="реальные (вы)" data-en="real (you)">реальные (вы)</div></div>
         </div>
       </div>
       <div class="section-title" style="margin-top:16px" data-ru="Песочница активности" data-en="Activity sandbox">Песочница активности</div>
       <div class="stage" id="stage">
+        <div class="sand-os">
+          <div class="swin">
+            <div class="swin-bar"><i class="sdot"></i><i class="sdot"></i><i class="sdot"></i><b data-ru="Документ" data-en="Document">Документ</b></div>
+            <div class="swin-scroll">
+              <div class="swin-list" id="sand-list"></div>
+              <div class="swin-thumb" id="sand-thumb"></div>
+            </div>
+          </div>
+          <div class="swin swin-panel">
+            <div class="swin-bar"><i class="sdot"></i><i class="sdot"></i><i class="sdot"></i><b data-ru="Панель" data-en="Panel">Панель</b></div>
+            <div class="swin-pad">
+              <div class="sand-input" data-target><span id="sand-type"></span><i class="sand-caret"></i></div>
+              <button class="sand-btn" data-target data-ru="Сохранить" data-en="Save">Сохранить</button>
+              <button class="sand-btn ghost" data-target data-ru="Открыть" data-en="Open">Открыть</button>
+            </div>
+          </div>
+        </div>
+        <div class="sand-pops" id="sand-pops"></div>
         <div class="cursor" id="cursor">
           <svg viewBox="0 0 24 24" width="22" height="22"><path d="M5 3 L5 19 L9.5 14.8 L12.7 21 L15 20 L11.8 14 L18 14 Z" fill="#f2f2f8" stroke="#7c5cff" stroke-width="1"/></svg>
         </div>
-        <div class="feed" id="feed"></div>
       </div>
     </section>
   </div>

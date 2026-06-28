@@ -13,7 +13,7 @@
   let lang = localStorage.getItem('driftly.lang') || 'ru';
   const L = {
     ru: { running: 'Работает', paused: 'Пауза', moves: 'движ/мин', clicks: 'клик/мин', scrolls: 'прокр/мин',
-      exported: 'Файл сохранён', reset: 'Сброшено', wakeOn: 'Экран удерживается активным.', wakeOff: 'Wake Lock выключен.',
+      exported: 'Файл сохранён', reset: 'Сброшено', wakeOn: 'Экран удерживается активным.', wakeOff: 'Удержание экрана выключено.',
       wakeNo: 'Этот браузер не умеет удерживать экран активным.', wakeErr: 'Не удалось удержать экран активным (нужен HTTPS).' },
     en: { running: 'Running', paused: 'Paused', moves: 'moves/min', clicks: 'clicks/min', scrolls: 'scrolls/min',
       exported: 'File saved', reset: 'Reset', wakeOn: 'Screen is kept awake.', wakeOff: 'Wake Lock off.',
@@ -52,6 +52,8 @@
     bucket(ts) { const m = Math.floor(ts / MIN) * MIN; let b = this.buckets.get(m); if (!b) { b = { ts: m, genEnabled: this.genOn, synthetic: { move: 0, click: 0, scroll: 0 }, real: { move: 0, click: 0, scroll: 0 } }; this.buckets.set(m, b); } if (this.genOn) b.genEnabled = true; return b; },
     record(kind, synthetic) { const ts = now(); const b = this.bucket(ts); const bag = synthetic ? b.synthetic : b.real; if (bag[kind] !== undefined) bag[kind] += 1; this.recent.push({ ts, synthetic }); const cut = ts - 10000; while (this.recent.length && this.recent[0].ts < cut) this.recent.shift(); },
     live() { const w = this.recent; const syn = w.filter((e) => e.synthetic).length; return { gauge: Math.min(100, Math.round(w.length * 2.2)), events: w.length, synthetic: syn, real: w.length - syn }; },
+    // Total actions in the trailing hour (summed from the per-minute buckets).
+    lastHour() { const cut = now() - 3600000; let s = 0, r = 0; for (const b of this.buckets.values()) { if (b.ts >= cut) { s += b.synthetic.move + b.synthetic.click + b.synthetic.scroll; r += b.real.move + b.real.click + b.real.scroll; } } return { total: s + r, synthetic: s, real: r }; },
     series(n) { const out = []; const end = Math.floor(now() / MIN) * MIN; for (let i = n - 1; i >= 0; i--) { const ts = end - i * MIN; const b = this.buckets.get(ts); out.push(b ? { ts, genEnabled: b.genEnabled, synthetic: score(b.synthetic), real: score(b.real) } : { ts, genEnabled: false, synthetic: 0, real: 0 }); } return out; },
     summary() { const all = [...this.buckets.values()]; const sh = all.filter((b) => b.genEnabled); const pa = all.filter((b) => !b.genEnabled); const avg = (a) => a.length ? Math.round(a.reduce((s, b) => s + score({ move: b.synthetic.move + b.real.move, click: b.synthetic.click + b.real.click, scroll: b.synthetic.scroll + b.real.scroll }), 0) / a.length) : 0; return { shadow: avg(sh), passive: avg(pa) }; },
     csv() { const rows = [['minute_iso', 'generator_enabled', 'syn_move', 'syn_click', 'syn_scroll', 'real_move', 'real_click', 'real_scroll', 'synthetic_score', 'real_score']]; [...this.buckets.values()].sort((a, b) => a.ts - b.ts).forEach((b) => rows.push([new Date(b.ts).toISOString(), b.genEnabled ? 1 : 0, b.synthetic.move, b.synthetic.click, b.synthetic.scroll, b.real.move, b.real.click, b.real.scroll, score(b.synthetic), score(b.real)])); return 'sep=,\r\n' + rows.map((r) => r.join(',')).join('\r\n'); },
@@ -61,22 +63,31 @@
   M.load();
 
   /* ------------------------- real-input monitoring ---------------------- */
-  let lastReal = 0; let lastMoveCount = 0;
+  let lastReal = 0; let lastMoveAt = 0;
   function onReal(kind) { lastReal = now(); M.record(kind, false); }
-  let moveThrottle = 0;
-  document.addEventListener('pointermove', () => { const tnow = now(); if (tnow - moveThrottle > 110) { moveThrottle = tnow; onReal('move'); } }, { passive: true });
+  // One continuous mouse movement = ONE action: count a "move" only when motion
+  // starts after a pause (>500ms still), not for every pointermove event.
+  document.addEventListener('pointermove', () => {
+    const tnow = now(); lastReal = tnow;
+    if (tnow - lastMoveAt > 500) M.record('move', false);
+    lastMoveAt = tnow;
+  }, { passive: true });
   document.addEventListener('click', () => onReal('click'));
   document.addEventListener('wheel', () => onReal('scroll'), { passive: true });
   document.addEventListener('keydown', () => { lastReal = now(); /* count as activity, not logging content */ M.record('click', false); });
 
   /* ----------------------------- generator ------------------------------ */
-  const stage = $('stage'); const cursor = $('cursor'); const feed = $('feed');
-  for (let i = 0; i < 12; i++) { const d = document.createElement('div'); feed.appendChild(d); }
-  let cur = { x: 40, y: 40 }; let feedY = 0; let genTimer = null; let actions = 0;
+  // The sandbox shows REAL-style actions, not just a moving cursor: the cursor
+  // travels to UI targets, clicks flash buttons + ripple, scrolling moves a list,
+  // and typing/“window opened” popups appear — so it reads as a real user working.
+  const stage = $('stage'); const cursor = $('cursor');
+  const sandList = $('sand-list'); const sandThumb = $('sand-thumb'); const sandPops = $('sand-pops');
+  for (let i = 0; i < 16; i++) { const r = document.createElement('div'); r.className = 'swin-row'; sandList.appendChild(r); }
+  let cur = { x: 40, y: 40 }; let listY = 0; let genTimer = null; let actions = 0;
   function stageSize() { const r = stage.getBoundingClientRect(); return { w: r.width, h: r.height }; }
+  function targets() { return [].slice.call(stage.querySelectorAll('[data-target]')); }
+  function centerOf(el) { const s = stage.getBoundingClientRect(); const e = el.getBoundingClientRect(); return { x: e.left - s.left + e.width / 2, y: e.top - s.top + e.height / 2 }; }
 
-  // Cosmetic eased move via rAF. NOT awaited and metrics never depend on it,
-  // so the engine keeps recording even when rAF is throttled (background tab).
   let moveRAF = 0;
   function moveCursor(tx, ty, dur) {
     const sx = cur.x, sy = cur.y; const start = (typeof performance !== 'undefined' ? performance.now() : Date.now());
@@ -91,6 +102,25 @@
     cur.x = tx; cur.y = ty; // logical position lands immediately (animation is cosmetic)
   }
   function ripple(x, y) { const el = document.createElement('div'); el.className = 'ripple'; el.style.left = x + 'px'; el.style.top = y + 'px'; stage.appendChild(el); setTimeout(() => el.remove(), 620); }
+  function press(el) { el.classList.add('pressed'); setTimeout(() => el.classList.remove('pressed'), 240); }
+  function typeText() {
+    const el = $('sand-type'); if (!el) return;
+    const words = lang === 'ru' ? ['отчёт.docx', 'привет', 'данные', 'готово'] : ['report.docx', 'hello', 'data', 'done'];
+    const w = words[Math.floor(Math.random() * words.length)]; el.textContent = ''; let i = 0;
+    const iv = setInterval(() => { el.textContent += w[i++] || ''; if (i >= w.length) { clearInterval(iv); setTimeout(() => { el.textContent = ''; }, 1500); } }, 85);
+  }
+  function popup() {
+    if (!sandPops) return;
+    const msgs = lang === 'ru' ? ['Файл сохранён', 'Окно открыто', 'Обновлено'] : ['File saved', 'Window opened', 'Updated'];
+    const el = document.createElement('div'); el.className = 'sand-pop'; el.innerHTML = '<i></i>' + msgs[Math.floor(Math.random() * msgs.length)];
+    sandPops.appendChild(el); while (sandPops.children.length > 3) sandPops.removeChild(sandPops.firstChild);
+    setTimeout(() => { el.classList.add('out'); setTimeout(() => el.remove(), 360); }, 1500);
+  }
+  function scrollList(dir) {
+    const box = sandList.parentElement; const max = Math.max(0, sandList.scrollHeight - box.clientHeight + 8);
+    listY = clamp(listY - dir * 34, -max, 0); sandList.style.transform = `translateY(${listY}px)`;
+    if (sandThumb) { const track = Math.max(0, box.clientHeight - sandThumb.offsetHeight - 16); const ratio = max > 0 ? (-listY / max) : 0; sandThumb.style.transform = `translateY(${ratio * track}px)`; }
+  }
 
   function nextDelay() { const r = rates(); const pm = Math.max(0.1, r.move + r.click + r.scroll); return Math.round((60000 / pm) * rnd(0.55, 1.6)); }
   function chooseAction() { const r = rates(); const bag = [['move', r.move]]; if (r.click > 0) bag.push(['click', r.click]); if (r.scroll > 0) bag.push(['scroll', r.scroll]); const total = bag.reduce((a, [, w]) => a + w, 0); let x = Math.random() * total; for (const [n, w] of bag) { if ((x -= w) <= 0) return n; } return 'move'; }
@@ -98,12 +128,17 @@
   function tick() {
     if (!cfg.running) return;
     if (cfg.pauseOnUser && now() - lastReal < 3000) { genTimer = setTimeout(tick, 2400); return; }
-    let { w, h } = stageSize(); if (!w) { w = 360; h = 220; } // stage may be hidden/0 in background
+    let { w, h } = stageSize(); if (!w) { w = 360; h = 230; } // stage may be hidden/0 in background
     const action = chooseAction();
     try {
-      if (action === 'move') { moveCursor(rnd(14, w - 26), rnd(14, h - 26), rnd(260, 620)); M.record('move', true); }
-      else if (action === 'click') { const tx = rnd(20, w - 26), ty = rnd(20, h - 26); moveCursor(tx, ty, rnd(220, 480)); ripple(tx + 11, ty + 11); M.record('click', true); }
-      else if (action === 'scroll') { feedY = (feedY + (Math.random() < 0.5 ? 30 : -30)); feed.style.transform = `translateY(${clamp(feedY, -120, 0)}px)`; M.record('scroll', true); }
+      if (action === 'move') { moveCursor(rnd(18, w - 28), rnd(18, h - 28), rnd(260, 560)); M.record('move', true); }
+      else if (action === 'click') {
+        const tg = targets(); const el = tg.length ? tg[Math.floor(Math.random() * tg.length)] : stage;
+        const c = centerOf(el); const dur = rnd(240, 520);
+        moveCursor(c.x - 6, c.y - 4, dur);
+        setTimeout(() => { try { press(el); ripple(c.x, c.y); if (el.classList && el.classList.contains('sand-input')) typeText(); else if (Math.random() < 0.45) popup(); } catch (_) {} }, dur * 0.78);
+        M.record('click', true);
+      } else if (action === 'scroll') { scrollList(Math.random() < 0.5 ? 1 : -1); M.record('scroll', true); }
     } catch (_) {}
     actions++;
     if (cfg.running) genTimer = setTimeout(tick, nextDelay());
@@ -162,7 +197,7 @@
   let toastTimer; function toast(m) { const el = $('toast'); el.textContent = m; el.classList.add('show'); clearTimeout(toastTimer); toastTimer = setTimeout(() => el.classList.remove('show'), 2200); }
 
   /* --------------------------------- loop ------------------------------- */
-  setInterval(() => { const lv = M.live(); window.Charts.gauge($('gauge'), lv.gauge); $('kpi-events').textContent = lv.events; $('kpi-syn').textContent = lv.synthetic; $('kpi-real').textContent = lv.real; }, 1000);
+  setInterval(() => { const lv = M.live(); const h = M.lastHour(); window.Charts.gauge($('gauge'), lv.gauge); $('kpi-events').textContent = h.total; $('kpi-syn').textContent = h.synthetic; $('kpi-real').textContent = h.real; }, 1000);
   setInterval(refreshCharts, 2500);
   setInterval(() => M.save(), 15000);
   window.addEventListener('beforeunload', () => M.save());

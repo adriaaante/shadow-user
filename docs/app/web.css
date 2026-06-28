@@ -10,6 +10,13 @@ body{overflow:auto;background:radial-gradient(1200px 600px at 80% -10%,rgba(124,
 .wbar-right{display:flex;align-items:center;gap:12px}
 .seg.lang{padding:3px}
 .seg.lang button{padding:6px 12px;font-size:12px}
+@media(max-width:520px){
+  .wbar{padding:11px 13px}
+  .wbar-right{gap:8px}
+  .wbar-right .btn{padding:.5em .8em;font-size:12px}
+  .seg.lang button{padding:5px 9px;font-size:11px}
+  .brand .name{font-size:16px}
+}
 
 .wrap{max-width:1100px;margin:0 auto;padding:22px 22px 60px}
 .cols{display:grid;grid-template-columns:1fr 1.15fr;gap:18px}
@@ -37,8 +44,37 @@ body{overflow:auto;background:radial-gradient(1200px 600px at 80% -10%,rgba(124,
 .ripple{position:absolute;width:10px;height:10px;border-radius:50%;border:2px solid var(--brand2);
   transform:translate(-50%,-50%);pointer-events:none;animation:rip .6s ease-out forwards;z-index:2}
 @keyframes rip{from{opacity:.9;width:6px;height:6px}to{opacity:0;width:54px;height:54px}}
-.feed{position:absolute;inset:10px;overflow:hidden;display:flex;flex-direction:column;gap:8px;opacity:.5}
-.feed div{height:30px;border-radius:9px;background:linear-gradient(90deg,var(--s3),var(--s2));flex:0 0 auto}
+/* mini-OS sandbox: windows, buttons, scrollable list, typing — shows real-style actions */
+.sand-os{position:absolute;inset:10px;display:flex;gap:10px}
+.swin{flex:1;min-width:0;display:flex;flex-direction:column;border-radius:11px;overflow:hidden;
+  background:linear-gradient(180deg,var(--s2),var(--s1));border:1px solid var(--border)}
+.swin-panel{flex:0 0 42%}
+.swin-bar{display:flex;align-items:center;gap:5px;padding:6px 9px;background:rgba(255,255,255,.03);border-bottom:1px solid var(--border)}
+.swin-bar .sdot{width:7px;height:7px;border-radius:50%;background:var(--dim)}
+.swin-bar b{margin-left:6px;font-size:10.5px;color:var(--muted);font-weight:600}
+.swin-scroll{position:relative;flex:1;overflow:hidden;padding:8px}
+.swin-list{display:flex;flex-direction:column;gap:7px;will-change:transform;transition:transform .35s cubic-bezier(.22,.61,.36,1)}
+.swin-row{height:22px;border-radius:7px;background:linear-gradient(90deg,var(--s3),var(--s2));flex:0 0 auto;display:flex;align-items:center;gap:7px;padding:0 8px}
+.swin-row::before{content:"";width:11px;height:11px;border-radius:4px;background:rgba(124,92,255,.4);flex:0 0 auto}
+.swin-row::after{content:"";height:6px;border-radius:4px;background:rgba(255,255,255,.10);flex:1;max-width:62%}
+.swin-thumb{position:absolute;right:3px;top:8px;width:4px;height:32px;border-radius:4px;background:rgba(124,92,255,.5);transition:transform .35s cubic-bezier(.22,.61,.36,1)}
+.swin-pad{flex:1;display:flex;flex-direction:column;gap:9px;padding:10px}
+.sand-input{height:30px;border-radius:8px;border:1px solid var(--border);background:var(--s3);
+  display:flex;align-items:center;padding:0 10px;font-size:12px;color:var(--text);overflow:hidden;white-space:nowrap}
+.sand-caret{width:1.5px;height:14px;background:var(--brand2);margin-left:1px;animation:blink 1.05s steps(1) infinite}
+@keyframes blink{50%{opacity:0}}
+.sand-btn{height:30px;border-radius:8px;border:none;background:var(--grad);color:#0a0a12;font-weight:600;font-size:12px;
+  cursor:default;transition:transform .12s,box-shadow .12s,filter .12s}
+.sand-btn.ghost{background:var(--s3);color:var(--text);border:1px solid var(--border)}
+.sand-btn.pressed,.sand-input.pressed{transform:scale(.96);box-shadow:0 0 0 2px var(--brand) inset;filter:brightness(1.18)}
+.sand-pops{position:absolute;right:12px;bottom:12px;display:flex;flex-direction:column;gap:8px;align-items:flex-end;z-index:2;pointer-events:none}
+.sand-pop{display:flex;align-items:center;gap:7px;padding:7px 12px;border-radius:9px;font-size:11.5px;color:var(--text);
+  background:var(--s2);border:1px solid var(--border2);box-shadow:0 10px 26px rgba(0,0,0,.45);animation:popin .35s var(--ease)}
+.sand-pop i{width:7px;height:7px;border-radius:50%;background:var(--accent)}
+.sand-pop.out{animation:popout .35s var(--ease) forwards}
+@keyframes popin{from{opacity:0;transform:translateY(8px) scale(.92)}to{opacity:1;transform:none}}
+@keyframes popout{to{opacity:0;transform:translateY(8px) scale(.92)}}
+@media (max-width:520px){ .swin-panel{flex:0 0 46%} .swin-bar b{display:none} }
 
 .rates{display:flex;gap:18px;flex-wrap:wrap;margin-top:14px}
 .rate b{font-family:var(--font-display);font-size:18px}

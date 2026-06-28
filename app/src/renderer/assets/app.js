@@ -23,11 +23,11 @@
       setRunMode: (m) => { cfg.runMode = m; return Promise.resolve({ config: cfg, status: status() }); },
       metricsSeries: (n) => Promise.resolve(series.slice(-n)),
       metricsSummary: () => Promise.resolve({ compare: { shadowAvgScore: 46, passiveAvgScore: 14, syntheticAvgScore: 33, realAvgScore: 12, shadowMinutes: 80, passiveMinutes: 40 } }),
-      metricsLive: () => Promise.resolve({ gauge: 40 + Math.round(20 * Math.random()), eventsPer10s: 18, synthetic: 14, real: 4 }),
+      metricsLive: () => Promise.resolve({ gauge: 40 + Math.round(20 * Math.random()), eventsLastHour: 1280, synthetic: 980, real: 300 }),
       metricsReset: () => Promise.resolve(true),
       metricsExport: () => Promise.resolve({ ok: true, filePath: '/preview/export' }),
       openDataFolder: () => Promise.resolve(true),
-      onTick: (cb) => setInterval(() => cb({ live: { gauge: 38 + Math.round(24 * Math.random()), eventsPer10s: 16 + Math.round(8 * Math.random()), synthetic: 12, real: 4 }, status: status() }), 1000),
+      onTick: (cb) => setInterval(() => cb({ live: { gauge: 38 + Math.round(24 * Math.random()), eventsLastHour: 1240 + Math.round(80 * Math.random()), synthetic: 950, real: 300 }, status: status() }), 1000),
       onStatus: () => {}, onConfigChanged: () => {},
       licenseGet: () => Promise.resolve(previewLicense),
       licenseSetApi: () => Promise.resolve(previewLicense),
@@ -377,7 +377,7 @@
   api.onTick((data) => {
     if (data.live) {
       window.Charts.gauge($('gauge'), data.live.gauge);
-      $('kpi-events').textContent = data.live.eventsPer10s;
+      $('kpi-events').textContent = data.live.eventsLastHour;
       $('kpi-syn').textContent = data.live.synthetic;
       $('kpi-real').textContent = data.live.real;
     }

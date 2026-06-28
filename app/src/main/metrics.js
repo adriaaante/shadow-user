@@ -61,15 +61,20 @@ class Metrics {
     for (const k of this.buckets.keys()) if (k < cutoff) this.buckets.delete(k);
   }
 
-  /** Instantaneous activity for the live gauge (0..100) + recent rates. */
+  /** Live gauge (0..100, last 10s) + total actions in the trailing hour. */
   live() {
     const now = Date.now();
     const win = this._recent.filter((e) => e.ts >= now - 10000);
-    const syn = win.filter((e) => e.synthetic).length;
-    const real = win.length - syn;
-    // events in 10s → scale to a friendly 0..100 gauge
     const gauge = Math.min(100, Math.round(win.length * 2.2));
-    return { gauge, eventsPer10s: win.length, synthetic: syn, real };
+    const hourStart = now - 3600000;
+    let syn = 0; let real = 0;
+    for (const b of this.buckets.values()) {
+      if (b.ts < hourStart) continue;
+      const s = b.synthetic; const r = b.real;
+      syn += (s.move || 0) + (s.click || 0) + (s.scroll || 0) + (s.key || 0);
+      real += (r.move || 0) + (r.click || 0) + (r.scroll || 0) + (r.key || 0);
+    }
+    return { gauge, eventsLastHour: syn + real, synthetic: syn, real };
   }
 
   /** Returns N contiguous minute buckets (gaps filled empty), oldest→newest. */
