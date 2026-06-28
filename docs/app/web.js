@@ -14,7 +14,7 @@
   const L = {
     ru: { running: 'Работает', paused: 'Пауза', moves: 'движ/мин', clicks: 'клик/мин', scrolls: 'прокр/мин',
       exported: 'Файл сохранён', reset: 'Сброшено', wakeOn: 'Экран удерживается активным.', wakeOff: 'Wake Lock выключен.',
-      wakeNo: 'Wake Lock не поддерживается этим браузером.', wakeErr: 'Не удалось включить Wake Lock (нужен HTTPS).' },
+      wakeNo: 'Этот браузер не умеет удерживать экран активным.', wakeErr: 'Не удалось удержать экран активным (нужен HTTPS).' },
     en: { running: 'Running', paused: 'Paused', moves: 'moves/min', clicks: 'clicks/min', scrolls: 'scrolls/min',
       exported: 'File saved', reset: 'Reset', wakeOn: 'Screen is kept awake.', wakeOff: 'Wake Lock off.',
       wakeNo: 'Wake Lock is not supported by this browser.', wakeErr: 'Could not enable Wake Lock (needs HTTPS).' },

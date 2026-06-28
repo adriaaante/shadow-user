@@ -183,6 +183,9 @@ body::after{content:"";position:fixed;bottom:-20%;left:-15%;width:55vw;height:55
 .dl-card:hover{transform:translateY(-5px);border-color:rgba(45,212,191,.4);box-shadow:0 24px 60px rgba(0,0,0,.45)}
 .os-ic{width:62px;height:62px;margin:0 auto 16px;border-radius:18px;display:grid;place-items:center;font-size:1.9rem;
   background:rgba(255,255,255,.04);border:1px solid var(--border)}
+.os-ic svg.os-svg{width:34px;height:34px;color:var(--text)}
+.dl-soft{text-align:center;color:var(--muted);margin-top:18px}
+.dl-soft-cta{text-align:center;margin-top:14px}
 .dl-card h3{font-size:1.3rem;margin:0 0 6px}
 .dl-card p{color:var(--muted);font-size:.88rem;margin:0 0 20px}
 .dl-note{text-align:center;color:var(--dim);font-size:.9rem;margin-top:30px}

@@ -115,7 +115,7 @@
     dashboard: { ru: ['Дашборд', 'Статус и живая активность'], en: ['Dashboard', 'Status & live activity'] },
     activity: { ru: ['Активность', 'Уровень и поведение генератора'], en: ['Activity', 'Generator level & behavior'] },
     schedule: { ru: ['Расписание', 'Рабочие дни и диапазоны времени'], en: ['Schedule', 'Working days & time ranges'] },
-    compare: { ru: ['Сравнение', 'Shadow vs Passive · экспорт'], en: ['Compare', 'Shadow vs Passive · export'] },
+    compare: { ru: ['Сравнение', 'Активный против Пассивного · экспорт'], en: ['Compare', 'Shadow vs Passive · export'] },
     subscription: { ru: ['Подписка', 'Единая подписка на веб и десктоп'], en: ['Subscription', 'One subscription for web & desktop'] },
     settings: { ru: ['Настройки', 'Язык, приватность, система'], en: ['Settings', 'Language, privacy, system'] },
   };

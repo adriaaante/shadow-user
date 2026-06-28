@@ -4,7 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <title>Driftly Web — активность в браузере без установки</title>
-<meta name="description" content="Driftly Web — версия Driftly, работающая прямо в браузере, без установки. Имитирует активность в песочнице, держит экран активным (Wake Lock) и измеряет активность: Shadow vs Passive, синтетика vs реальные, экспорт CSV/JSON.">
+<meta name="description" content="Driftly Web — версия Driftly, работающая прямо в браузере, без установки. Имитирует активность в песочнице, не даёт экрану гаснуть и измеряет активность: активный режим против пассивного, синтетика против реальных, экспорт CSV/JSON.">
 <meta name="theme-color" content="#08080c">
 <link rel="manifest" href="manifest.webmanifest">
 <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Cdefs%3E%3ClinearGradient id='g' x1='0' y1='0' x2='1' y2='1'%3E%3Cstop offset='0' stop-color='%237c5cff'/%3E%3Cstop offset='1' stop-color='%232dd4bf'/%3E%3C/linearGradient%3E%3C/defs%3E%3Crect width='64' height='64' rx='14' fill='%2308080c'/%3E%3Cpath d='M16 14 L31 48 L34 35 L47 32 Z' fill='url(%23g)' stroke='%23f2f2f8' stroke-width='1.4' stroke-linejoin='round'/%3E%3Ccircle cx='48' cy='17' r='3' fill='%232dd4bf'/%3E%3C/svg%3E">
@@ -22,7 +22,7 @@
       <path d="M14 10 L14 36 L21 29 L26 39 L30 37 L25 27 L34 27 Z" fill="url(#lg)"/>
       <circle cx="35" cy="13" r="3.4" fill="#2dd4bf"/>
     </svg>
-    <span class="name">Drift<b>ly</b> <i>Web</i></span>
+    <span class="name">Drift<b>ly</b> <i data-ru="Веб" data-en="Web">Веб</i></span>
   </a>
   <div class="wbar-right">
     <span class="seg lang"><button id="lang-ru" class="active">RU</button><button id="lang-en">EN</button></span>
@@ -31,7 +31,7 @@
 </header>
 
 <main class="wrap">
-  <div class="note info" data-ru="Это веб-версия. Она работает в браузере без установки: имитирует активность в песочнице ниже, держит экран активным (Wake Lock) и измеряет активность на этой странице. Управлять системным курсором или мерить активность всей ОС браузер не может — для этого скачайте десктоп-приложение." data-en="This is the web version. It runs in the browser with no install: it simulates activity in the sandbox below, keeps the screen awake (Wake Lock), and measures activity on this page. A browser cannot control the OS cursor or measure system-wide activity — for that, download the desktop app.">…</div>
+  <div class="note info" data-ru="Это веб-версия. Она работает в браузере без установки: имитирует активность в песочнице ниже, не даёт экрану гаснуть и измеряет активность на этой странице. Управлять системным курсором или мерить активность всей ОС браузер не может — для этого скачайте десктоп-приложение." data-en="This is the web version. It runs in the browser with no install: it simulates activity in the sandbox below, keeps the screen awake (Wake Lock), and measures activity on this page. A browser cannot control the OS cursor or measure system-wide activity — for that, download the desktop app.">…</div>
 
   <div id="acc-banner" class="note info" style="display:none;margin-bottom:18px"></div>
 
@@ -64,7 +64,7 @@
       <label class="line"><span data-ru="Клики" data-en="Clicks">Клики</span><span class="switch"><input type="checkbox" id="opt-clicks" checked><span></span></span></label>
       <label class="line"><span data-ru="Прокрутка" data-en="Scroll">Прокрутка</span><span class="switch"><input type="checkbox" id="opt-scroll" checked><span></span></span></label>
       <label class="line"><span data-ru="Уступать пользователю" data-en="Yield to user">Уступать пользователю</span><span class="switch"><input type="checkbox" id="opt-pause" checked><span></span></span></label>
-      <label class="line"><span data-ru="Не давать экрану гаснуть (Wake Lock)" data-en="Keep screen awake (Wake Lock)">Не давать экрану гаснуть (Wake Lock)</span><span class="switch"><input type="checkbox" id="opt-wake"><span></span></span></label>
+      <label class="line"><span data-ru="Не давать экрану гаснуть" data-en="Keep screen awake (Wake Lock)">Не давать экрану гаснуть</span><span class="switch"><input type="checkbox" id="opt-wake"><span></span></span></label>
       <div class="mode-note" id="wake-note"></div>
     </section>
 
@@ -101,8 +101,8 @@
   <section class="card" style="margin-top:18px">
     <h3 data-ru="Сравнение и экспорт" data-en="Compare & export">Сравнение и экспорт</h3>
     <div class="compare-bars" style="margin:8px 0 16px">
-      <div class="cmp"><div class="top"><span>Shadow</span><b id="cmp-shadow-v">0</b></div><div class="bar"><i id="cmp-shadow" style="background:var(--grad);width:0%"></i></div></div>
-      <div class="cmp"><div class="top"><span>Passive</span><b id="cmp-passive-v">0</b></div><div class="bar"><i id="cmp-passive" style="background:#2dd4bf;width:0%"></i></div></div>
+      <div class="cmp"><div class="top"><span data-ru="Активный (с Driftly)" data-en="Shadow">Активный (с Driftly)</span><b id="cmp-shadow-v">0</b></div><div class="bar"><i id="cmp-shadow" style="background:var(--grad);width:0%"></i></div></div>
+      <div class="cmp"><div class="top"><span data-ru="Пассивный (только вы)" data-en="Passive">Пассивный (только вы)</span><b id="cmp-passive-v">0</b></div><div class="bar"><i id="cmp-passive" style="background:#2dd4bf;width:0%"></i></div></div>
     </div>
     <div class="actions-row">
       <button class="btn primary" id="exp-csv" data-ru="Экспорт CSV" data-en="Export CSV">Экспорт CSV</button>
