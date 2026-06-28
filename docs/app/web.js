@@ -103,18 +103,20 @@
   }
   function ripple(x, y) { const el = document.createElement('div'); el.className = 'ripple'; el.style.left = x + 'px'; el.style.top = y + 'px'; stage.appendChild(el); setTimeout(() => el.remove(), 620); }
   function press(el) { el.classList.add('pressed'); setTimeout(() => el.classList.remove('pressed'), 240); }
-  function typeText() {
-    const el = $('sand-type'); if (!el) return;
-    const words = lang === 'ru' ? ['отчёт.docx', 'привет', 'данные', 'готово'] : ['report.docx', 'hello', 'data', 'done'];
+  function typeWord(el, done) {
+    if (!el) { if (done) done(); return; }
+    const words = lang === 'ru' ? ['Отчёт.docx', 'Привет', 'Данные', 'Задача', 'Готово'] : ['Report.docx', 'Hello', 'Data', 'Task', 'Done'];
     const w = words[Math.floor(Math.random() * words.length)]; el.textContent = ''; let i = 0;
-    const iv = setInterval(() => { el.textContent += w[i++] || ''; if (i >= w.length) { clearInterval(iv); setTimeout(() => { el.textContent = ''; }, 1500); } }, 85);
+    const iv = setInterval(() => { el.textContent += w[i++] || ''; if (i >= w.length) { clearInterval(iv); if (done) setTimeout(done, rnd(280, 600)); } }, rnd(60, 100));
   }
-  function popup() {
+  function clearInput() { const el = $('sand-type'); if (el) el.textContent = ''; }
+  function popup(label) {
     if (!sandPops) return;
-    const msgs = lang === 'ru' ? ['Файл сохранён', 'Окно открыто', 'Обновлено'] : ['File saved', 'Window opened', 'Updated'];
-    const el = document.createElement('div'); el.className = 'sand-pop'; el.innerHTML = '<i></i>' + msgs[Math.floor(Math.random() * msgs.length)];
+    const open = label && /Откр|Open/.test(label);
+    const text = lang === 'ru' ? (open ? 'Окно открыто' : 'Файл сохранён') : (open ? 'Window opened' : 'File saved');
+    const el = document.createElement('div'); el.className = 'sand-pop'; el.innerHTML = '<i></i>' + text;
     sandPops.appendChild(el); while (sandPops.children.length > 3) sandPops.removeChild(sandPops.firstChild);
-    setTimeout(() => { el.classList.add('out'); setTimeout(() => el.remove(), 360); }, 1500);
+    setTimeout(() => { el.classList.add('out'); setTimeout(() => el.remove(), 360); }, 1600);
   }
   function scrollList(dir) {
     const box = sandList.parentElement; const max = Math.max(0, sandList.scrollHeight - box.clientHeight + 8);
@@ -122,29 +124,59 @@
     if (sandThumb) { const track = Math.max(0, box.clientHeight - sandThumb.offsetHeight - 16); const ratio = max > 0 ? (-listY / max) : 0; sandThumb.style.transform = `translateY(${ratio * track}px)`; }
   }
 
+  // Move the cursor onto an element, let it "land", then press it and run cb.
+  function clickAt(el, cb) {
+    const c = centerOf(el); const dur = rnd(320, 560);
+    moveCursor(c.x - 6, c.y - 4, dur); M.record('move', true);
+    setTimeout(() => { try { press(el); ripple(c.x, c.y); M.record('click', true); if (cb) cb(); } catch (_) { if (cb) cb(); } }, dur * 0.9);
+  }
+
+  // A realistic, ordered scenario: click the input → it becomes active → type the
+  // text → the cursor moves to a button, stops on it, clicks → text clears + popup.
+  let formBusy = false;
+  function runForm(after) {
+    const input = stage.querySelector('.sand-input');
+    const btns = [].slice.call(stage.querySelectorAll('.sand-btn'));
+    if (!input || !btns.length) { if (after) after(); return; }
+    formBusy = true;
+    const btn = btns[Math.floor(Math.random() * btns.length)];
+    clickAt(input, () => {
+      input.classList.add('focused');                 // active only after the click lands
+      typeWord($('sand-type'), () => {                // then text is typed
+        clickAt(btn, () => {                          // cursor goes to the button and presses it
+          input.classList.remove('focused');
+          clearInput();                               // and the text disappears
+          popup(btn.textContent || '');
+          formBusy = false;
+          if (after) after();
+        });
+      });
+    });
+  }
+
   function nextDelay() { const r = rates(); const pm = Math.max(0.1, r.move + r.click + r.scroll); return Math.round((60000 / pm) * rnd(0.55, 1.6)); }
   function chooseAction() { const r = rates(); const bag = [['move', r.move]]; if (r.click > 0) bag.push(['click', r.click]); if (r.scroll > 0) bag.push(['scroll', r.scroll]); const total = bag.reduce((a, [, w]) => a + w, 0); let x = Math.random() * total; for (const [n, w] of bag) { if ((x -= w) <= 0) return n; } return 'move'; }
 
+  function schedule() { if (cfg.running && !formBusy) genTimer = setTimeout(tick, nextDelay()); }
   function tick() {
-    if (!cfg.running) return;
+    if (!cfg.running || formBusy) return;
     if (cfg.pauseOnUser && now() - lastReal < 3000) { genTimer = setTimeout(tick, 2400); return; }
-    let { w, h } = stageSize(); if (!w) { w = 360; h = 230; } // stage may be hidden/0 in background
-    const action = chooseAction();
+    let { w, h } = stageSize(); if (!w) { w = 360; h = 230; }
+    const action = chooseAction(); actions++;
     try {
-      if (action === 'move') { moveCursor(rnd(18, w - 28), rnd(18, h - 28), rnd(260, 560)); M.record('move', true); }
-      else if (action === 'click') {
-        const tg = targets(); const el = tg.length ? tg[Math.floor(Math.random() * tg.length)] : stage;
-        const c = centerOf(el); const dur = rnd(240, 520);
-        moveCursor(c.x - 6, c.y - 4, dur);
-        setTimeout(() => { try { press(el); ripple(c.x, c.y); if (el.classList && el.classList.contains('sand-input')) typeText(); else if (Math.random() < 0.45) popup(); } catch (_) {} }, dur * 0.78);
-        M.record('click', true);
-      } else if (action === 'scroll') { scrollList(Math.random() < 0.5 ? 1 : -1); M.record('scroll', true); }
+      if (action === 'click') {
+        // most clicks run the full input→type→button flow; otherwise a single button press
+        if (Math.random() < 0.7) { runForm(schedule); }
+        else { const bs = [].slice.call(stage.querySelectorAll('.sand-btn')); clickAt(bs[Math.floor(Math.random() * bs.length)] || stage, schedule); }
+        return; // these reschedule via their own callback when the action finishes
+      }
+      if (action === 'scroll') { scrollList(Math.random() < 0.5 ? 1 : -1); M.record('scroll', true); }
+      else { moveCursor(rnd(18, w - 28), rnd(18, h - 28), rnd(260, 560)); M.record('move', true); }
     } catch (_) {}
-    actions++;
-    if (cfg.running) genTimer = setTimeout(tick, nextDelay());
+    schedule();
   }
-  function startGen() { if (genTimer) return; M.genOn = true; cur = { x: 40, y: 40 }; genTimer = setTimeout(tick, 300); }
-  function stopGen() { M.genOn = false; if (genTimer) { clearTimeout(genTimer); genTimer = null; } }
+  function startGen() { if (genTimer) return; M.genOn = true; formBusy = false; cur = { x: 40, y: 40 }; genTimer = setTimeout(tick, 300); }
+  function stopGen() { M.genOn = false; formBusy = false; if (genTimer) { clearTimeout(genTimer); genTimer = null; } }
 
   /* ------------------------------ wake lock ----------------------------- */
   let wakeLock = null; const wakeSupported = ('wakeLock' in navigator);

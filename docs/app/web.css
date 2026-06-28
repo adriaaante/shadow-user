@@ -60,8 +60,11 @@ body{overflow:auto;background:radial-gradient(1200px 600px at 80% -10%,rgba(124,
 .swin-thumb{position:absolute;right:3px;top:8px;width:4px;height:32px;border-radius:4px;background:rgba(124,92,255,.5);transition:transform .35s cubic-bezier(.22,.61,.36,1)}
 .swin-pad{flex:1;display:flex;flex-direction:column;gap:9px;padding:10px}
 .sand-input{height:30px;border-radius:8px;border:1px solid var(--border);background:var(--s3);
-  display:flex;align-items:center;padding:0 10px;font-size:12px;color:var(--text);overflow:hidden;white-space:nowrap}
-.sand-caret{width:1.5px;height:14px;background:var(--brand2);margin-left:1px;animation:blink 1.05s steps(1) infinite}
+  display:flex;align-items:center;padding:0 10px;font-size:12px;color:var(--text);overflow:hidden;white-space:nowrap;
+  transition:border-color .15s,box-shadow .15s,background .15s}
+.sand-input.focused{border-color:var(--brand);background:var(--s2);box-shadow:0 0 0 2px rgba(124,92,255,.22)}
+.sand-caret{width:1.5px;height:14px;background:var(--brand2);margin-left:1px;opacity:0}
+.sand-input.focused .sand-caret{opacity:1;animation:blink 1.05s steps(1) infinite}
 @keyframes blink{50%{opacity:0}}
 .sand-btn{height:30px;border-radius:8px;border:none;background:var(--grad);color:#0a0a12;font-weight:600;font-size:12px;
   cursor:default;transition:transform .12s,box-shadow .12s,filter .12s}
