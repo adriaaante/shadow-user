@@ -102,7 +102,11 @@ body::after{content:"";position:fixed;bottom:-20%;left:-15%;width:55vw;height:55
 @keyframes pulse{0%,100%{opacity:1}50%{opacity:.3}}
 .appwin-body{padding:0;background:#0a0a11}
 #demoCanvas{width:100%;height:auto;display:block}
-.appwin-video{display:block;width:100%;height:auto;border-radius:0 0 var(--r-lg) var(--r-lg)}
+.appwin-video{display:block;width:100%;height:auto;aspect-ratio:960/600;object-fit:cover;
+  border-radius:0 0 var(--r-lg) var(--r-lg);
+  /* show the poster frame INSTANTLY (as a background) so there's never a blank
+     white gap while the webm buffers — the video then plays on top of it */
+  background:#0a0a11 url(../video/web-demo-poster.jpg) center/cover no-repeat}
 
 /* ============ sections ============ */
 .section{padding:84px 0}
