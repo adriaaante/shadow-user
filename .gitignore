@@ -13,6 +13,9 @@ metrics.json
 server/.keys/
 server/.data/
 
+# deploy credentials (hosting host/login/password) — local only
+scripts/deploy.env
+
 # OS / editor
 .DS_Store
 Thumbs.db
