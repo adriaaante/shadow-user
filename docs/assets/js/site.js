@@ -168,10 +168,11 @@
       rg.addColorStop(0, 'rgba(124,92,255,0.10)'); rg.addColorStop(1, 'rgba(124,92,255,0)');
       ctx.fillStyle = rg; ctx.fillRect(0, 0, W, H);
 
-      // ---- left panel label ----
+      // ---- left panel label ---- (localized to the current site language)
+      var ru = curLang() === 'ru';
       ctx.fillStyle = 'rgba(242,242,248,.55)';
       ctx.font = '12px Inter, sans-serif';
-      ctx.fillText('Activity gauge', 24, 30);
+      ctx.fillText(ru ? 'Датчик активности' : 'Activity gauge', 24, 30);
 
       // ---- gauge ----
       ctx.lineWidth = 9; ctx.lineCap = 'round';
@@ -192,13 +193,13 @@
       ctx.fillText(Math.round(gVal * 100), gaugeCx, gaugeCy + 6);
       ctx.font = '10px Inter, sans-serif';
       ctx.fillStyle = 'rgba(242,242,248,.45)';
-      ctx.fillText('активность', gaugeCx, gaugeCy + 22);
+      ctx.fillText(ru ? 'активность' : 'activity', gaugeCx, gaugeCy + 22);
       ctx.textAlign = 'left';
 
-      // ---- mini bar chart (Shadow vs Passive) ----
+      // ---- mini bar chart (Active vs Passive) ----
       ctx.fillStyle = 'rgba(242,242,248,.55)';
       ctx.font = '12px Inter, sans-serif';
-      ctx.fillText('Shadow vs Passive', chartX, chartY - 14);
+      ctx.fillText(ru ? 'Активный против Пассивного' : 'Active vs Passive', chartX, chartY - 14);
       var n = barVals.length, bw = (chartW / n) * 0.55, gap = (chartW / n);
       for (var i = 0; i < n; i++) {
         var bx = chartX + i * gap;
