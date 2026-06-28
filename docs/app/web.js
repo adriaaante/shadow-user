@@ -89,17 +89,19 @@
   function centerOf(el) { const s = stage.getBoundingClientRect(); const e = el.getBoundingClientRect(); return { x: e.left - s.left + e.width / 2, y: e.top - s.top + e.height / 2 }; }
 
   let moveRAF = 0;
-  function moveCursor(tx, ty, dur) {
+  // Animate the cursor to (tx,ty); `done` fires the instant it actually arrives,
+  // so a click can wait for the cursor to truly land on its target (not snap early).
+  function moveCursor(tx, ty, dur, done) {
     const sx = cur.x, sy = cur.y; const start = (typeof performance !== 'undefined' ? performance.now() : Date.now());
     cancelAnimationFrame(moveRAF);
     function step(tm) {
       const k = Math.min(1, (tm - start) / dur); const e = k < 0.5 ? 4 * k * k * k : 1 - Math.pow(-2 * k + 2, 3) / 2;
       cur.x = sx + (tx - sx) * e; cur.y = sy + (ty - sy) * e;
       cursor.style.transform = `translate(${cur.x}px,${cur.y}px)`;
-      if (k < 1) moveRAF = requestAnimationFrame(step);
+      if (k < 1) { moveRAF = requestAnimationFrame(step); }
+      else { cur.x = tx; cur.y = ty; if (done) done(); }
     }
     moveRAF = requestAnimationFrame(step);
-    cur.x = tx; cur.y = ty; // logical position lands immediately (animation is cosmetic)
   }
   function ripple(x, y) { const el = document.createElement('div'); el.className = 'ripple'; el.style.left = x + 'px'; el.style.top = y + 'px'; stage.appendChild(el); setTimeout(() => el.remove(), 620); }
   function press(el) { el.classList.add('pressed'); setTimeout(() => el.classList.remove('pressed'), 240); }
@@ -124,15 +126,28 @@
     if (sandThumb) { const track = Math.max(0, box.clientHeight - sandThumb.offsetHeight - 16); const ratio = max > 0 ? (-listY / max) : 0; sandThumb.style.transform = `translateY(${ratio * track}px)`; }
   }
 
-  // Move the cursor onto an element, let it "land", then press it and run cb.
+  // The arrow tip sits ~5px right / 3px down inside the cursor SVG, so offset the
+  // cursor box by that much to put the tip exactly on the target point.
+  const TIP_X = 5, TIP_Y = 3;
+  // Travel the cursor so its tip lands exactly on point p, then run cb on arrival.
+  function moveTo(p, cb) { moveCursor(p.x - TIP_X, p.y - TIP_Y, rnd(440, 760), cb); }
+  // Move the cursor onto an element, wait for it to truly land, pause as a human
+  // would before pressing, then click exactly where the tip rests and run cb.
   function clickAt(el, cb) {
-    const c = centerOf(el); const dur = rnd(320, 560);
-    moveCursor(c.x - 6, c.y - 4, dur); M.record('move', true);
-    setTimeout(() => { try { press(el); ripple(c.x, c.y); M.record('click', true); if (cb) cb(); } catch (_) { if (cb) cb(); } }, dur * 0.9);
+    const c = centerOf(el);
+    moveTo(c, () => {
+      M.record('move', true);                          // the move is counted once it completes
+      setTimeout(() => {                               // brief settle before the press (no click-before-aim)
+        try { press(el); ripple(c.x, c.y); M.record('click', true); } catch (_) {}
+        if (cb) cb();
+      }, rnd(220, 420));
+    });
   }
 
-  // A realistic, ordered scenario: click the input → it becomes active → type the
-  // text → the cursor moves to a button, stops on it, clicks → text clears + popup.
+  // A realistic, ordered scenario with human pauses between every stage:
+  // cursor lands on the input → click → field activates → (pause) → text typed →
+  // (pause, "reads" it) → cursor travels to a button, stops, clicks → text clears
+  // + confirmation popup → (rest) → next scene.
   let formBusy = false;
   function runForm(after) {
     const input = stage.querySelector('.sand-input');
@@ -140,40 +155,76 @@
     if (!input || !btns.length) { if (after) after(); return; }
     formBusy = true;
     const btn = btns[Math.floor(Math.random() * btns.length)];
-    clickAt(input, () => {
-      input.classList.add('focused');                 // active only after the click lands
-      typeWord($('sand-type'), () => {                // then text is typed
-        clickAt(btn, () => {                          // cursor goes to the button and presses it
-          input.classList.remove('focused');
-          clearInput();                               // and the text disappears
-          popup(btn.textContent || '');
-          formBusy = false;
-          if (after) after();
+    clickAt(input, () => {                              // 1. land on the field and click it
+      input.classList.add('focused');                  //    active ONLY after the click lands
+      setTimeout(() => {                                //    short beat, then start typing
+        typeWord($('sand-type'), () => {               // 2. type the text
+          setTimeout(() => {                            //    ~1.5s pause, as if reading what was typed
+            clickAt(btn, () => {                        // 3. travel to the button, settle, press it
+              input.classList.remove('focused');
+              clearInput();                             //    the text disappears
+              popup(btn.textContent || '');             //    confirmation appears
+              setTimeout(() => { formBusy = false; if (after) after(); }, rnd(900, 1500)); // rest before next scene
+            });
+          }, rnd(1100, 1600));
         });
-      });
+      }, rnd(420, 700));
     });
   }
 
   function nextDelay() { const r = rates(); const pm = Math.max(0.1, r.move + r.click + r.scroll); return Math.round((60000 / pm) * rnd(0.55, 1.6)); }
   function chooseAction() { const r = rates(); const bag = [['move', r.move]]; if (r.click > 0) bag.push(['click', r.click]); if (r.scroll > 0) bag.push(['scroll', r.scroll]); const total = bag.reduce((a, [, w]) => a + w, 0); let x = Math.random() * total; for (const [n, w] of bag) { if ((x -= w) <= 0) return n; } return 'move'; }
 
+  // Drift the cursor to a free spot in the stage, settle, then continue.
+  function runMove(after) {
+    formBusy = true;
+    let { w, h } = stageSize(); if (!w) { w = 360; h = 230; }
+    moveCursor(rnd(24, w - 30), rnd(24, h - 30), rnd(420, 760), () => {
+      M.record('move', true);
+      setTimeout(() => { formBusy = false; if (after) after(); }, rnd(500, 900));
+    });
+  }
+  // Move the cursor onto the document list, then scroll a few notches under it.
+  function runScroll(after) {
+    formBusy = true;
+    const box = sandList.parentElement; const c = centerOf(box);
+    moveTo(c, () => {
+      M.record('move', true);
+      let n = 1 + Math.floor(Math.random() * 3); const dir = Math.random() < 0.5 ? 1 : -1;
+      (function stepScroll() {
+        if (n-- <= 0) { setTimeout(() => { formBusy = false; if (after) after(); }, rnd(500, 900)); return; }
+        scrollList(dir); M.record('scroll', true);
+        setTimeout(stepScroll, rnd(280, 480));
+      })();
+    });
+  }
+  // Single deliberate button press (no form), serialized like the other scenes.
+  function runClick(after) {
+    formBusy = true;
+    const bs = [].slice.call(stage.querySelectorAll('.sand-btn'));
+    clickAt(bs[Math.floor(Math.random() * bs.length)] || stage, () => {
+      setTimeout(() => { formBusy = false; if (after) after(); }, rnd(800, 1300));
+    });
+  }
+
+  // The full input→type→button scene is the showcase, but raw click rates make it
+  // rare. Guarantee it recurs every few scenes so the sandbox always reads as a
+  // real user working (filler move/scroll scenes play in between).
+  let sinceClick = 0, clickEvery = 4 + Math.floor(Math.random() * 4);
   function schedule() { if (cfg.running && !formBusy) genTimer = setTimeout(tick, nextDelay()); }
   function tick() {
     if (!cfg.running || formBusy) return;
     if (cfg.pauseOnUser && now() - lastReal < 3000) { genTimer = setTimeout(tick, 2400); return; }
-    let { w, h } = stageSize(); if (!w) { w = 360; h = 230; }
-    const action = chooseAction(); actions++;
+    let action = chooseAction(); actions++;
+    if (action !== 'click' && rates().click > 0 && ++sinceClick >= clickEvery) action = 'click';
+    if (action === 'click') { sinceClick = 0; clickEvery = 4 + Math.floor(Math.random() * 4); }
     try {
-      if (action === 'click') {
-        // most clicks run the full input→type→button flow; otherwise a single button press
-        if (Math.random() < 0.7) { runForm(schedule); }
-        else { const bs = [].slice.call(stage.querySelectorAll('.sand-btn')); clickAt(bs[Math.floor(Math.random() * bs.length)] || stage, schedule); }
-        return; // these reschedule via their own callback when the action finishes
-      }
-      if (action === 'scroll') { scrollList(Math.random() < 0.5 ? 1 : -1); M.record('scroll', true); }
-      else { moveCursor(rnd(18, w - 28), rnd(18, h - 28), rnd(260, 560)); M.record('move', true); }
-    } catch (_) {}
-    schedule();
+      // Each branch is a self-contained "scene" that reschedules via its callback
+      // when it finishes, so scenes never overlap and the cursor never teleports.
+      if (action === 'click') { if (Math.random() < 0.7) runForm(schedule); else runClick(schedule); return; }
+      if (action === 'scroll') { runScroll(schedule); return; }
+      runMove(schedule); return;
+    } catch (_) { formBusy = false; schedule(); }
   }
   function startGen() { if (genTimer) return; M.genOn = true; formBusy = false; cur = { x: 40, y: 40 }; genTimer = setTimeout(tick, 300); }
   function stopGen() { M.genOn = false; formBusy = false; if (genTimer) { clearTimeout(genTimer); genTimer = null; } }

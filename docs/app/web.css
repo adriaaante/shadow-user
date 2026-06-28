@@ -39,7 +39,7 @@ body{overflow:auto;background:radial-gradient(1200px 600px at 80% -10%,rgba(124,
 /* sandbox stage */
 .stage{position:relative;height:230px;border-radius:var(--radius);overflow:hidden;
   background:linear-gradient(180deg,#0c0c14,#0a0a10);border:1px solid var(--border)}
-.cursor{position:absolute;left:40px;top:40px;width:22px;height:22px;pointer-events:none;
+.cursor{position:absolute;left:0;top:0;width:22px;height:22px;pointer-events:none;
   filter:drop-shadow(0 0 8px rgba(124,92,255,.6));transition:transform .02s linear;z-index:3}
 .ripple{position:absolute;width:10px;height:10px;border-radius:50%;border:2px solid var(--brand2);
   transform:translate(-50%,-50%);pointer-events:none;animation:rip .6s ease-out forwards;z-index:2}
