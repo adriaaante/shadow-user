@@ -27,8 +27,8 @@ custom domain root, or when opened locally.
 
 ## Custom domain (optional)
 
-The canonical URL in `index.html`/`sitemap.xml` is `https://driftly.app/`. To use it, add a
-`CNAME` file here containing `driftly.app` and point DNS at GitHub Pages (same pattern as
+The canonical URL in `index.html`/`sitemap.xml` is `https://driftly.site/`. To use it, add a
+`CNAME` file here containing `driftly.site` and point DNS at GitHub Pages (same pattern as
 the owner's other sites). If you instead keep the `github.io` URL, update the canonical and
 Open Graph URLs to match.
 

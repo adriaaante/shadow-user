@@ -47,7 +47,7 @@ outside of our control.
 
 ## Contact
 For any request — privacy, billing, cancellation, account deletion, or general
-support — write to **support@driftly.app**. We aim to respond within a few business
-days. (For data-protection matters you may also use privacy@driftly.app if configured.)
+support — write to **support@driftly.site**. We aim to respond within a few business
+days. (For data-protection matters you may also use privacy@driftly.site if configured.)
 
 _Last updated: 2026-06-25._

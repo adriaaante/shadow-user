@@ -22,9 +22,11 @@
 периодически (раз в расчётный период) до отмены подписки. Подключая карту, пользователь даёт
 согласие на регулярные автоматические списания (рекуррентные платежи).
 
-**4. Стоимость.** Стоимость подписки указывается в приложении и на сайте на момент оформления
-(например, 490 ₽ в месяц). Правообладатель вправе изменять стоимость с предварительным
-уведомлением; изменение не затрагивает уже оплаченный период.
+**4. Стоимость.** Стоимость подписки: **149 ₽ в месяц** либо **1500 ₽ в год** (выгода ≈ 16%);
+актуальная цена указывается в приложении и на сайте на момент оформления. Правообладатель вправе
+изменять стоимость с предварительным уведомлением; изменение не затрагивает уже оплаченный период.
+По 54-ФЗ при оплате формируется кассовый чек (онлайн-касса платёжного провайдера) на email
+пользователя.
 
 **5. Способы оплаты.** Платежи обрабатываются платёжными провайдерами **Т‑Банк** или **ЮKassa**.
 Данные банковской карты обрабатываются и хранятся провайдером; Driftly не хранит данные карты.
@@ -51,7 +53,7 @@
 «как есть», без гарантий; ответственность ограничена в пределах, допускаемых законом (см. LICENSE).
 
 **12. Контакты.** По любым вопросам — оплата, отмена, возврат, удаление аккаунта, поддержка —
-пишите на **support@driftly.app**. Срок ответа — несколько рабочих дней.
+пишите на **support@driftly.site**. Срок ответа — несколько рабочих дней.
 
 ---
 
@@ -61,8 +63,12 @@ Driftly is proprietary software (web + desktop) owned by the rights holder. A su
 grants the right to use it; **one subscription covers both the web and desktop versions**.
 Connecting a card starts a **3-day free trial**; afterwards the subscription fee is charged
 **automatically and recurrently** until cancelled (the user consents to recurring charges by
-adding a card). Price is shown at checkout (e.g. 490 ₽ / month). Payments are processed by
+adding a card). Price: 149 ₽/month or 1500 ₽/year (shown at checkout). Payments are processed by
 **T‑Bank** or **YooKassa**; Driftly never stores card data. **If a charge fails, access to both
 apps is paused until payment succeeds.** Cancel anytime — access continues until the end of the
 paid period. Activity data is never collected (local only); only email + billing status are
 processed (see PRIVACY.md). Software is provided "as is" (see LICENSE).
+
+> The published, user-facing versions live at `docs/legal/oferta.html` (public offer) and
+> `docs/legal/privacy.html` (privacy policy). Keep this file and those pages in sync; fill in the
+> seller requisites (самозанятый/ИП/ООО, ИНН, contacts) before accepting real payments.

@@ -150,6 +150,10 @@ function createWindow() {
   });
   win.loadFile(path.join(__dirname, '..', 'renderer', 'index.html'));
 
+  // Open external links (e.g. the legal pages) in the default browser, not in-app.
+  win.webContents.setWindowOpenHandler(({ url }) => { if (/^https?:/.test(url)) shell.openExternal(url); return { action: 'deny' }; });
+  win.webContents.on('will-navigate', (e, url) => { if (/^https?:/.test(url)) { e.preventDefault(); shell.openExternal(url); } });
+
   win.on('close', (e) => {
     if (!app.isQuiting && store.getConfig().prefs.minimizeToTray && tray) {
       e.preventDefault();

@@ -163,6 +163,7 @@ body::after{content:"";position:fixed;bottom:-20%;left:-15%;width:55vw;height:55
 .legend i{width:12px;height:12px;border-radius:4px}
 .lg-brand{background:var(--brand2)}.lg-dim{background:rgba(242,242,248,.22)}
 .chart-svg{width:100%;height:auto}
+.compare-shot{width:100%;height:auto;display:block;border-radius:12px;border:1px solid var(--border)}
 .chart-cap{color:var(--muted);font-size:.85rem;margin:14px 0 0;text-align:center}
 
 /* privacy */
