@@ -22,3 +22,4 @@ Thumbs.db
 .vscode/
 .idea/
 *.tmp
+scripts/server-update.env
