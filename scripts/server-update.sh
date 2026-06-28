@@ -16,6 +16,16 @@ ROOT="$(cd "$(dirname "$0")/.." && pwd)"
 [ -f "$ROOT/scripts/server-update.env" ] && . "$ROOT/scripts/server-update.env"
 : "${WEBROOT:?set WEBROOT in scripts/server-update.env (e.g. /home/uXXXXXXX/driftly.site/public_html)}"
 
+WEBROOT="${WEBROOT%/}" # drop any trailing slash
+# Safety on shared hosting: WEBROOT must be THIS site's own folder. Publishing into
+# the home dir or the shared www/ parent would --delete other sites next to it.
+case "$WEBROOT" in
+  "$HOME"|"$HOME/www"|"$HOME/domains"|"/"|"")
+    echo "Refusing: WEBROOT must be this site's OWN folder (e.g. $HOME/www/driftly.site), not '$WEBROOT'." >&2
+    echo "It must not be your home dir or the shared www/ parent — that would wipe other sites." >&2
+    exit 1;;
+esac
+
 cd "$ROOT"
 echo ">> git pull"
 git pull --ff-only
