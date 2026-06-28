@@ -175,7 +175,11 @@
     else if ($('sub-auth-note')) $('sub-auth-note').textContent = t('codeBad');
   });
   if ($('btn-setapi')) $('btn-setapi').addEventListener('click', function () { state.api = ($('sub-api').value || '').trim().replace(/\/$/, ''); state.serverEnt = null; persist(); refresh(); });
-  if ($('btn-signout')) $('btn-signout').addEventListener('click', function () { state.token = null; state.license = null; state.serverEnt = null; persist(); emit(); });
+  if ($('btn-signout')) $('btn-signout').addEventListener('click', function () {
+    // Best-effort: free this device's seat on the server, then clear locally.
+    if (state.api && state.token) { try { fetch(state.api + '/v1/auth/signout', { method: 'POST', headers: { Authorization: 'Bearer ' + state.token } }); } catch (e) {} }
+    state.token = null; state.license = null; state.serverEnt = null; persist(); emit();
+  });
   if ($('pw-cta')) $('pw-cta').addEventListener('click', function () { dismissed = true; render(); showView('subscription'); });
   if ($('pw-retry')) $('pw-retry').addEventListener('click', function () { call('POST', '/v1/billing/retry'); });
   window.addEventListener('driftly-lang-changed', render);

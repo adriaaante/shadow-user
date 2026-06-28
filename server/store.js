@@ -48,6 +48,18 @@ function emailForToken(token) {
 function putToken(token, email) {
   db.prepare('INSERT INTO tokens(token, email) VALUES(?, ?) ON CONFLICT(token) DO UPDATE SET email = excluded.email').run(token, email);
 }
+function delToken(token) { db.prepare('DELETE FROM tokens WHERE token = ?').run(token); }
+function countTokensForEmail(email) {
+  return Number(db.prepare('SELECT COUNT(*) AS n FROM tokens WHERE email = ?').get(email).n);
+}
+// Keep only the `max` most-recently-issued device tokens for an email (ordered by
+// SQLite rowid = insertion order, so it's reliable even within the same ms).
+// Returns how many older tokens were evicted. Powers the per-account device cap.
+function pruneTokens(email, max) {
+  return db.prepare(
+    'DELETE FROM tokens WHERE email = ? AND rowid NOT IN (SELECT rowid FROM tokens WHERE email = ? ORDER BY rowid DESC LIMIT ?)'
+  ).run(email, email, max).changes;
+}
 
 /* ---- passwordless sign-in codes (single-use, expiring) ---- */
 function getCode(email) {
@@ -62,4 +74,4 @@ function delCode(email) { db.prepare('DELETE FROM codes WHERE email = ?').run(em
 
 function close() { if (db) { db.close(); db = null; } }
 
-module.exports = { init, getAccount, putAccount, allAccounts, emailForToken, putToken, getCode, putCode, delCode, close };
+module.exports = { init, getAccount, putAccount, allAccounts, emailForToken, putToken, delToken, countTokensForEmail, pruneTokens, getCode, putCode, delCode, close };

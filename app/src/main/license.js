@@ -91,6 +91,14 @@ async function cancel() { if (isPreview() || !state.token) return { ok: false };
 async function resume() { if (isPreview() || !state.token) return { ok: false }; const j = await call('POST', '/v1/billing/resume'); if (j.license) { state.license = j.license; persist(); } return j; }
 
 function setApi(url) { state.api = (url || '').trim().replace(/\/$/, ''); persist(); return refresh(); }
-function signOut() { state.token = null; state.license = null; persist(); return info(); }
+function signOut() {
+  const tok = state.token;
+  state.token = null; state.license = null; persist();
+  // Best-effort: tell the server to drop this device token so its seat frees up.
+  if (tok && !isPreview()) {
+    try { fetch(apiBase() + '/v1/auth/signout', { method: 'POST', headers: { Authorization: 'Bearer ' + tok } }).catch(() => {}); } catch (_) { /* noop */ }
+  }
+  return info();
+}
 
 module.exports = { init, info, refresh, authRequest, authVerify, startTrial, retry, cancel, resume, setApi, signOut, currentEntitlement, isPreview };

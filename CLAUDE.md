@@ -75,9 +75,15 @@ Note: `node:sqlite` prints an ExperimentalWarning (harmless; stable in Node 24+)
 - **Bilingual site:** every text node needs both `data-ru` and `data-en`.
 - **Cancel keeps access** until period end (legal); cancelled-then-ended → `expired`, not `past_due`.
 - Sign-in codes: single-use, 10-min expiry, 5-try lockout (`server/index.js`).
+- **Device cap (anti-sharing):** one account unlocks at most `MAX_DEVICES` (default 2,
+  env-overridable) — web + desktop. Each sign-in = one row in `tokens`; a new sign-in
+  beyond the cap evicts the oldest (sliding window, ordered by SQLite rowid) so a license
+  can't be shared around. `/v1/auth/signout` deletes the presented token to free a seat;
+  both clients call it on sign-out. Note the 7-day offline license grace (`lib.js` exp) —
+  an evicted device keeps cached access until that expires.
 
 ## Commands
-- Server: `cd server && npm run keygen` (once) · `npm start` (:8787, mock) · `npm test` (23 checks: auth, trial→charge→past_due→retry, cancel/resume, multi-device, tamper, SQLite durability).
+- Server: `cd server && npm run keygen` (once) · `npm start` (:8787, mock) · `npm test` (26 checks: auth, trial→charge→past_due→retry, cancel/resume, multi-device, device cap + sign-out, tamper, SQLite durability).
 - Recopy shared: `cp shared/entitlement.js shared/license.js shared/verify-node.js shared/license-public.pem app/src/shared/ && cp shared/entitlement.js shared/license.js docs/app/shared/`
 - Desktop: `cd app && npm install && npm start` · `npm run dist` (installers).
 - Site/web preview: `cd docs && python3 -m http.server 8080`.

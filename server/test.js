@@ -115,6 +115,19 @@ function expireTrial(email) { const a = srv.store.getAccount(email); a.trialEnds
   { const days = Math.round((r.json.account.currentPeriodEnd - Date.now()) / 86400000);
     ok('yearly plan → ~365-day period', r.json.account.interval === 'year' && days > 360 && days <= 365); }
 
+  // ---- device cap: a license serves at most 2 devices; a 3rd sign-in evicts the oldest ----
+  const eve1 = (await signIn('eve@example.com')).accountToken;
+  const eve2 = (await signIn('eve@example.com')).accountToken;
+  const eve3 = (await signIn('eve@example.com')).accountToken; // 3rd device
+  const e1 = await api('GET', '/v1/status', eve1);
+  const e2 = await api('GET', '/v1/status', eve2);
+  const e3 = await api('GET', '/v1/status', eve3);
+  ok('3rd device evicts the oldest (device cap = 2)', e1.code === 401 && e2.code === 200 && e3.code === 200);
+  // signing out a device frees its slot
+  await api('POST', '/v1/auth/signout', eve2);
+  const e2b = await api('GET', '/v1/status', eve2);
+  ok('sign-out frees the device slot', e2b.code === 401);
+
   // unauthorized
   r = await api('GET', '/v1/status', 'badtoken'); ok('bad token → 401', r.code === 401);
 

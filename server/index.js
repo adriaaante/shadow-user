@@ -22,6 +22,9 @@ const mailers = require('./mailer');
 const store = require('./store');
 
 const AUTH_CODE_TTL = 10 * 60 * 1000; // sign-in code valid 10 minutes
+// One subscription unlocks at most this many devices (web + desktop = 2 by design).
+// A 3rd sign-in evicts the oldest device, so a license can't be shared around.
+const MAX_DEVICES = Math.max(1, parseInt(process.env.MAX_DEVICES || '2', 10));
 function hashCode(email, code) { return crypto.createHash('sha256').update(email + ':' + code).digest('hex'); }
 
 const PORT = parseInt(process.env.PORT || '8787', 10);
@@ -132,7 +135,17 @@ const server = http.createServer(async (req, res) => {
       if (!acc) { acc = { email, plan: 'none', status: 'none' }; store.putAccount(acc); }
       const token = crypto.randomBytes(24).toString('hex');
       store.putToken(token, email);
-      return send(res, 200, { accountToken: token, email });
+      // Enforce the device cap: keep only the newest MAX_DEVICES tokens for this
+      // account, so a shared login can never run on more than that many devices.
+      const evicted = store.pruneTokens(email, MAX_DEVICES);
+      return send(res, 200, { accountToken: token, email, devices: store.countTokensForEmail(email), maxDevices: MAX_DEVICES, evicted });
+    }
+
+    // Sign out THIS device — frees a device slot immediately (deletes the token).
+    if (p === '/v1/auth/signout' && req.method === 'POST') {
+      const m = (req.headers.authorization || '').match(/^Bearer\s+(.+)$/i);
+      if (m) store.delToken(m[1]);
+      return send(res, 200, { ok: true });
     }
 
     // everything below needs auth
