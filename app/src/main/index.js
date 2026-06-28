@@ -8,7 +8,7 @@
 const path = require('path');
 const fs = require('fs');
 const {
-  app, BrowserWindow, ipcMain, Tray, Menu, nativeImage, dialog, shell,
+  app, BrowserWindow, ipcMain, Tray, Menu, nativeImage, dialog, shell, powerSaveBlocker,
 } = require('electron');
 
 const store = require('./store');
@@ -35,10 +35,23 @@ function desiredGeneratorOn() {
   return scheduler.active; // 'schedule'
 }
 
+// OS-level screen keep-awake. Unlike the browser's Wake Lock, this holds even
+// when the window is minimized or in the background, so while the generator runs
+// the display never sleeps — the guarantee the web version can't make.
+let psbId = null;
+function syncPowerBlocker(on) {
+  try {
+    const held = psbId !== null && powerSaveBlocker.isStarted(psbId);
+    if (on && !held) psbId = powerSaveBlocker.start('prevent-display-sleep');
+    else if (!on && held) { powerSaveBlocker.stop(psbId); psbId = null; }
+  } catch (_) { /* noop */ }
+}
+
 function reconcile() {
   const want = desiredGeneratorOn();
   if (want && !generator.running) generator.start();
   if (!want && generator.running) generator.stop();
+  syncPowerBlocker(want);
   metrics.setGeneratorEnabled(want);
   updateTray();
   pushStatus();

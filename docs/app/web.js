@@ -14,9 +14,13 @@
   const L = {
     ru: { running: 'Работает', paused: 'Пауза', moves: 'движ/мин', clicks: 'клик/мин', scrolls: 'прокр/мин',
       exported: 'Файл сохранён', reset: 'Сброшено', wakeOn: 'Экран удерживается активным.', wakeOff: 'Удержание экрана выключено.',
+      wakeIdle: 'Экран будет удерживаться, пока приложение работает.',
+      wakeHidden: 'Вкладка свёрнута — экран может гаснуть. Вернитесь на вкладку Driftly (или скачайте десктоп для работы в фоне).',
       wakeNo: 'Этот браузер не умеет удерживать экран активным.', wakeErr: 'Не удалось удержать экран активным (нужен HTTPS).' },
     en: { running: 'Running', paused: 'Paused', moves: 'moves/min', clicks: 'clicks/min', scrolls: 'scrolls/min',
       exported: 'File saved', reset: 'Reset', wakeOn: 'Screen is kept awake.', wakeOff: 'Wake Lock off.',
+      wakeIdle: 'The screen will be kept awake while the app is running.',
+      wakeHidden: 'This tab is in the background — the screen may sleep. Return to the Driftly tab (or get the desktop app for background use).',
       wakeNo: 'Wake Lock is not supported by this browser.', wakeErr: 'Could not enable Wake Lock (needs HTTPS).' },
   };
   const t = (k) => L[lang][k];
@@ -28,7 +32,7 @@
   }
 
   /* ------------------------------- config ------------------------------- */
-  const DEFAULT = { running: false, level: 'balanced', intensity: 50, includeClicks: true, includeScroll: true, pauseOnUser: true, wake: false };
+  const DEFAULT = { running: false, level: 'balanced', intensity: 50, includeClicks: true, includeScroll: true, pauseOnUser: true, wake: true };
   let cfg = Object.assign({}, DEFAULT, JSON.parse(localStorage.getItem('driftly.cfg') || '{}'));
   cfg.running = false; // never auto-run on load
   const saveCfg = () => localStorage.setItem('driftly.cfg', JSON.stringify(cfg));
@@ -226,15 +230,39 @@
       runMove(schedule); return;
     } catch (_) { formBusy = false; schedule(); }
   }
-  function startGen() { if (genTimer) return; M.genOn = true; formBusy = false; cur = { x: 40, y: 40 }; genTimer = setTimeout(tick, 300); }
-  function stopGen() { M.genOn = false; formBusy = false; if (genTimer) { clearTimeout(genTimer); genTimer = null; } }
+  function startGen() { if (genTimer) return; M.genOn = true; formBusy = false; cur = { x: 40, y: 40 }; genTimer = setTimeout(tick, 300); syncWake(); }
+  function stopGen() { M.genOn = false; formBusy = false; if (genTimer) { clearTimeout(genTimer); genTimer = null; } syncWake(); }
 
   /* ------------------------------ wake lock ----------------------------- */
+  // The browser keeps the screen awake ONLY while this tab is visible — every
+  // browser drops the Wake Lock when the tab is hidden/minimized and it can't be
+  // re-taken from the background, nor can a page focus its own tab. So we hold the
+  // lock while the app is running + visible, re-take it on return, and say so
+  // honestly. For guaranteed background keep-awake, the desktop app is the answer.
   let wakeLock = null; const wakeSupported = ('wakeLock' in navigator);
-  async function enableWake() { if (!wakeSupported) return; try { wakeLock = await navigator.wakeLock.request('screen'); wakeLock.addEventListener('release', () => {}); } catch (_) { cfg.wake = false; $('opt-wake').checked = false; toast(t('wakeErr')); } renderWakeNote(); }
-  function disableWake() { if (wakeLock) { try { wakeLock.release(); } catch (_) {} wakeLock = null; } renderWakeNote(); }
-  document.addEventListener('visibilitychange', () => { if (cfg.wake && document.visibilityState === 'visible') enableWake(); });
-  function renderWakeNote() { const n = $('wake-note'); if (!wakeSupported) { n.textContent = t('wakeNo'); return; } n.textContent = cfg.wake ? t('wakeOn') : t('wakeOff'); }
+  async function syncWake() {
+    const wantLock = cfg.running && cfg.wake && document.visibilityState === 'visible';
+    if (wantLock && !wakeLock && wakeSupported) {
+      try {
+        wakeLock = await navigator.wakeLock.request('screen');
+        wakeLock.addEventListener('release', () => { wakeLock = null; renderWakeNote(); });
+      } catch (_) { wakeLock = null; toast(t('wakeErr')); }
+    } else if (!wantLock && wakeLock) {
+      try { wakeLock.release(); } catch (_) {} wakeLock = null;
+    }
+    renderWakeNote();
+  }
+  document.addEventListener('visibilitychange', syncWake);
+  function renderWakeNote() {
+    const n = $('wake-note'); if (!n) return; let msg, warn = false;
+    if (!wakeSupported) msg = t('wakeNo');
+    else if (!cfg.wake) msg = t('wakeOff');
+    else if (!cfg.running) msg = t('wakeIdle');
+    else if (document.visibilityState !== 'visible') { msg = t('wakeHidden'); warn = true; } // truly backgrounded
+    else if (wakeLock) msg = t('wakeOn');                                                    // visible + held
+    else { msg = t('wakeErr'); warn = true; }                                                // visible but couldn't hold
+    n.textContent = msg; n.classList.toggle('warn', warn);
+  }
 
   /* -------------------------------- render ------------------------------ */
   function renderStatus() {
@@ -271,7 +299,7 @@
   $('intensity').addEventListener('input', (e) => { cfg.intensity = +e.target.value; $('intensity-val').textContent = e.target.value; renderRates(); });
   $('intensity').addEventListener('change', saveCfg);
   [['opt-clicks', 'includeClicks'], ['opt-scroll', 'includeScroll'], ['opt-pause', 'pauseOnUser']].forEach(([id, key]) => $(id).addEventListener('change', (e) => { cfg[key] = e.target.checked; saveCfg(); renderRates(); }));
-  $('opt-wake').addEventListener('change', (e) => { cfg.wake = e.target.checked; saveCfg(); if (cfg.wake) enableWake(); else disableWake(); });
+  $('opt-wake').addEventListener('change', (e) => { cfg.wake = e.target.checked; saveCfg(); syncWake(); });
   function download(name, text, type) { const b = new Blob([text], { type }); const u = URL.createObjectURL(b); const a = document.createElement('a'); a.href = u; a.download = name; a.click(); setTimeout(() => URL.revokeObjectURL(u), 1000); }
   $('exp-csv').addEventListener('click', () => { download('driftly-web-metrics.csv', '\uFEFF' + M.csv(), 'text/csv;charset=utf-8'); toast(t('exported')); });
   $('exp-json').addEventListener('click', () => { download('driftly-web-metrics.json', M.json(), 'application/json'); toast(t('exported')); });
@@ -288,8 +316,8 @@
 
   /* --------------------------------- init ------------------------------- */
   $('opt-clicks').checked = cfg.includeClicks; $('opt-scroll').checked = cfg.includeScroll;
-  $('opt-pause').checked = cfg.pauseOnUser; $('opt-wake').checked = false; $('intensity').value = cfg.intensity; $('intensity-val').textContent = cfg.intensity;
-  applyLang(); renderStatus(); renderRates(); window.Charts.gauge($('gauge'), 0); refreshCharts();
+  $('opt-pause').checked = cfg.pauseOnUser; $('opt-wake').checked = cfg.wake; $('intensity').value = cfg.intensity; $('intensity-val').textContent = cfg.intensity;
+  applyLang(); renderStatus(); renderRates(); renderWakeNote(); window.Charts.gauge($('gauge'), 0); refreshCharts();
 
   // PWA service worker (offline app shell) — optional, ignore failures.
   if ('serviceWorker' in navigator) navigator.serviceWorker.register('sw.js').catch(() => {});
