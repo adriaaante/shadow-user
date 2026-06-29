@@ -71,6 +71,17 @@ Note: `node:sqlite` prints an ExperimentalWarning (harmless; stable in Node 24+)
 
 ## Gotchas
 - **Recopy `shared/` after editing** (see above) — the #1 footgun.
+- **REG docroot must be a REAL dir, not a symlink** (`server-php/DEPLOY.md` step 3). ISPmanager's
+  Let's Encrypt does file ops in the docroot and fails on a symlink ("ошибка при работе с файлами").
+  Use a real `~/www/api.driftly.site` holding a one-line `index.php` shim (`<?php require '…/server-php/index.php';`)
+  + a copy of `.htaccess`. Bonus: `.env`/`.keys/` stay outside the webroot. Code resolves all paths via `__DIR__`.
+- **nginx serves the ACME challenge itself** (`/.well-known/acme-challenge/` → `alias /usr/local/mgr5/www/letsencrypt/`),
+  so HTTP-01 doesn't touch our docroot. The self-signed cert at site creation is replaced by LE once issued.
+- **Unisender Go is node-pinned** (`go1`/`go2`); wrong node → code 114 "User not found". Ours is **go2**
+  (`UNISENDER_GO_API_URL` in `.env`). A new account is on **`free_tier`** → only delivers to verified
+  domains/addresses (external recipient → code 903). Needs Unisender moderation/activation before sign-in
+  codes reach real customers; test meanwhile by sending to `@driftly.site`.
+- **CRON uses `/usr/bin/php`** (CLI is 8.2) — `*/10 * * * * /usr/bin/php …/server-php/tick.php >/dev/null 2>&1`.
 - **Preview mode:** clients with no licensing API set run open + a banner (usable pre-deploy).
   Setting the API activates real trial/paywall/past_due gating.
 - **Paywall must not cover the subscription UI** — desktop hides it on the Subscription view;

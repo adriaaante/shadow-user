@@ -8,16 +8,27 @@ Panel → **Базы данных** → create a DB + user. Note the **db name /
 ## 2. Subdomain `api.driftly.site`
 Panel → **Сайты** → add subdomain `api.driftly.site`:
 - PHP version **8.2+**.
-- Document root → the folder where this `server-php/` lands (see step 3).
+- Document root → keep the panel default (`~/www/api.driftly.site`); see step 3.
 - Enable **SSL** (Let's Encrypt), same as the main domain. T-Bank webhooks require HTTPS.
 
-## 3. Upload the code
-Easiest (Shell-клиент), reusing the git checkout:
+## 3. Upload the code (real-directory docroot + thin shim)
+Reuse the git checkout (Shell-клиент):
 ```bash
 cd ~ && git clone https://github.com/adriaaante/shadow-user.git driftly-src   # or: cd ~/driftly-src && git pull
 ```
-Point the subdomain's document root to `~/driftly-src/server-php` (in the panel),
-**or** symlink it: `ln -sfn ~/driftly-src/server-php ~/www/api.driftly.site`.
+⚠️ **Do NOT make the docroot a symlink to `server-php`.** ISPmanager's Let's Encrypt
+module does file operations in the docroot and fails on a symlink ("ошибка при работе с
+файлами"), so the cert never issues. Keep the docroot a **real directory** holding a
+one-line `index.php` shim that loads the real front controller (this also keeps `.env`
+and `.keys/` outside the webroot — they can't be served at all):
+```bash
+SRC=~/driftly-src/server-php ; DOC=~/www/api.driftly.site
+rm -f "$DOC"; mkdir -p "$DOC"
+printf '<?php require %s;\n' "'$SRC/index.php'" > "$DOC/index.php"
+cp "$SRC/.htaccess" "$DOC/.htaccess"
+```
+All code paths resolve via `__DIR__`, so the shim doesn't disturb `lib/`, `.env`, or `.keys/`.
+On `git pull` the shim keeps pointing at the updated code — nothing to redo.
 
 ## 4. Configuration
 ```bash
@@ -36,18 +47,31 @@ Copy the printed **PUBLIC key** into the clients and redeploy the site:
   `driftly.site` ships the matching key. (Desktop installers must be rebuilt to pick it up.)
 
 ## 6. CRON — recurring charges
-Panel → **Планировщик CRON** → add, every 10 minutes:
+Panel → **Планировщик CRON** → expert mode, every 10 minutes (`*/10 * * * *`). Use the
+absolute `php` binary path — the shared host's CLI php is 8.x:
 ```
-php /home/uXXXXXXX/driftly-src/server-php/tick.php >/dev/null 2>&1
+/usr/bin/php /home/uXXXXXXX/driftly-src/server-php/tick.php >/dev/null 2>&1
 ```
+Tick "не отправлять отчёт по e-mail" so it doesn't mail you every 10 minutes.
 
-## 7. Point the clients at the API
+## 7. Email deliverability (Unisender Go) — must clear `free_tier`
+Unisender Go pins each account to a node (`go1`/`go2`); a wrong node returns code 114
+"User ... not found". Ours is **go2** — set `UNISENDER_GO_API_URL` accordingly (see `.env`).
+A fresh account is on **`free_tier`**, which only delivers to *verified* domains/addresses;
+sending a sign-in code to gmail/yandex returns **code 903**. Until the account passes
+Unisender moderation/activation, real customers won't receive codes. Verify the pipeline
+meanwhile by sending to an address on the verified domain (e.g. `support@driftly.site`).
+
+## 8. Point the clients at the API
 In both clients set the licensing API to `https://api.driftly.site`:
 - Web: it reads `?api=` / the in-app field, or set `DEFAULT_API` in `docs/app/web-account.js`.
 - Desktop: `DRIFTLY_LICENSE_API` env or the in-app field.
-Once set, the apps leave demo mode and enforce the real trial / paywall / billing.
+Once set, the apps leave demo mode and enforce the real trial / paywall / billing. Do this
+only after (a) Unisender is out of `free_tier` and (b) the T-Bank cycle is validated —
+otherwise live visitors hit a sign-in/paywall that can't complete. To test end-to-end before
+flipping the default, append `?api=https://api.driftly.site` to the web app URL.
 
-## 8. T-Bank merchant settings
+## 9. T-Bank merchant settings
 In the Т-Касса shop set:
 - **NotificationURL** = `https://api.driftly.site/v1/webhooks/tbank`
 - **Success/Fail URL** = your `TBANK_SUCCESS_URL` / `TBANK_FAIL_URL`
