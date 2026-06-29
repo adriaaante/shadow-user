@@ -8,7 +8,7 @@ const licenseCodec = require('../shared/license');
 
 const DAY = 86400000;
 const KEY_DIR = path.join(__dirname, '.keys');
-const PRIV_PATH = path.join(KEY_DIR, 'ed25519-private.pem');
+const PRIV_PATH = path.join(KEY_DIR, 'ec-private.pem');
 const PUB_PATH = path.join(__dirname, '..', 'shared', 'license-public.pem');
 
 function loadPrivateKey() {
@@ -20,10 +20,10 @@ function loadPrivateKey() {
 
 /** Build and sign an Ed25519 license token (JWT-like). */
 function signToken(payload, privateKeyPem) {
-  const header = { alg: 'EdDSA', typ: 'DLT' }; // DLT = Driftly License Token
+  const header = { alg: 'ES256', typ: 'DLT' }; // DLT = Driftly License Token (ECDSA P-256)
   const input = licenseCodec.b64urlEncode(JSON.stringify(header))
     + '.' + licenseCodec.b64urlEncode(JSON.stringify(payload));
-  const sig = crypto.sign(null, Buffer.from(input), privateKeyPem)
+  const sig = crypto.sign('sha256', Buffer.from(input), { key: privateKeyPem, dsaEncoding: 'ieee-p1363' })
     .toString('base64').replace(/\+/g, '-').replace(/\//g, '_').replace(/=+$/, '');
   return input + '.' + sig;
 }

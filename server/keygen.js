@@ -1,5 +1,5 @@
 'use strict';
-/* server/keygen.js — generate the Ed25519 keypair for license signing.
+/* server/keygen.js — generate the EC P-256 (ES256) keypair for license signing.
  * Private key → server/.keys/ (gitignored, never leaves the server).
  * Public key → shared/license-public.pem (committed, embedded in the clients). */
 
@@ -13,15 +13,15 @@ if (fs.existsSync(PRIV_PATH) && !process.argv.includes('--force')) {
   process.exit(0);
 }
 
-const { publicKey, privateKey } = crypto.generateKeyPairSync('ed25519');
+const { publicKey, privateKey } = crypto.generateKeyPairSync('ec', { namedCurve: 'prime256v1' });
 const privPem = privateKey.export({ type: 'pkcs8', format: 'pem' });
 const pubPem = publicKey.export({ type: 'spki', format: 'pem' });
 
 fs.mkdirSync(KEY_DIR, { recursive: true });
 fs.writeFileSync(PRIV_PATH, privPem);
-fs.writeFileSync(path.join(KEY_DIR, 'ed25519-public.pem'), pubPem);
+fs.writeFileSync(path.join(KEY_DIR, 'ec-public.pem'), pubPem);
 fs.writeFileSync(PUB_PATH, pubPem);
 
-console.log('Generated Ed25519 keypair.');
+console.log('Generated EC P-256 (ES256) keypair.');
 console.log('  private (keep secret):', PRIV_PATH);
 console.log('  public  (committed)  :', PUB_PATH);
