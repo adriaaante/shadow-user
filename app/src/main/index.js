@@ -129,7 +129,13 @@ function registerIpc() {
   ipcMain.handle('license:setApi', async (_e, url) => { const i = await license.setApi(url); reconcile(); return i; });
   ipcMain.handle('license:authRequest', async (_e, email) => license.authRequest(email));
   ipcMain.handle('license:authVerify', async (_e, email, code) => { const r = await license.authVerify(email, code); reconcile(); return { result: r, info: license.info() }; });
-  ipcMain.handle('license:startTrial', async (_e, card, interval) => { const r = await license.startTrial(card, interval); reconcile(); return { result: r, info: license.info() }; });
+  ipcMain.handle('license:startTrial', async (_e, card, interval) => {
+    const r = await license.startTrial(card, interval);
+    // T-Bank returns a card-binding/3-D Secure URL — open it in the user's browser.
+    if (r && r.result && r.result.redirectUrl) { try { shell.openExternal(r.result.redirectUrl); } catch (_) { /* noop */ } }
+    reconcile();
+    return { result: r, info: license.info() };
+  });
   ipcMain.handle('license:retry', async () => { const r = await license.retry(); reconcile(); return { result: r, info: license.info() }; });
   ipcMain.handle('license:cancel', async () => { const r = await license.cancel(); reconcile(); return { result: r, info: license.info() }; });
   ipcMain.handle('license:resume', async () => { const r = await license.resume(); reconcile(); return { result: r, info: license.info() }; });

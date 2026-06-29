@@ -152,7 +152,13 @@
     var a = ev.target.closest('[data-acc],[data-interval]'); if (!a) return;
     if (a.dataset.interval) { selectedInterval = a.dataset.interval; render(); return; }
     var act = a.dataset.acc;
-    if (act === 'trial') { var card = ($('dev-card') && $('dev-card').value) || 'tok_ok'; call('POST', '/v1/billing/start-trial', { card: card, interval: selectedInterval }); }
+    if (act === 'trial') {
+      var card = ($('dev-card') && $('dev-card').value) || 'tok_ok';
+      call('POST', '/v1/billing/start-trial', { card: card, interval: selectedInterval }).then(function (j) {
+        var url = j && j.result && j.result.redirectUrl;
+        if (url) window.location.href = url; // T-Bank: card binding + 3-D Secure
+      });
+    }
     else if (act === 'retry') call('POST', '/v1/billing/retry');
     else if (act === 'cancel') call('POST', '/v1/billing/cancel');
     else if (act === 'resume') call('POST', '/v1/billing/resume');
