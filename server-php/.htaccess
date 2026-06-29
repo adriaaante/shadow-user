@@ -1,0 +1,16 @@
+# Front controller: route everything (that isn't a real file) to index.php
+RewriteEngine On
+
+# Pass the Authorization header through to PHP (some CGI setups strip it)
+RewriteCond %{HTTP:Authorization} .
+RewriteRule ^ - [E=HTTP_AUTHORIZATION:%{HTTP:Authorization}]
+
+# Block access to internals/secrets
+RewriteRule ^(\.keys|\.data|lib)/ - [F,L]
+<FilesMatch "\.(env|sqlite|pem|md)$">
+  Require all denied
+</FilesMatch>
+
+RewriteCond %{REQUEST_FILENAME} !-f
+RewriteCond %{REQUEST_FILENAME} !-d
+RewriteRule ^ index.php [QSA,L]
