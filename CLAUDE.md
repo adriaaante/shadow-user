@@ -26,7 +26,8 @@ for desktop. Bilingual RU/EN.
   - `license-public.pem` — committed public key embedded in clients.
 - `app/` — Electron desktop. Entry `src/main/index.js` (lifecycle, IPC, `reconcile()` drives the generator). Main modules: `store.js`, `metrics.js`, `monitor.js`, `generator.js`, `scheduler.js`, `input-backend.js`, `license.js` (subscription client, offline verify). Bridge: `src/preload/preload.js`. UI: `src/renderer/index.html` + `assets/app.js` + `app.css`.
 - `docs/` — **GitHub Pages root**. `index.html` = marketing (bilingual, reveal-on-scroll, JSON-LD). `docs/app/` = web app: `index.html`, `web.js` (engine+UI), `web-account.js` (subscription client + `window.DriftlyGate`), `web.css`.
-- `server/` — licensing backend (Node http+crypto, no external deps): `index.js` (endpoints, auth, billing, auto-charge tick), `store.js` (SQLite via built-in `node:sqlite`), `lib.js` (Ed25519 signing), `keygen.js`, `mailer.js` (email-code sender), `providers/{index,mock,tbank,yookassa}.js`, `test.js`, `README.md`.
+- `server/` — licensing backend (Node http+crypto, no external deps): `index.js` (endpoints, auth, billing, auto-charge tick), `store.js` (SQLite via built-in `node:sqlite`), `lib.js` (**ES256** signing), `keygen.js`, `mailer.js` (console + Unisender Go + Resend), `providers/{index,mock,tbank,yookassa}.js`, `test.js`, `README.md`. Reference/VPS option.
+- `server-php/` — **the actual deployment target** (free, runs on REG shared hosting: PHP 8 + MySQL + CRON, no Node). Same API/JSON as `server/` so clients are unchanged. `index.php` (front controller, all `/v1/*`), `lib/{config,store(PDO),entitlement,jwt(ES256/openssl),license,mailer(Unisender Go),providers/{mock,tbank}}.php`, `keygen.php` (EC P-256), `tick.php` (CRON recurring-charge), `.htaccess`, `test.php` (14 checks), `.env.example`, `DEPLOY.md`. Tested locally on PHP 8.4 (SQLite) + e2e via `php -S` (20 checks). **`.keys/` and `.env` are gitignored.** ⚠️ T-Bank Init/Charge/webhook round-trips still need live validation on the test terminal.
 - Docs: `PLAN.md` (architecture), `PRIVACY.md`, `TERMS.md` (offer template), `README.md`.
 
 **Vendored (do not hand-edit as the source):** `app/src/shared/` and `docs/app/shared/` are
@@ -43,9 +44,13 @@ recopy to both (see Commands), or clients run stale logic. `entitlement.js`, `li
 - **Desktop:** `cd app && npm run dist` (electron-builder → Win/macOS/Linux installers) →
   upload to **GitHub Releases**; site download buttons point there. Native input modules are
   optional — without them the app runs in **simulation mode** (full UI still works).
-- **Server:** NOT deployed yet. Reference Node server; deploy to a small host (Fly.io/Render
-  free tier, or a cheap VPS). Set the licensing API URL in the clients to switch them off
-  preview mode. Needs `npm run keygen` once + provider/mailer env (see server/README.md).
+- **Server:** deploy **`server-php/`** to the REG shared hosting (PHP 8 + MySQL + CRON) —
+  free, no VPS. Steps in `server-php/DEPLOY.md`: MySQL DB, `api.driftly.site` subdomain + SSL,
+  `.env`, `php keygen.php` (→ replace `shared/license-public.pem` with the printed key + recopy
+  + redeploy clients), CRON `php tick.php`. Then point clients at `https://api.driftly.site`
+  to leave preview/demo mode. (`server/` Node remains a reference / VPS option.)
+- **License signing is ES256 (ECDSA P-256)** via openssl/Node crypto — raw R||S (ieee-p1363),
+  verified by `shared/verify-node.js`. (Switched from Ed25519 because the host lacks sodium.)
 
 ## Database — embedded SQLite (analyzed; cheap, durable)
 **Billing state must be persisted server-side** — who paid / until when / cancelled can't live on
