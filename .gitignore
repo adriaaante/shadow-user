@@ -23,3 +23,6 @@ Thumbs.db
 .idea/
 *.tmp
 scripts/server-update.env
+
+# PHP backend secrets (private key, local test artifacts) — never commit
+server-php/.keys/
