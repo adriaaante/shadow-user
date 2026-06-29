@@ -73,19 +73,24 @@ code is sent via `mailer.js` (dev default `console` logs it and returns it in th
 response as `devCode`). Codes are single-use, expire in 10 minutes, and lock out after
 5 wrong tries.
 
-**Sending real codes (Resend):** select the built-in Resend provider with env vars:
+**Sending real codes.** Two built-in providers (both HTTPS API, no deps), selected by
+`DRIFTLY_MAILER`:
 
 ```bash
-DRIFTLY_MAILER=resend \
-RESEND_API_KEY=re_xxx \
-MAIL_FROM="Driftly <support@driftly.site>" \   # optional; this is the default
-MAIL_REPLY_TO=support@driftly.site \           # optional
+# Unisender Go (RU — best inbox rates for Yandex/Mail.ru)
+DRIFTLY_MAILER=unisender-go \
+UNISENDER_GO_API_KEY=xxx \
+# UNISENDER_GO_API_URL=https://go1.unisender.ru/ru/transactional/api/v1  # default; set your region's base
+# MAIL_FROM_EMAIL=support@driftly.site  MAIL_FROM_NAME=Driftly           # optional
 npm start
+
+# Resend (international fallback)
+DRIFTLY_MAILER=resend RESEND_API_KEY=re_xxx [MAIL_FROM="Driftly <support@driftly.site>"] npm start
 ```
 
-The sending domain (`driftly.site`) must be **verified in Resend** (add the SPF/DKIM/DMARC
-DNS records it shows) or codes will land in spam. With no `RESEND_API_KEY` the mailer falls
-back to `console`. (Sign-in codes are time-sensitive — a code in spam breaks login.)
+The sending domain (`driftly.site`) must be **verified** in the provider (add the SPF/DKIM/DMARC
+records it shows — and keep a **single** merged SPF record). With no key the mailer falls back to
+`console`. (Sign-in codes are time-sensitive — a code in spam breaks login.)
 
 ## Selecting a payment provider
 
