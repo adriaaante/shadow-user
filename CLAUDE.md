@@ -77,10 +77,12 @@ Note: `node:sqlite` prints an ExperimentalWarning (harmless; stable in Node 24+)
   + a copy of `.htaccess`. Bonus: `.env`/`.keys/` stay outside the webroot. Code resolves all paths via `__DIR__`.
 - **nginx serves the ACME challenge itself** (`/.well-known/acme-challenge/` → `alias /usr/local/mgr5/www/letsencrypt/`),
   so HTTP-01 doesn't touch our docroot. The self-signed cert at site creation is replaced by LE once issued.
-- **Unisender Go is node-pinned** (`go1`/`go2`); wrong node → code 114 "User not found". Ours is **go2**
-  (`UNISENDER_GO_API_URL` in `.env`). A new account is on **`free_tier`** → only delivers to verified
-  domains/addresses (external recipient → code 903). Needs Unisender moderation/activation before sign-in
-  codes reach real customers; test meanwhile by sending to `@driftly.site`.
+- **Email default is `php-mail`** (hosting SMTP via PHP `mail()`, `server-php/lib/mailer.php`) — free +
+  self-contained, sends as `support@driftly.site` through the host MTA. Needs **DKIM enabled in the panel**
+  + host IP in SPF (already present) so codes don't hit spam; create the `support@driftly.site` mailbox.
+  Chosen over Unisender Go because UG's only *forever-free* tier sends to **own domains only** (external →
+  code 903) and its paid promo lasts 2 months. UG remains a `DRIFTLY_MAILER=unisender-go` option (better RU
+  deliverability, paid): node-pinned, ours is **go2** (`UNISENDER_GO_API_URL`); wrong node → code 114.
 - **CRON uses `/usr/bin/php`** (CLI is 8.2) — `*/10 * * * * /usr/bin/php …/server-php/tick.php >/dev/null 2>&1`.
 - **Preview mode:** clients with no licensing API set run open + a banner (usable pre-deploy).
   Setting the API activates real trial/paywall/past_due gating.

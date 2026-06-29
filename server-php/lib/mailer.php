@@ -21,6 +21,31 @@ function mail_code_body(string $code): array {
 function mailer_select(): array {
   $want = strtolower(env('DRIFTLY_MAILER', 'console'));
 
+  // Hosting SMTP via PHP mail() — free + self-contained (sends as the domain mailbox
+  // through the host's MTA/Exim). multipart/alternative + UTF-8; the envelope sender
+  // (-f) aligns Return-Path with the From domain so SPF passes on the shared-host IP.
+  if ($want === 'php-mail' || $want === 'smtp') {
+    return ['name' => 'php-mail', 'send' => function (string $email, string $code): array {
+      $from = env('MAIL_FROM_EMAIL', 'support@driftly.site');
+      $fromName = env('MAIL_FROM_NAME', 'Driftly');
+      $e = mail_code_body($code);
+      $b = 'drf-' . bin2hex(random_bytes(8));
+      $subject = '=?UTF-8?B?' . base64_encode($e['subject']) . '?=';
+      $headers = implode("\r\n", [
+        'MIME-Version: 1.0',
+        'From: =?UTF-8?B?' . base64_encode($fromName) . "?= <$from>",
+        "Reply-To: $from",
+        'Content-Type: multipart/alternative; boundary="' . $b . '"',
+      ]);
+      $body = "--$b\r\nContent-Type: text/plain; charset=UTF-8\r\nContent-Transfer-Encoding: base64\r\n\r\n"
+        . chunk_split(base64_encode($e['text'])) . "\r\n"
+        . "--$b\r\nContent-Type: text/html; charset=UTF-8\r\nContent-Transfer-Encoding: base64\r\n\r\n"
+        . chunk_split(base64_encode($e['html'])) . "\r\n--$b--";
+      if (!@mail($email, $subject, $body, $headers, '-f' . $from)) throw new Exception('php_mail_failed');
+      return [];
+    }];
+  }
+
   if ($want === 'unisender-go' && env('UNISENDER_GO_API_KEY')) {
     return ['name' => 'unisender-go', 'send' => function (string $email, string $code): array {
       $base = rtrim(env('UNISENDER_GO_API_URL', 'https://go1.unisender.ru/ru/transactional/api/v1'), '/');

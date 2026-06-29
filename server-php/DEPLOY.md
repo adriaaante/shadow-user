@@ -54,13 +54,19 @@ absolute `php` binary path — the shared host's CLI php is 8.x:
 ```
 Tick "не отправлять отчёт по e-mail" so it doesn't mail you every 10 minutes.
 
-## 7. Email deliverability (Unisender Go) — must clear `free_tier`
-Unisender Go pins each account to a node (`go1`/`go2`); a wrong node returns code 114
-"User ... not found". Ours is **go2** — set `UNISENDER_GO_API_URL` accordingly (see `.env`).
-A fresh account is on **`free_tier`**, which only delivers to *verified* domains/addresses;
-sending a sign-in code to gmail/yandex returns **code 903**. Until the account passes
-Unisender moderation/activation, real customers won't receive codes. Verify the pipeline
-meanwhile by sending to an address on the verified domain (e.g. `support@driftly.site`).
+## 7. Email for sign-in codes
+Default is **`DRIFTLY_MAILER=php-mail`** — free + self-contained: codes are sent as
+`MAIL_FROM_EMAIL` (`support@driftly.site`) through the host's MTA via PHP `mail()`. No
+third-party service, no ongoing cost. To keep codes out of spam:
+- **Enable DKIM** for `driftly.site` in the panel (Почта → DKIM) — it adds a TXT record.
+- Keep the host IP in **SPF** (`driftly.site` TXT already has `ip4:37.140.192.157` +
+  `include:_spf.hosting.reg.ru`), so the envelope sender passes SPF.
+- Create the `support@driftly.site` mailbox in the panel (so the From/Return-Path is a real
+  local address).
+
+Alternative `unisender-go`: better RU deliverability but the free_tier only sends to
+*verified* domains (external recipient → code 903), so it needs a paid plan. Node-pinned —
+ours is `go2` (set `UNISENDER_GO_API_URL`). Switch by setting `DRIFTLY_MAILER=unisender-go`.
 
 ## 8. Point the clients at the API
 In both clients set the licensing API to `https://api.driftly.site`:
