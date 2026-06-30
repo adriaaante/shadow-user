@@ -122,6 +122,12 @@ try {
   if ($path === '/v1/billing/resume' && $method === 'POST') {
     $acc['canceled'] = false; $store->putAccount($acc); send(200, $stateResponse($acc));
   }
+  if ($path === '/v1/billing/interval' && $method === 'POST') {
+    // Switch the billing interval (e.g. monthly → yearly). Takes effect from the
+    // next charge — the new amount is charged when tick.php renews via RebillId.
+    $acc['interval'] = (body()['interval'] ?? '') === 'year' ? 'year' : 'month';
+    $store->putAccount($acc); send(200, $stateResponse($acc));
+  }
   if ($path === '/v1/billing/_fix-funds' && $method === 'POST' && $provider->name() === 'mock') {
     $provider->fixFunds($acc); $store->putAccount($acc); send(200, $stateResponse($acc));
   }

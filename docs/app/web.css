@@ -145,6 +145,11 @@ body{overflow:auto;background:radial-gradient(1200px 600px at 80% -10%,rgba(124,
 .tab-panel input[type=text]::placeholder, .tab-panel input[type=email]::placeholder{color:var(--dim)}
 .tab-panel input[type=text]:focus, .tab-panel input[type=email]:focus{
   border-color:var(--brand);background:var(--s1);box-shadow:0 0 0 3px rgba(124,92,255,.2)}
+/* input + button rows: roomy gap, side-by-side on desktop, stacked on narrow */
+.range-row{display:flex;flex-wrap:wrap;gap:12px;align-items:stretch;margin-top:4px}
+.range-row + .range-row{margin-top:12px}
+.range-row input[type=text], .range-row input[type=email]{flex:1 1 220px;width:auto;min-width:0}
+.range-row .btn{flex:0 0 auto;padding:0 22px;white-space:nowrap}
 .plan-toggle{display:flex;gap:10px;margin:4px 0 16px}
 .plan-toggle button{flex:1;display:flex;flex-direction:column;gap:3px;align-items:flex-start;padding:13px 15px;border-radius:13px;border:1px solid var(--border);background:var(--s2);color:var(--text);cursor:pointer;transition:border-color .15s, box-shadow .15s, background .15s}
 .plan-toggle button b{font-family:var(--font-display);font-size:16px;font-weight:600}

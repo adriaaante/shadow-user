@@ -3,8 +3,8 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<title>Driftly Web — активность в браузере без установки</title>
-<meta name="description" content="Driftly Web — версия Driftly, работающая прямо в браузере, без установки. Имитирует активность в песочнице, не даёт экрану гаснуть и измеряет активность: активный режим против пассивного, синтетика против реальных, экспорт CSV/JSON.">
+<title>Driftly в браузере — имитация активности и анти-сон экрана без установки</title>
+<meta name="description" content="Driftly в браузере: запускайте имитацию активности прямо в браузере, без установки. Держит экран активным (анти-сон), имитирует работу в песочнице и измеряет активность — активный режим против пассивного, экспорт CSV/JSON. Для полного управления компьютером (курсор, переключение и сворачивание окон) есть десктоп-приложение.">
 <meta name="theme-color" content="#08080c">
 <link rel="manifest" href="manifest.webmanifest">
 <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Cdefs%3E%3ClinearGradient id='g' x1='0' y1='0' x2='1' y2='1'%3E%3Cstop offset='0' stop-color='%237c5cff'/%3E%3Cstop offset='1' stop-color='%232dd4bf'/%3E%3C/linearGradient%3E%3C/defs%3E%3Crect width='64' height='64' rx='14' fill='%2308080c'/%3E%3Cpath d='M16 14 L31 48 L34 35 L47 32 Z' fill='url(%23g)' stroke='%23f2f2f8' stroke-width='1.4' stroke-linejoin='round'/%3E%3Ccircle cx='48' cy='17' r='3' fill='%232dd4bf'/%3E%3C/svg%3E">
@@ -22,7 +22,7 @@
       <path d="M14 10 L14 36 L21 29 L26 39 L30 37 L25 27 L34 27 Z" fill="url(#lg)"/>
       <circle cx="35" cy="13" r="3.4" fill="#2dd4bf"/>
     </svg>
-    <span class="name">Drift<b>ly</b> <i data-ru="Веб" data-en="Web">Веб</i></span>
+    <span class="name">Drift<b>ly</b> <i data-ru="в браузере" data-en="in browser">в браузере</i></span>
   </a>
   <div class="wbar-right">
     <span class="seg lang"><button id="lang-ru" class="active">RU</button><button id="lang-en">EN</button></span>
@@ -43,7 +43,7 @@
   <div class="panels">
   <!-- ════════════════ TAB: Приложение (рабочий экран) ════════════════ -->
   <div class="tab-panel" data-panel="app">
-    <div class="note info" data-ru="Это веб-версия. Она работает в браузере без установки: имитирует активность в песочнице ниже, не даёт экрану гаснуть и измеряет активность на этой странице. Управлять системным курсором или мерить активность всей ОС браузер не может — для этого скачайте десктоп-приложение." data-en="This is the web version. It runs in the browser with no install: it simulates activity in the sandbox below, keeps the screen awake (Wake Lock), and measures activity on this page. A browser cannot control the OS cursor or measure system-wide activity — for that, download the desktop app.">…</div>
+    <div class="note info" data-ru="Это версия для браузера: работает прямо в браузере без установки — имитирует активность в песочнице ниже, не даёт экрану гаснуть (Wake Lock) и измеряет активность на этой странице. Браузер не может управлять системным курсором, переключать окна программ или мерить активность всей системы — для этого скачайте десктоп-приложение (оно полностью имитирует работу за компьютером в фоне: двигает курсор, переключает и сворачивает окна программ)." data-en="This is the browser version: it runs right in your browser with no install — it simulates activity in the sandbox below, keeps the screen awake (Wake Lock), and measures activity on this page. A browser can't control the system cursor, switch program windows, or measure system-wide activity — for that, download the desktop app (it fully mimics real computer use in the background: moves the cursor, switches and minimizes program windows).">…</div>
 
     <div class="cols">
       <!-- ░░ left: controls ░░ -->
@@ -145,7 +145,7 @@
       <div class="plan-head">
         <div>
           <h3>Driftly Pro</h3>
-          <div class="hint" data-ru="Единая подписка: оплатив один раз, вы получаете доступ и в вебе, и в десктопе." data-en="One subscription: pay once, use it on both web and desktop.">Единая подписка: оплатив один раз, вы получаете доступ и в вебе, и в десктопе.</div>
+          <div class="hint" data-ru="Единая подписка: оплатив один раз, вы получаете доступ и в браузере, и в десктоп-приложении." data-en="One subscription: pay once, use it both in the browser and in the desktop app.">Единая подписка: оплатив один раз, вы получаете доступ и в браузере, и в десктоп-приложении.</div>
         </div>
         <div class="price"><b>249 ₽</b><span data-ru="/ мес" data-en="/ mo">/ мес</span></div>
       </div>
