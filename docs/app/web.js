@@ -118,8 +118,10 @@
   function clearInput() { const el = $('sand-type'); if (el) el.textContent = ''; }
   function popup(label) {
     if (!sandPops) return;
-    const open = label && /Откр|Open/.test(label);
-    const text = lang === 'ru' ? (open ? 'Окно открыто' : 'Файл сохранён') : (open ? 'Window opened' : 'File saved');
+    let text;
+    if (label && /Сверн|Minim/.test(label)) text = lang === 'ru' ? 'Свернуто' : 'Minimized';
+    else if (label && /Откр|Open/.test(label)) text = lang === 'ru' ? 'Окно открыто' : 'Window opened';
+    else text = lang === 'ru' ? 'Файл сохранён' : 'File saved';
     const el = document.createElement('div'); el.className = 'sand-pop'; el.innerHTML = '<i></i>' + text;
     sandPops.appendChild(el); while (sandPops.children.length > 3) sandPops.removeChild(sandPops.firstChild);
     setTimeout(() => { el.classList.add('out'); setTimeout(() => el.remove(), 360); }, 1600);
@@ -211,14 +213,39 @@
     });
   }
 
+  // Window scene: the cursor lands on a window's title bar, "clicks", the window
+  // minimizes (sinks + fades), then a moment later restores ("opens"). Mirrors the
+  // desktop's Alt+Tab/minimize so the sandbox reads as real multi-window work.
+  function runWindow(after) {
+    formBusy = true;
+    const wins = [].slice.call(stage.querySelectorAll('.swin'));
+    if (!wins.length) { formBusy = false; if (after) after(); return; }
+    const win = wins[Math.floor(Math.random() * wins.length)];
+    const bar = win.querySelector('.swin-bar') || win;
+    moveTo(centerOf(bar), () => {                          // 1. travel to the title bar
+      M.record('move', true);
+      setTimeout(() => {                                   // 2. click → minimize
+        const c = centerOf(bar); ripple(c.x, c.y); M.record('click', true);
+        win.classList.add('min'); popup('Свернуть');
+        setTimeout(() => {                                 // 3. restore → "open"
+          win.classList.remove('min'); M.record('click', true); popup('Открыть');
+          setTimeout(() => { formBusy = false; if (after) after(); }, rnd(700, 1100));
+        }, rnd(1100, 1700));
+      }, rnd(220, 420));
+    });
+  }
+
   // The full input→type→button scene is the showcase, but raw click rates make it
   // rare. Guarantee it recurs every few scenes so the sandbox always reads as a
   // real user working (filler move/scroll scenes play in between).
   let sinceClick = 0, clickEvery = 4 + Math.floor(Math.random() * 4);
+  let sinceScene = 0, winEvery = 7 + Math.floor(Math.random() * 6);
   function schedule() { if (cfg.running && !formBusy) genTimer = setTimeout(tick, nextDelay()); }
   function tick() {
     if (!cfg.running || formBusy) return;
     if (cfg.pauseOnUser && now() - lastReal < 3000) { genTimer = setTimeout(tick, 2400); return; }
+    // Every few scenes, play a window minimize/open animation (mirrors the desktop).
+    if (++sinceScene >= winEvery) { sinceScene = 0; winEvery = 7 + Math.floor(Math.random() * 6); actions++; runWindow(schedule); return; }
     let action = chooseAction(); actions++;
     if (action !== 'click' && rates().click > 0 && ++sinceClick >= clickEvery) action = 'click';
     if (action === 'click') { sinceClick = 0; clickEvery = 4 + Math.floor(Math.random() * 4); }
