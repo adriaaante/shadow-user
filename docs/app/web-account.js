@@ -184,7 +184,8 @@
   /* ---- sign-in code: validation toast + a persistent countdown timer ---- */
   var CODE_TTL = 600000; // 10 min, matches the server (AUTH_CODE_TTL_MS)
   var codeTimer = null;
-  function notify(msg, kind) { if (window.DriftlyToast) window.DriftlyToast(msg, kind); else if ($('sub-auth-note')) $('sub-auth-note').textContent = msg; }
+  // Inline feedback right under the email/code field (not a bottom toast).
+  function notify(msg, kind) { var n = $('sub-auth-note'); if (n) { stopCodeTimer(); n.innerHTML = '<span class="auth-msg ' + (kind || '') + '">' + msg + '</span>'; } else if (window.DriftlyToast) window.DriftlyToast(msg, kind); }
   function mmss(ms) { var s = Math.max(0, Math.round(ms / 1000)); return Math.floor(s / 60) + ':' + ('0' + (s % 60)).slice(-2); }
   function stopCodeTimer() { if (codeTimer) { clearTimeout(codeTimer); codeTimer = null; } }
   function clearCode() { stopCodeTimer(); localStorage.removeItem('driftly.codeExp'); localStorage.removeItem('driftly.codeEmail'); if ($('sub-step-code')) $('sub-step-code').style.display = 'none'; if ($('sub-auth-note')) $('sub-auth-note').innerHTML = ''; }

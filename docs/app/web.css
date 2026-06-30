@@ -177,6 +177,12 @@ body{overflow:auto;background:radial-gradient(1200px 600px at 80% -10%,rgba(124,
 .code-timer{display:inline-flex;align-items:center;gap:6px;color:var(--brand2);font-size:13px;font-weight:500}
 .code-timer b{font-variant-numeric:tabular-nums;font-weight:700;color:var(--text)}
 .code-timer.warn{color:var(--danger)}
+.auth-msg{display:inline-flex;align-items:center;gap:6px;font-size:13px;font-weight:500;padding:6px 11px;border-radius:9px;border:1px solid var(--border2);background:var(--s3)}
+.auth-msg::before{content:"ⓘ";opacity:.8}
+.auth-msg.warn{color:#f0b86e;border-color:rgba(240,184,110,.4);background:rgba(240,184,110,.08)}
+.auth-msg.warn::before{content:"⚠"}
+.auth-msg.ok{color:var(--accent);border-color:rgba(45,212,191,.4);background:rgba(45,212,191,.08)}
+.auth-msg.ok::before{content:"✓"}
 
 /* «Запустить» — заметная зелёная CTA: сразу видно, что её надо нажать */
 #runmode button[data-mode="on"]{color:#04130d;background:linear-gradient(135deg,#34d399,#14b8a6);font-weight:700}
