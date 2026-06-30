@@ -84,8 +84,8 @@
 
   /* ------------------------------- rendering ------------------------------- */
   var L = {
-    ru: { preview: 'Демо-режим: сервер лицензий не подключён — доступ открыт.', signin: 'Войдите, чтобы управлять подпиской.', goAccount: 'Перейти в «Аккаунт»', trial: 'Подключить карту — 3 дня бесплатно', trialActive: 'Пробный период', daysLeft: 'дн. осталось', active: 'Подписка активна', renews: 'Продление', inactive: 'Подписка неактивна', pastDue: 'Необходимо оплатить', pastDueDesc: 'Списание не прошло. Оплатите, чтобы продолжить.', retry: 'Повторить оплату', cancel: 'Отменить подписку', pwText: 'Подключите карту и получите 3 дня бесплатно. Driftly работает и в браузере, и в десктоп-приложении.', goSub: 'Открыть подписку', codeBad: 'Неверный код', emailEmpty: 'Введите email', emailBad: 'Неверный формат email', codeSent: 'Код отправлен — проверьте почту', sentTo: 'Код отправлен на', resend: 'Отправить ещё раз', resendIn: 'Отправить ещё раз можно через', changeEmail: 'Изменить email', resume: 'Возобновить', accessUntil: 'доступ до', trialCanceled: 'Пробный период отменён', subCanceled: 'Подписка отменена', noRenew: 'продление не произойдёт', monthly: 'Помесячно', yearly: 'За год', perMonth: '₽/мес', perYear: '₽/год', planYearWord: 'годовая', planMonthWord: 'месячная', changePlan: 'Тариф', intervalNote: 'Смена тарифа применится со следующего списания.' },
-    en: { preview: 'Demo mode: no licensing server — access is open.', signin: 'Sign in to manage your subscription.', goAccount: 'Go to Account', trial: 'Add a card — 3 days free', trialActive: 'Free trial', daysLeft: 'days left', active: 'Subscription active', renews: 'Renews', inactive: 'Subscription inactive', pastDue: 'Payment required', pastDueDesc: 'The charge failed. Pay to continue.', retry: 'Retry payment', cancel: 'Cancel subscription', pwText: 'Add a card and get 3 days free. Driftly works in the browser and in the desktop app.', goSub: 'Open subscription', codeBad: 'Invalid code', emailEmpty: 'Enter your email', emailBad: 'Invalid email format', codeSent: 'Code sent — check your email', sentTo: 'Code sent to', resend: 'Resend code', resendIn: 'Resend available in', changeEmail: 'Change email', resume: 'Resume', accessUntil: 'access until', trialCanceled: 'Trial cancelled', subCanceled: 'Subscription cancelled', noRenew: 'will not renew', monthly: 'Monthly', yearly: 'Yearly', perMonth: '₽/mo', perYear: '₽/yr', planYearWord: 'yearly', planMonthWord: 'monthly', changePlan: 'Plan', intervalNote: 'The plan change applies from your next charge.' },
+    ru: { preview: 'Демо-режим: сервер лицензий не подключён — доступ открыт.', signin: 'Войдите, чтобы управлять подпиской.', goAccount: 'Перейти в «Аккаунт»', trial: 'Подключить карту — 3 дня бесплатно', trialActive: 'Пробный период', daysLeft: 'дн. осталось', active: 'Подписка активна', renews: 'Продление', inactive: 'Подписка неактивна', pastDue: 'Необходимо оплатить', pastDueDesc: 'Списание не прошло. Оплатите, чтобы продолжить.', retry: 'Повторить оплату', cancel: 'Отменить подписку', pwText: 'Подключите карту и получите 3 дня бесплатно. Driftly работает и в браузере, и в десктоп-приложении.', goSub: 'Открыть подписку', codeBad: 'Неверный код', emailEmpty: 'Введите email', emailBad: 'Неверный формат email', codeSent: 'Код отправлен — проверьте почту', sentTo: 'Код отправлен на', resend: 'Отправить ещё раз', changeEmail: 'Изменить email', codeValidFor: 'Код действителен ещё', codeExpired: 'Код истёк — запросите новый', resume: 'Возобновить', accessUntil: 'доступ до', trialCanceled: 'Пробный период отменён', subCanceled: 'Подписка отменена', noRenew: 'продление не произойдёт', monthly: 'Помесячно', yearly: 'За год', perMonth: '₽/мес', perYear: '₽/год', planYearWord: 'годовая', planMonthWord: 'месячная', changePlan: 'Тариф', intervalNote: 'Смена тарифа применится со следующего списания.' },
+    en: { preview: 'Demo mode: no licensing server — access is open.', signin: 'Sign in to manage your subscription.', goAccount: 'Go to Account', trial: 'Add a card — 3 days free', trialActive: 'Free trial', daysLeft: 'days left', active: 'Subscription active', renews: 'Renews', inactive: 'Subscription inactive', pastDue: 'Payment required', pastDueDesc: 'The charge failed. Pay to continue.', retry: 'Retry payment', cancel: 'Cancel subscription', pwText: 'Add a card and get 3 days free. Driftly works in the browser and in the desktop app.', goSub: 'Open subscription', codeBad: 'Invalid code', emailEmpty: 'Enter your email', emailBad: 'Invalid email format', codeSent: 'Code sent — check your email', sentTo: 'Code sent to', resend: 'Resend code', changeEmail: 'Change email', codeValidFor: 'Code valid for', codeExpired: 'Code expired — request a new one', resume: 'Resume', accessUntil: 'access until', trialCanceled: 'Trial cancelled', subCanceled: 'Subscription cancelled', noRenew: 'will not renew', monthly: 'Monthly', yearly: 'Yearly', perMonth: '₽/mo', perYear: '₽/yr', planYearWord: 'yearly', planMonthWord: 'monthly', changePlan: 'Plan', intervalNote: 'The plan change applies from your next charge.' },
   };
   function lang() { return localStorage.getItem('driftly.lang') || 'ru'; }
   function t(k) { return L[lang()][k]; }
@@ -182,8 +182,7 @@
     else if (act === 'resume') call('POST', '/v1/billing/resume');
   });
   /* ---- sign-in code: validation toast + a persistent countdown timer ---- */
-  var CODE_TTL = 600000; // code validity, matches the server (AUTH_CODE_TTL_MS) — keeps the code row alive across reloads
-  var RESEND_COOLDOWN = 120000; // 2 min before "Отправить ещё раз" unlocks
+  var CODE_TTL = 300000; // 5 min — code validity, MUST match the server (AUTH_CODE_TTL_MS)
   var codeTimer = null;
   // Inline feedback right under the email/code field (not a bottom toast).
   function notify(msg, kind) { var n = $('sub-auth-note'); if (n) { stopCodeTimer(); n.innerHTML = '<span class="auth-msg ' + (kind || '') + '">' + msg + '</span>'; } else if (window.DriftlyToast) window.DriftlyToast(msg, kind); }
@@ -194,24 +193,27 @@
     if ($('sub-step-email')) $('sub-step-email').style.display = on ? 'none' : 'flex';
     if ($('sub-step-code')) $('sub-step-code').style.display = on ? 'flex' : 'none';
   }
-  function clearCode() { stopCodeTimer(); localStorage.removeItem('driftly.codeExp'); localStorage.removeItem('driftly.codeResend'); localStorage.removeItem('driftly.codeEmail'); showCodeStep(false); if ($('sub-code')) $('sub-code').value = ''; if ($('sub-auth-note')) $('sub-auth-note').innerHTML = ''; }
-  // Renders the code row + a 2-min countdown that gates "Отправить ещё раз".
-  // The countdown is the resend cooldown; the code itself stays valid (CODE_TTL) so a reload keeps this view.
+  function codeExpired() { return (+localStorage.getItem('driftly.codeExp') || 0) <= Date.now(); }
+  function clearCode() { stopCodeTimer(); localStorage.removeItem('driftly.codeExp'); localStorage.removeItem('driftly.codeEmail'); showCodeStep(false); if ($('sub-code')) $('sub-code').value = ''; if ($('sub-auth-note')) $('sub-auth-note').innerHTML = ''; }
+  // Renders the code row + a 5-min validity countdown. While the code is live it
+  // shows the time left; once it expires the code is dead (sign-in is blocked) and
+  // "Отправить ещё раз" appears to request a fresh one.
   function runCodeTimer() {
     showCodeStep(true);
     stopCodeTimer();
     var email = localStorage.getItem('driftly.codeEmail') || ($('sub-email') && $('sub-email').value) || '';
-    var resendAt = +localStorage.getItem('driftly.codeResend') || 0;
+    var exp = +localStorage.getItem('driftly.codeExp') || 0;
     var change = '<button type="button" class="linkbtn" data-act="change">' + t('changeEmail') + '</button>';
     (function tick() {
       var note = $('sub-auth-note'); if (!note) return;
-      var left = resendAt - Date.now();
+      var left = exp - Date.now();
       var meta = left > 0
-        ? '<span class="code-timer">⏳ ' + t('resendIn') + ' <b>' + mmss(left) + '</b></span>' + change
-        : '<button type="button" class="linkbtn" data-act="resend">' + t('resend') + '</button>' + change;
+        ? '<span class="code-timer">⏳ ' + t('codeValidFor') + ' <b>' + mmss(left) + '</b></span>' + change
+        : '<span class="code-timer warn">' + t('codeExpired') + '</span>'
+          + '<button type="button" class="linkbtn" data-act="resend">' + t('resend') + '</button>' + change;
       note.innerHTML = '<div class="code-sent">' + t('sentTo') + ' <b>' + email + '</b></div>'
         + '<div class="code-meta">' + meta + '</div>';
-      if (left <= 0) { stopCodeTimer(); return; } // keep the code row; resend is now unlocked
+      if (left <= 0) { stopCodeTimer(); return; } // code is dead; only resend / change remain
       codeTimer = setTimeout(tick, 1000);
     })();
   }
@@ -219,9 +221,7 @@
   async function sendCode(email) {
     var r = await authRequest(email);
     if (r && r.ok) {
-      var now = Date.now();
-      localStorage.setItem('driftly.codeExp', String(now + CODE_TTL));
-      localStorage.setItem('driftly.codeResend', String(now + RESEND_COOLDOWN));
+      localStorage.setItem('driftly.codeExp', String(Date.now() + CODE_TTL));
       localStorage.setItem('driftly.codeEmail', email);
       runCodeTimer();
       if (r.devCode && $('sub-code')) $('sub-code').value = r.devCode;
@@ -231,9 +231,9 @@
     notify(t('codeBad'), 'warn');
     return false;
   }
-  // Resume the code row after a tab reload while the code is still valid (resend may already be unlocked).
-  (function () { var exp = +localStorage.getItem('driftly.codeExp') || 0; if (!state.token && exp > Date.now() && localStorage.getItem('driftly.codeEmail')) { var em = localStorage.getItem('driftly.codeEmail'); if (em && $('sub-email')) $('sub-email').value = em; runCodeTimer(); } else if (exp) { clearCode(); } })();
-  window.addEventListener('driftly-lang-changed', function () { var exp = +localStorage.getItem('driftly.codeExp') || 0; if (exp > Date.now() && localStorage.getItem('driftly.codeEmail')) runCodeTimer(); });
+  // Resume the code row after a tab reload while the code is still valid.
+  (function () { var em = localStorage.getItem('driftly.codeEmail'); if (!state.token && em && !codeExpired()) { if ($('sub-email')) $('sub-email').value = em; runCodeTimer(); } else if (em) { clearCode(); } })();
+  window.addEventListener('driftly-lang-changed', function () { if (localStorage.getItem('driftly.codeEmail') && !codeExpired()) runCodeTimer(); });
 
   if ($('btn-getcode')) $('btn-getcode').addEventListener('click', function () {
     var email = ($('sub-email').value || '').trim();
@@ -255,6 +255,8 @@
     }
   });
   if ($('btn-verify')) $('btn-verify').addEventListener('click', async function () {
+    // The code dies with the 5-min timer — refuse an expired one before hitting the server.
+    if (codeExpired()) { runCodeTimer(); return; }
     var email = (localStorage.getItem('driftly.codeEmail') || ($('sub-email') && $('sub-email').value) || '').trim();
     var r = await authVerify(email, ($('sub-code').value || '').trim());
     if (r && r.ok) { clearCode(); }

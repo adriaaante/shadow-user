@@ -173,8 +173,10 @@
         <div class="mode-note" id="sub-auth-note"></div>
       </div>
       <div id="sub-signedin" style="display:none">
-        <label class="line"><span data-ru="Вы вошли как" data-en="Signed in as">Вы вошли как</span><b id="sub-who"></b></label>
-        <button class="btn ghost" id="btn-signout" style="margin-top:10px" data-ru="Выйти" data-en="Sign out">Выйти</button>
+        <div class="signed-row">
+          <span class="signed-as"><span class="muted" data-ru="Вы вошли как" data-en="Signed in as">Вы вошли как</span> <b id="sub-who"></b></span>
+          <button class="btn signout" id="btn-signout" data-ru="Выйти" data-en="Sign out">Выйти</button>
+        </div>
       </div>
     </section>
 

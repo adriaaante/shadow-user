@@ -7,13 +7,13 @@ require_once __DIR__ . '/config.php';
 function mail_code_body(string $code): array {
   return [
     'subject' => "Driftly — код входа / sign-in code: $code",
-    'text' => "Ваш код для входа в Driftly: $code\nДействителен 10 минут. Если вы не запрашивали код — проигнорируйте письмо.\n\n"
-      . "Your Driftly sign-in code: $code\nValid for 10 minutes. If you didn't request it, ignore this email.",
+    'text' => "Ваш код для входа в Driftly: $code\nДействителен 5 минут. Если вы не запрашивали код — проигнорируйте письмо.\n\n"
+      . "Your Driftly sign-in code: $code\nValid for 5 minutes. If you didn't request it, ignore this email.",
     'html' => '<div style="font-family:Arial,Helvetica,sans-serif;max-width:480px;margin:0 auto;padding:24px;color:#1a1a1a">'
       . '<h2 style="margin:0 0 4px">Driftly</h2>'
       . '<p style="margin:0 0 16px;color:#666">Код для входа в аккаунт · Your sign-in code</p>'
       . '<div style="font-size:32px;font-weight:700;letter-spacing:6px;background:#f4f3ff;border:1px solid #e3e0ff;border-radius:10px;padding:18px;text-align:center;color:#5b3cf0">' . $code . '</div>'
-      . '<p style="margin:16px 0 0;color:#888;font-size:13px">Действителен 10 минут.<br>Valid for 10 minutes.</p></div>',
+      . '<p style="margin:16px 0 0;color:#888;font-size:13px">Действителен 5 минут.<br>Valid for 5 minutes.</p></div>',
   ];
 }
 

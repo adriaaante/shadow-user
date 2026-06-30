@@ -189,6 +189,11 @@ body{overflow:auto;background:radial-gradient(1200px 600px at 80% -10%,rgba(124,
 .code-meta .code-timer{font-size:13px}
 .linkbtn{background:none;border:0;padding:0;color:var(--brand2);font:inherit;font-size:13px;font-weight:500;line-height:1.5;cursor:pointer}
 .linkbtn:hover{color:var(--text);text-decoration:underline}
+.signed-row{display:flex;align-items:center;justify-content:space-between;gap:14px;flex-wrap:wrap}
+.signed-as{font-size:14px;min-width:0;word-break:break-word;color:var(--dim)}
+.signed-as b{color:var(--text);font-weight:600}
+.btn.signout{flex:0 0 auto;padding:9px 18px;background:transparent;border:1px solid var(--border2);color:var(--dim);border-radius:10px;font-weight:600;font-size:13px;transition:border-color .15s,color .15s,background .15s}
+.btn.signout:hover{border-color:rgba(240,86,110,.55);color:var(--danger);background:rgba(240,86,110,.09)}
 
 /* «Запустить» — заметная зелёная CTA: сразу видно, что её надо нажать */
 #runmode button[data-mode="on"]{color:#04130d;background:linear-gradient(135deg,#34d399,#14b8a6);font-weight:700}

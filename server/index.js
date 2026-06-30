@@ -21,7 +21,7 @@ const providers = require('./providers');
 const mailers = require('./mailer');
 const store = require('./store');
 
-const AUTH_CODE_TTL = 10 * 60 * 1000; // sign-in code valid 10 minutes
+const AUTH_CODE_TTL = 5 * 60 * 1000; // sign-in code valid 5 minutes
 // One subscription unlocks at most this many devices (web + desktop = 2 by design).
 // A 3rd sign-in evicts the oldest device, so a license can't be shared around.
 const MAX_DEVICES = Math.max(1, parseInt(process.env.MAX_DEVICES || '2', 10));

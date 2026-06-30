@@ -10,7 +10,7 @@ require_once __DIR__ . '/lib/entitlement.php';
 require_once __DIR__ . '/lib/mailer.php';
 require_once __DIR__ . '/lib/providers.php';
 
-const AUTH_CODE_TTL_MS = 600000; // 10 min
+const AUTH_CODE_TTL_MS = 300000; // 5 min
 function max_devices(): int { return max(1, (int) env('MAX_DEVICES', '2')); }
 function hashCode(string $email, string $code): string { return hash('sha256', $email . ':' . $code); }
 

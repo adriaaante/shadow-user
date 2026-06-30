@@ -105,7 +105,7 @@ Note: `node:sqlite` prints an ExperimentalWarning (harmless; stable in Node 24+)
   Regenerating keys invalidates every issued token (clients must re-fetch).
 - **Bilingual site:** every text node needs both `data-ru` and `data-en`.
 - **Cancel keeps access** until period end (legal); cancelled-then-ended → `expired`, not `past_due`.
-- Sign-in codes: single-use, 10-min expiry, 5-try lockout (`server/index.js`).
+- Sign-in codes: single-use, **5-min expiry**, 5-try lockout. TTL is defined in THREE places that must stay in sync: `server-php/index.php` (`AUTH_CODE_TTL_MS`, the live backend), `server/index.js` (`AUTH_CODE_TTL`, reference), and the web client `docs/app/web-account.js` (`CODE_TTL` — drives the on-screen countdown AND blocks sign-in once it elapses). The email text (`server-php/lib/mailer.php`) also states the duration. Mismatch = the "timer expired but the old code still worked" bug.
 - **Device cap (anti-sharing):** one account unlocks at most `MAX_DEVICES` (default 2,
   env-overridable) — web + desktop. Each sign-in = one row in `tokens`; a new sign-in
   beyond the cap evicts the oldest (sliding window, ordered by SQLite rowid) so a license
