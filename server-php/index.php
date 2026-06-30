@@ -131,8 +131,20 @@ try {
     $ev = $provider->verifyWebhook(getallheaders() ?: [], $raw ?: '');
     if (!$ev) send(400, ['error' => 'bad_webhook']);
     // T-Bank: on a successful authorization store RebillId + cardOnFile, set active/past_due.
-    if ($provider->name() === 'tbank' && !empty($ev['CustomerKey'])) {
-      $a = $store->getAccount(strtolower($ev['CustomerKey']));
+    if ($provider->name() === 'tbank') {
+      // T-Bank notifications don't always echo CustomerKey, so resolve the account by
+      // CustomerKey, else the email embedded in OrderId (trial-<email>-<ts> /
+      // renew-<email>-<ts>), else the PaymentId we stored at Init.
+      $email = strtolower((string) ($ev['CustomerKey'] ?? ''));
+      if ($email === '' && !empty($ev['OrderId']) && preg_match('/^(?:trial|renew)-(.+)-\d+$/', (string) $ev['OrderId'], $m)) {
+        $email = strtolower($m[1]);
+      }
+      $a = $email !== '' ? $store->getAccount($email) : null;
+      if (!$a && !empty($ev['PaymentId'])) {
+        foreach ($store->allAccounts() as $cand) {
+          if ((string) ($cand['providerPaymentId'] ?? '') === (string) $ev['PaymentId']) { $a = $cand; break; }
+        }
+      }
       if ($a) {
         if (!empty($ev['RebillId'])) { $a['providerRebillId'] = (string) $ev['RebillId']; $a['cardOnFile'] = true; }
         $status = $ev['Status'] ?? '';
