@@ -71,6 +71,11 @@ Note: `node:sqlite` prints an ExperimentalWarning (harmless; stable in Node 24+)
 
 ## Gotchas
 - **Recopy `shared/` after editing** (see above) — the #1 footgun.
+- **Desktop window-switching (opt-in):** the generator can Alt+Tab/Cmd+Tab between open programs +
+  minimize/restore so the monitor visibly changes (`input-backend.switchWindow/minimizeWindow`,
+  `generator` `window` action). Off by default (`generator.switchWindows`), UI toggle «Переключать
+  окна»; needs the native input backend (no-op in simulation mode) and respects `pauseOnUser`. The
+  **web** app can't do this (browser sandbox) — it only animates its own in-page sandbox.
 - **REG docroot must be a REAL dir, not a symlink** (`server-php/DEPLOY.md` step 3). ISPmanager's
   Let's Encrypt does file ops in the docroot and fails on a symlink ("ошибка при работе с файлами").
   Use a real `~/www/api.driftly.site` holding a one-line `index.php` shim (`<?php require '…/server-php/index.php';`)

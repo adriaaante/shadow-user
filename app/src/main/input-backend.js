@@ -81,6 +81,34 @@ function createRealBackend() {
       await keyboard.pressKey(key);
       await keyboard.releaseKey(key);
     },
+    async switchWindow() {
+      // Alt+Tab (Win/Linux) / Cmd+Tab (mac): switch to another open window so the
+      // monitor visibly changes between programs — reads as a real user working.
+      // Hold the modifier briefly so the OS switcher registers, then release. The
+      // finally block guarantees no modifier is ever left stuck down.
+      const mod = process.platform === 'darwin' ? Key.LeftSuper : Key.LeftAlt;
+      try {
+        await keyboard.pressKey(mod);
+        await keyboard.pressKey(Key.Tab);
+        await new Promise((r) => setTimeout(r, 70));
+        await keyboard.releaseKey(Key.Tab);
+        await new Promise((r) => setTimeout(r, 220));
+      } finally {
+        try { await keyboard.releaseKey(Key.Tab); } catch (_) { /* noop */ }
+        try { await keyboard.releaseKey(mod); } catch (_) { /* noop */ }
+      }
+    },
+    async minimizeWindow() {
+      // Best-effort minimize/restore — OS-specific; a harmless no-op where the
+      // shortcut isn't bound. mac: Cmd+M, Windows/Linux: Super+Down.
+      const combo = process.platform === 'darwin' ? [Key.LeftSuper, Key.M] : [Key.LeftSuper, Key.Down];
+      try {
+        await keyboard.pressKey(combo[0], combo[1]);
+        await keyboard.releaseKey(combo[1], combo[0]);
+      } catch (_) {
+        try { await keyboard.releaseKey(combo[0]); await keyboard.releaseKey(combo[1]); } catch (_) { /* noop */ }
+      }
+    },
   };
 }
 
@@ -102,6 +130,8 @@ function createSimBackend() {
     async click() { await wait(4); },
     async scroll() { await wait(4); },
     async tapKey() { await wait(2); },
+    async switchWindow() { await wait(8); },
+    async minimizeWindow() { await wait(6); },
   };
 }
 

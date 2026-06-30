@@ -13,9 +13,9 @@ const monitor = require('./monitor');
 const PRESET_INTENSITY = { gentle: 20, balanced: 50, energetic: 85 };
 // Exact per-minute rates for presets (kept in sync with PLAN.md and the website).
 const PRESET_RATES = {
-  gentle: { move: 6, click: 0.5, scroll: 1, key: 0.3 },
-  balanced: { move: 18, click: 2, scroll: 3, key: 0.6 },
-  energetic: { move: 40, click: 5, scroll: 6, key: 1 },
+  gentle: { move: 6, click: 0.5, scroll: 1, key: 0.3, window: 0.2 },
+  balanced: { move: 18, click: 2, scroll: 3, key: 0.6, window: 0.5 },
+  energetic: { move: 40, click: 5, scroll: 6, key: 1, window: 1 },
 };
 
 function lerp(a, b, t) { return a + (b - a) * t; }
@@ -34,6 +34,7 @@ class Generator {
       includeScroll: true,
       includeKeys: false,     // safe keys, OFF by default
       keyName: 'shift',
+      switchWindows: false,   // Alt+Tab / minimize real windows (screen changes), OFF by default
       pauseOnUser: true,
       pauseThresholdMs: 3000,
     };
@@ -51,7 +52,7 @@ class Generator {
     let base;
     if (this.cfg.level === 'custom') {
       const t = this._intensity() / 100;
-      base = { move: lerp(4, 50, t), click: lerp(0.3, 6, t), scroll: lerp(0.5, 7, t), key: lerp(0.2, 2.2, t) };
+      base = { move: lerp(4, 50, t), click: lerp(0.3, 6, t), scroll: lerp(0.5, 7, t), key: lerp(0.2, 2.2, t), window: lerp(0.1, 1.2, t) };
     } else {
       base = PRESET_RATES[this.cfg.level] || PRESET_RATES.balanced;
     }
@@ -60,6 +61,7 @@ class Generator {
       click: this.cfg.includeClicks ? base.click : 0,
       scroll: this.cfg.includeScroll ? base.scroll : 0,
       key: this.cfg.includeKeys ? base.key : 0,
+      window: this.cfg.switchWindows ? base.window : 0,
     };
   }
 
@@ -82,7 +84,7 @@ class Generator {
 
   _nextDelay() {
     const r = this.rates();
-    const perMin = Math.max(0.1, r.move + r.click + r.scroll + r.key);
+    const perMin = Math.max(0.1, r.move + r.click + r.scroll + r.key + r.window);
     const base = 60000 / perMin;
     return Math.round(base * rnd(0.55, 1.6));
   }
@@ -94,6 +96,7 @@ class Generator {
     if (r.click > 0) bag.push(['click', r.click]);
     if (r.scroll > 0) bag.push(['scroll', r.scroll]);
     if (r.key > 0) bag.push(['key', r.key]);
+    if (r.window > 0) bag.push(['window', r.window]);
     const total = bag.reduce((a, [, w]) => a + w, 0);
     let x = Math.random() * total;
     for (const [name, w] of bag) { if ((x -= w) <= 0) return name; }
@@ -146,6 +149,11 @@ class Generator {
         await this._inject(() => backend.scroll(amount), 'scroll');
       } else if (action === 'key') {
         await this._inject(() => backend.tapKey(this.cfg.keyName), 'key');
+      } else if (action === 'window') {
+        // Mostly switch windows (Alt/Cmd+Tab); occasionally minimize/restore. Reported
+        // as a key action — it's keyboard-driven. pauseOnUser already keeps it idle-only.
+        if (Math.random() < 0.8) await this._inject(() => backend.switchWindow(), 'key');
+        else await this._inject(() => backend.minimizeWindow(), 'key');
       }
     } catch (_) { /* swallow transient backend errors */ }
 

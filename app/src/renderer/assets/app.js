@@ -6,7 +6,7 @@
   const api = window.driftly || (function makeMock() {
     let cfg = JSON.parse(JSON.stringify({
       runMode: 'always',
-      generator: { level: 'balanced', intensity: 50, includeClicks: true, includeScroll: true, includeKeys: false, keyName: 'shift', pauseOnUser: true, pauseThresholdMs: 3000 },
+      generator: { level: 'balanced', intensity: 50, includeClicks: true, includeScroll: true, includeKeys: false, keyName: 'shift', switchWindows: false, pauseOnUser: true, pauseThresholdMs: 3000 },
       schedule: { days: { mon: true, tue: true, wed: true, thu: true, fri: true, sat: false, sun: false }, ranges: [{ start: '09:00', end: '18:00' }] },
       prefs: { lang: 'ru', theme: 'dark', minimizeToTray: true, launchAtLogin: false },
     }));
@@ -182,6 +182,7 @@
     $('intensity').value = g.intensity; $('intensity-val').textContent = g.intensity;
     $('opt-clicks').checked = g.includeClicks; $('opt-scroll').checked = g.includeScroll;
     $('opt-keys').checked = g.includeKeys; $('opt-pause').checked = g.pauseOnUser;
+    $('opt-windows').checked = g.switchWindows;
     renderRates();
   }
   document.querySelectorAll('#levels .level').forEach((el) => el.addEventListener('click', async () => {
@@ -189,7 +190,7 @@
   }));
   $('intensity').addEventListener('input', (e) => { $('intensity-val').textContent = e.target.value; renderRates(); });
   $('intensity').addEventListener('change', async (e) => { await patch({ generator: { intensity: parseInt(e.target.value, 10) } }); });
-  [['opt-clicks', 'includeClicks'], ['opt-scroll', 'includeScroll'], ['opt-keys', 'includeKeys'], ['opt-pause', 'pauseOnUser']].forEach(([id, key]) => {
+  [['opt-clicks', 'includeClicks'], ['opt-scroll', 'includeScroll'], ['opt-keys', 'includeKeys'], ['opt-windows', 'switchWindows'], ['opt-pause', 'pauseOnUser']].forEach(([id, key]) => {
     $(id).addEventListener('change', async (e) => { await patch({ generator: { [key]: e.target.checked } }); renderRates(); });
   });
 

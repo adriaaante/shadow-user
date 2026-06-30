@@ -17,6 +17,7 @@ const DEFAULT_CONFIG = {
     includeScroll: true,
     includeKeys: false,
     keyName: 'shift',
+    switchWindows: false,
     pauseOnUser: true,
     pauseThresholdMs: 3000,
   },
