@@ -9,8 +9,10 @@
   var Lic = window.DriftlyLicense;      // shared/license.js
   var $ = function (id) { return document.getElementById(id); };
 
-  // Configure your deployed licensing server here (or via ?api= / localStorage).
-  var DEFAULT_API = '';
+  // The deployed licensing server — the backend that stores the subscription on the
+  // account (by email) and issues signed licenses, so it's active in the browser and
+  // the desktop alike. (Override for testing via ?api= or localStorage.)
+  var DEFAULT_API = 'https://api.driftly.site';
 
   var state = {
     api: localStorage.getItem('driftly.api') || DEFAULT_API,
@@ -82,8 +84,8 @@
 
   /* ------------------------------- rendering ------------------------------- */
   var L = {
-    ru: { preview: 'Демо-режим: сервер лицензий не подключён — доступ открыт.', signin: 'Войдите, чтобы управлять подпиской.', goAccount: 'Перейти в «Аккаунт»', trial: 'Подключить карту — 3 дня бесплатно', trialActive: 'Пробный период', daysLeft: 'дн. осталось', active: 'Подписка активна', renews: 'Продление', inactive: 'Подписка неактивна', pastDue: 'Необходимо оплатить', pastDueDesc: 'Списание не прошло. Оплатите, чтобы продолжить.', retry: 'Повторить оплату', cancel: 'Отменить подписку', pwText: 'Подключите карту и получите 3 дня бесплатно. Driftly работает и в браузере, и в десктоп-приложении.', goSub: 'Открыть подписку', testCard: 'тестовая карта (демо):', ok: 'успешно', fail: 'нет средств', online: 'на связи', offline: 'нет связи', sendCode: 'Код отправлен на почту', codeBad: 'Неверный код', resume: 'Возобновить', accessUntil: 'доступ до', trialCanceled: 'Пробный период отменён', subCanceled: 'Подписка отменена', noRenew: 'продление не произойдёт', monthly: 'Помесячно', yearly: 'За год', perMonth: '₽/мес', perYear: '₽/год', planYearWord: 'годовая', planMonthWord: 'месячная', changePlan: 'Тариф', intervalNote: 'Смена тарифа применится со следующего списания.' },
-    en: { preview: 'Demo mode: no licensing server — access is open.', signin: 'Sign in to manage your subscription.', goAccount: 'Go to Account', trial: 'Add a card — 3 days free', trialActive: 'Free trial', daysLeft: 'days left', active: 'Subscription active', renews: 'Renews', inactive: 'Subscription inactive', pastDue: 'Payment required', pastDueDesc: 'The charge failed. Pay to continue.', retry: 'Retry payment', cancel: 'Cancel subscription', pwText: 'Add a card and get 3 days free. Driftly works in the browser and in the desktop app.', goSub: 'Open subscription', testCard: 'test card (demo):', ok: 'success', fail: 'no funds', online: 'online', offline: 'offline', sendCode: 'Code sent to your email', codeBad: 'Invalid code', resume: 'Resume', accessUntil: 'access until', trialCanceled: 'Trial cancelled', subCanceled: 'Subscription cancelled', noRenew: 'will not renew', monthly: 'Monthly', yearly: 'Yearly', perMonth: '₽/mo', perYear: '₽/yr', planYearWord: 'yearly', planMonthWord: 'monthly', changePlan: 'Plan', intervalNote: 'The plan change applies from your next charge.' },
+    ru: { preview: 'Демо-режим: сервер лицензий не подключён — доступ открыт.', signin: 'Войдите, чтобы управлять подпиской.', goAccount: 'Перейти в «Аккаунт»', trial: 'Подключить карту — 3 дня бесплатно', trialActive: 'Пробный период', daysLeft: 'дн. осталось', active: 'Подписка активна', renews: 'Продление', inactive: 'Подписка неактивна', pastDue: 'Необходимо оплатить', pastDueDesc: 'Списание не прошло. Оплатите, чтобы продолжить.', retry: 'Повторить оплату', cancel: 'Отменить подписку', pwText: 'Подключите карту и получите 3 дня бесплатно. Driftly работает и в браузере, и в десктоп-приложении.', goSub: 'Открыть подписку', sendCode: 'Код отправлен на почту', codeBad: 'Неверный код', resume: 'Возобновить', accessUntil: 'доступ до', trialCanceled: 'Пробный период отменён', subCanceled: 'Подписка отменена', noRenew: 'продление не произойдёт', monthly: 'Помесячно', yearly: 'За год', perMonth: '₽/мес', perYear: '₽/год', planYearWord: 'годовая', planMonthWord: 'месячная', changePlan: 'Тариф', intervalNote: 'Смена тарифа применится со следующего списания.' },
+    en: { preview: 'Demo mode: no licensing server — access is open.', signin: 'Sign in to manage your subscription.', goAccount: 'Go to Account', trial: 'Add a card — 3 days free', trialActive: 'Free trial', daysLeft: 'days left', active: 'Subscription active', renews: 'Renews', inactive: 'Subscription inactive', pastDue: 'Payment required', pastDueDesc: 'The charge failed. Pay to continue.', retry: 'Retry payment', cancel: 'Cancel subscription', pwText: 'Add a card and get 3 days free. Driftly works in the browser and in the desktop app.', goSub: 'Open subscription', sendCode: 'Code sent to your email', codeBad: 'Invalid code', resume: 'Resume', accessUntil: 'access until', trialCanceled: 'Trial cancelled', subCanceled: 'Subscription cancelled', noRenew: 'will not renew', monthly: 'Monthly', yearly: 'Yearly', perMonth: '₽/mo', perYear: '₽/yr', planYearWord: 'yearly', planMonthWord: 'monthly', changePlan: 'Plan', intervalNote: 'The plan change applies from your next charge.' },
   };
   function lang() { return localStorage.getItem('driftly.lang') || 'ru'; }
   function t(k) { return L[lang()][k]; }
@@ -118,8 +120,6 @@
       }
     }
     // account panel
-    if ($('sub-api')) $('sub-api').value = state.api || '';
-    if ($('sub-api-state')) $('sub-api-state').textContent = preview() ? t('preview') : (state.api + ' · ' + (state.online ? t('online') : t('offline')));
     if ($('sub-signin')) $('sub-signin').style.display = (!preview() && !state.token) ? 'block' : 'none';
     if ($('sub-signedin')) $('sub-signedin').style.display = (state.token && !preview()) ? 'block' : 'none';
     if ($('sub-who')) $('sub-who').textContent = e.account || '';
@@ -171,10 +171,9 @@
     }
     var act = a.dataset.acc;
     if (act === 'trial') {
-      var card = ($('dev-card') && $('dev-card').value) || 'tok_ok';
-      call('POST', '/v1/billing/start-trial', { card: card, interval: selectedInterval }).then(function (j) {
+      call('POST', '/v1/billing/start-trial', { interval: selectedInterval }).then(function (j) {
         var url = j && j.result && j.result.redirectUrl;
-        if (url) window.location.href = url; // T-Bank: card binding + 3-D Secure
+        if (url) window.location.href = url; // T-Bank: card binding (AddCard) + 3-D Secure
       });
     }
     else if (act === 'goaccount') { if (window.DriftlyTabs) window.DriftlyTabs.show('account'); }
@@ -199,7 +198,6 @@
     if (r && r.ok) { $('sub-step-code').style.display = 'none'; $('sub-auth-note').textContent = ''; }
     else if ($('sub-auth-note')) $('sub-auth-note').textContent = t('codeBad');
   });
-  if ($('btn-setapi')) $('btn-setapi').addEventListener('click', function () { state.api = ($('sub-api').value || '').trim().replace(/\/$/, ''); state.serverEnt = null; persist(); refresh(); });
   if ($('btn-signout')) $('btn-signout').addEventListener('click', function () {
     // Best-effort: free this device's seat on the server, then clear locally.
     if (state.api && state.token) { try { fetch(state.api + '/v1/auth/signout', { method: 'POST', headers: { Authorization: 'Bearer ' + state.token } }); } catch (e) {} }
