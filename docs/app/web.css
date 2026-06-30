@@ -22,6 +22,17 @@ body{overflow:auto;background:radial-gradient(1200px 600px at 80% -10%,rgba(124,
 .cols{display:grid;grid-template-columns:1fr 1.15fr;gap:18px}
 @media(max-width:860px){.cols{grid-template-columns:1fr}}
 
+/* section tabs (Приложение / Подписка / Аккаунт) */
+.tabs{display:flex;gap:6px;margin-bottom:18px;padding:5px;border-radius:15px;
+  background:var(--s1);border:1px solid var(--border)}
+.tabs button{flex:1;padding:11px 14px;border:none;border-radius:11px;cursor:pointer;
+  background:transparent;color:var(--muted);font-family:var(--font-display);font-weight:600;font-size:14px;
+  transition:background .15s,color .15s}
+.tabs button:hover:not(.active){color:var(--text);background:var(--s2)}
+.tabs button.active{background:var(--grad);color:#0a0a12}
+.tab-panel[hidden]{display:none}
+@media(max-width:520px){.tabs button{padding:10px 8px;font-size:13px}}
+
 .wrapseg{display:flex;flex-wrap:wrap}
 .wrapseg button{flex:1;min-width:84px}
 .line{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:11px 0;border-bottom:1px solid var(--border);font-size:13.5px;cursor:pointer}

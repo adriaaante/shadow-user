@@ -319,6 +319,20 @@
   $('opt-pause').checked = cfg.pauseOnUser; $('opt-wake').checked = cfg.wake; $('intensity').value = cfg.intensity; $('intensity-val').textContent = cfg.intensity;
   applyLang(); renderStatus(); renderRates(); renderWakeNote(); window.Charts.gauge($('gauge'), 0); refreshCharts();
 
+  /* --------------------------------- tabs ------------------------------- */
+  // Section tabs: Приложение (engine) / Подписка / Аккаунт. The panels keep all
+  // their element ids, so web-account.js keeps rendering into them regardless of
+  // which tab is visible. window.DriftlyTabs.show lets the paywall jump to a tab.
+  function showTab(name) {
+    document.querySelectorAll('#tabs button').forEach((b) => b.classList.toggle('active', b.dataset.tab === name));
+    document.querySelectorAll('.tab-panel').forEach((p) => { p.hidden = (p.dataset.panel !== name); });
+    try { localStorage.setItem('driftly.tab', name); } catch (_) {}
+    if (name === 'app') { try { refreshCharts(); } catch (_) {} } // re-render canvases sized while hidden
+  }
+  document.querySelectorAll('#tabs button').forEach((b) => b.addEventListener('click', () => showTab(b.dataset.tab)));
+  window.DriftlyTabs = { show: showTab };
+  showTab(localStorage.getItem('driftly.tab') || 'app');
+
   // PWA service worker (offline app shell) — optional, ignore failures.
   if ('serviceWorker' in navigator) navigator.serviceWorker.register('sw.js').catch(() => {});
 }());

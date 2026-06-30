@@ -82,15 +82,15 @@
 
   /* ------------------------------- rendering ------------------------------- */
   var L = {
-    ru: { preview: 'Демо-режим: сервер лицензий не подключён — доступ открыт.', signin: 'Войдите, чтобы управлять подпиской.', trial: 'Подключить карту — 3 дня бесплатно', trialActive: 'Пробный период', daysLeft: 'дн. осталось', active: 'Подписка активна', renews: 'Продление', inactive: 'Подписка неактивна', pastDue: 'Необходимо оплатить', pastDueDesc: 'Списание не прошло. Оплатите, чтобы продолжить.', retry: 'Повторить оплату', cancel: 'Отменить подписку', pwText: 'Подключите карту и получите 3 дня бесплатно. Driftly работает и в вебе, и в десктопе.', goSub: 'Открыть подписку', testCard: 'тестовая карта (демо):', ok: 'успешно', fail: 'нет средств', online: 'на связи', offline: 'нет связи', sendCode: 'Код отправлен на почту', codeBad: 'Неверный код', resume: 'Возобновить', accessUntil: 'доступ до', trialCanceled: 'Пробный период отменён', subCanceled: 'Подписка отменена', noRenew: 'продление не произойдёт', monthly: 'Помесячно', yearly: 'За год', perMonth: '₽/мес', perYear: '₽/год', planYearWord: 'годовая', planMonthWord: 'месячная' },
-    en: { preview: 'Demo mode: no licensing server — access is open.', signin: 'Sign in to manage your subscription.', trial: 'Add a card — 3 days free', trialActive: 'Free trial', daysLeft: 'days left', active: 'Subscription active', renews: 'Renews', inactive: 'Subscription inactive', pastDue: 'Payment required', pastDueDesc: 'The charge failed. Pay to continue.', retry: 'Retry payment', cancel: 'Cancel subscription', pwText: 'Add a card and get 3 days free. Driftly works on web and desktop.', goSub: 'Open subscription', testCard: 'test card (demo):', ok: 'success', fail: 'no funds', online: 'online', offline: 'offline', sendCode: 'Code sent to your email', codeBad: 'Invalid code', resume: 'Resume', accessUntil: 'access until', trialCanceled: 'Trial cancelled', subCanceled: 'Subscription cancelled', noRenew: 'will not renew', monthly: 'Monthly', yearly: 'Yearly', perMonth: '₽/mo', perYear: '₽/yr', planYearWord: 'yearly', planMonthWord: 'monthly' },
+    ru: { preview: 'Демо-режим: сервер лицензий не подключён — доступ открыт.', signin: 'Войдите, чтобы управлять подпиской.', goAccount: 'Перейти в «Аккаунт»', trial: 'Подключить карту — 3 дня бесплатно', trialActive: 'Пробный период', daysLeft: 'дн. осталось', active: 'Подписка активна', renews: 'Продление', inactive: 'Подписка неактивна', pastDue: 'Необходимо оплатить', pastDueDesc: 'Списание не прошло. Оплатите, чтобы продолжить.', retry: 'Повторить оплату', cancel: 'Отменить подписку', pwText: 'Подключите карту и получите 3 дня бесплатно. Driftly работает и в вебе, и в десктопе.', goSub: 'Открыть подписку', testCard: 'тестовая карта (демо):', ok: 'успешно', fail: 'нет средств', online: 'на связи', offline: 'нет связи', sendCode: 'Код отправлен на почту', codeBad: 'Неверный код', resume: 'Возобновить', accessUntil: 'доступ до', trialCanceled: 'Пробный период отменён', subCanceled: 'Подписка отменена', noRenew: 'продление не произойдёт', monthly: 'Помесячно', yearly: 'За год', perMonth: '₽/мес', perYear: '₽/год', planYearWord: 'годовая', planMonthWord: 'месячная' },
+    en: { preview: 'Demo mode: no licensing server — access is open.', signin: 'Sign in to manage your subscription.', goAccount: 'Go to Account', trial: 'Add a card — 3 days free', trialActive: 'Free trial', daysLeft: 'days left', active: 'Subscription active', renews: 'Renews', inactive: 'Subscription inactive', pastDue: 'Payment required', pastDueDesc: 'The charge failed. Pay to continue.', retry: 'Retry payment', cancel: 'Cancel subscription', pwText: 'Add a card and get 3 days free. Driftly works on web and desktop.', goSub: 'Open subscription', testCard: 'test card (demo):', ok: 'success', fail: 'no funds', online: 'online', offline: 'offline', sendCode: 'Code sent to your email', codeBad: 'Invalid code', resume: 'Resume', accessUntil: 'access until', trialCanceled: 'Trial cancelled', subCanceled: 'Subscription cancelled', noRenew: 'will not renew', monthly: 'Monthly', yearly: 'Yearly', perMonth: '₽/mo', perYear: '₽/yr', planYearWord: 'yearly', planMonthWord: 'monthly' },
   };
   function lang() { return localStorage.getItem('driftly.lang') || 'ru'; }
   function t(k) { return L[lang()][k]; }
   function fmt(ms) { try { return new Date(ms).toLocaleDateString(lang() === 'ru' ? 'ru-RU' : 'en-US'); } catch (e) { return ''; } }
 
-  // lightweight view switch (the web app is a single page; we toggle a panel)
-  function showView(v) { if (v === 'subscription') { var el = $('sub-panel'); if (el) el.scrollIntoView({ behavior: 'smooth' }); } }
+  // Jump to the subscription tab (web.js owns the tabs) and scroll it into view.
+  function showView(v) { if (v === 'subscription') { if (window.DriftlyTabs) window.DriftlyTabs.show('sub'); var el = $('sub-panel'); if (el) el.scrollIntoView({ behavior: 'smooth' }); } }
 
   function render() {
     var e = entitlement();
@@ -125,7 +125,7 @@
     if ($('sub-who')) $('sub-who').textContent = e.account || '';
     var box = $('sub-state'); if (!box) return;
     if (preview()) { box.innerHTML = sb('trial', '✨', t('preview'), ''); return; }
-    if (!state.token) { box.innerHTML = sb('', '👤', t('signin'), ''); return; }
+    if (!state.token) { box.innerHTML = sb('', '👤', t('signin'), '') + '<button class="btn primary" data-acc="goaccount" style="margin-top:12px">' + t('goAccount') + '</button>'; return; }
     if (e.reason === 'trial') box.innerHTML = e.canceled
       ? sb('trial', '✨', t('trialCanceled'), t('accessUntil') + ' ' + fmt(e.renewsAt)) + rbtn()
       : sb('trial', '✨', t('trialActive'), e.trialDaysLeft + ' ' + t('daysLeft')) + cbtn();
@@ -159,6 +159,7 @@
         if (url) window.location.href = url; // T-Bank: card binding + 3-D Secure
       });
     }
+    else if (act === 'goaccount') { if (window.DriftlyTabs) window.DriftlyTabs.show('account'); }
     else if (act === 'retry') call('POST', '/v1/billing/retry');
     else if (act === 'cancel') call('POST', '/v1/billing/cancel');
     else if (act === 'resume') call('POST', '/v1/billing/resume');

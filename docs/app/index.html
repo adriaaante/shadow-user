@@ -31,139 +31,158 @@
 </header>
 
 <main class="wrap">
-  <div class="note info" data-ru="Это веб-версия. Она работает в браузере без установки: имитирует активность в песочнице ниже, не даёт экрану гаснуть и измеряет активность на этой странице. Управлять системным курсором или мерить активность всей ОС браузер не может — для этого скачайте десктоп-приложение." data-en="This is the web version. It runs in the browser with no install: it simulates activity in the sandbox below, keeps the screen awake (Wake Lock), and measures activity on this page. A browser cannot control the OS cursor or measure system-wide activity — for that, download the desktop app.">…</div>
-
   <div id="acc-banner" class="note info" style="display:none;margin-bottom:18px"></div>
 
-  <div class="cols">
-    <!-- ░░ left: controls ░░ -->
-    <section class="card">
-      <div class="statusline">
-        <span class="statusdot" id="dot"></span>
-        <span class="status-big" id="statustext" data-ru="Пауза" data-en="Paused">Пауза</span>
-      </div>
-      <div class="seg" id="runmode" style="margin:14px 0">
-        <button data-mode="on" data-ru="Запустить" data-en="Run">Запустить</button>
-        <button data-mode="off" class="active" data-ru="Стоп" data-en="Stop">Стоп</button>
-      </div>
+  <nav class="tabs" id="tabs">
+    <button data-tab="app" class="active" data-ru="Приложение" data-en="App">Приложение</button>
+    <button data-tab="sub" data-ru="Подписка" data-en="Subscription">Подписка</button>
+    <button data-tab="account" data-ru="Аккаунт" data-en="Account">Аккаунт</button>
+  </nav>
 
-      <div class="section-title" data-ru="Уровень" data-en="Level">Уровень</div>
-      <div class="seg wrapseg" id="levels">
-        <button data-level="gentle" data-ru="Спокойный" data-en="Gentle">Спокойный</button>
-        <button data-level="balanced" class="active" data-ru="Сбаланс." data-en="Balanced">Сбаланс.</button>
-        <button data-level="energetic" data-ru="Энергичный" data-en="Energetic">Энергичный</button>
-        <button data-level="custom" data-ru="Свой" data-en="Custom">Свой</button>
-      </div>
-      <div id="custom-wrap" style="display:none;margin-top:12px">
-        <div style="display:flex;justify-content:space-between;margin-bottom:6px"><span class="muted" data-ru="Интенсивность" data-en="Intensity">Интенсивность</span><b id="intensity-val">50</b></div>
-        <input type="range" id="intensity" min="1" max="100" value="50">
-      </div>
-      <div class="rates" id="rates"></div>
+  <!-- ════════════════ TAB: Приложение (рабочий экран) ════════════════ -->
+  <div class="tab-panel" data-panel="app">
+    <div class="note info" data-ru="Это веб-версия. Она работает в браузере без установки: имитирует активность в песочнице ниже, не даёт экрану гаснуть и измеряет активность на этой странице. Управлять системным курсором или мерить активность всей ОС браузер не может — для этого скачайте десктоп-приложение." data-en="This is the web version. It runs in the browser with no install: it simulates activity in the sandbox below, keeps the screen awake (Wake Lock), and measures activity on this page. A browser cannot control the OS cursor or measure system-wide activity — for that, download the desktop app.">…</div>
 
-      <div class="section-title" style="margin-top:18px" data-ru="Поведение" data-en="Behavior">Поведение</div>
-      <label class="line"><span data-ru="Клики" data-en="Clicks">Клики</span><span class="switch"><input type="checkbox" id="opt-clicks" checked><span></span></span></label>
-      <label class="line"><span data-ru="Прокрутка" data-en="Scroll">Прокрутка</span><span class="switch"><input type="checkbox" id="opt-scroll" checked><span></span></span></label>
-      <label class="line"><span data-ru="Уступать пользователю" data-en="Yield to user">Уступать пользователю</span><span class="switch"><input type="checkbox" id="opt-pause" checked><span></span></span></label>
-      <label class="line"><span data-ru="Не давать экрану гаснуть" data-en="Keep screen awake (Wake Lock)">Не давать экрану гаснуть</span><span class="switch"><input type="checkbox" id="opt-wake"><span></span></span></label>
-      <div class="mode-note" id="wake-note"></div>
-    </section>
-
-    <!-- ░░ right: live + stage ░░ -->
-    <section class="card">
-      <div class="livegrid">
-        <div class="gauge-wrap"><canvas id="gauge" width="160" height="160"></canvas></div>
-        <div class="kpis">
-          <div class="kpi"><div class="n" id="kpi-events">0</div><div class="l" data-ru="событий за час" data-en="events / hour">событий за час</div></div>
-          <div class="kpi"><div class="n syn" id="kpi-syn">0</div><div class="l" data-ru="синтетические" data-en="synthetic">синтетические</div></div>
-          <div class="kpi"><div class="n real" id="kpi-real">0</div><div class="l" data-ru="реальные (вы)" data-en="real (you)">реальные (вы)</div></div>
+    <div class="cols">
+      <!-- ░░ left: controls ░░ -->
+      <section class="card">
+        <div class="statusline">
+          <span class="statusdot" id="dot"></span>
+          <span class="status-big" id="statustext" data-ru="Пауза" data-en="Paused">Пауза</span>
         </div>
-      </div>
-      <div class="section-title" style="margin-top:16px" data-ru="Песочница активности" data-en="Activity sandbox">Песочница активности</div>
-      <div class="stage" id="stage">
-        <div class="sand-os">
-          <div class="swin">
-            <div class="swin-bar"><i class="sdot"></i><i class="sdot"></i><i class="sdot"></i><b data-ru="Документ" data-en="Document">Документ</b></div>
-            <div class="swin-scroll">
-              <div class="swin-list" id="sand-list"></div>
-              <div class="swin-thumb" id="sand-thumb"></div>
-            </div>
-          </div>
-          <div class="swin swin-panel">
-            <div class="swin-bar"><i class="sdot"></i><i class="sdot"></i><i class="sdot"></i><b data-ru="Панель" data-en="Panel">Панель</b></div>
-            <div class="swin-pad">
-              <div class="sand-input" data-target><span id="sand-type"></span><i class="sand-caret"></i></div>
-              <button class="sand-btn" data-target data-ru="Сохранить" data-en="Save">Сохранить</button>
-              <button class="sand-btn ghost" data-target data-ru="Открыть" data-en="Open">Открыть</button>
-            </div>
+        <div class="seg" id="runmode" style="margin:14px 0">
+          <button data-mode="on" data-ru="Запустить" data-en="Run">Запустить</button>
+          <button data-mode="off" class="active" data-ru="Стоп" data-en="Stop">Стоп</button>
+        </div>
+
+        <div class="section-title" data-ru="Уровень" data-en="Level">Уровень</div>
+        <div class="seg wrapseg" id="levels">
+          <button data-level="gentle" data-ru="Спокойный" data-en="Gentle">Спокойный</button>
+          <button data-level="balanced" class="active" data-ru="Сбаланс." data-en="Balanced">Сбаланс.</button>
+          <button data-level="energetic" data-ru="Энергичный" data-en="Energetic">Энергичный</button>
+          <button data-level="custom" data-ru="Свой" data-en="Custom">Свой</button>
+        </div>
+        <div id="custom-wrap" style="display:none;margin-top:12px">
+          <div style="display:flex;justify-content:space-between;margin-bottom:6px"><span class="muted" data-ru="Интенсивность" data-en="Intensity">Интенсивность</span><b id="intensity-val">50</b></div>
+          <input type="range" id="intensity" min="1" max="100" value="50">
+        </div>
+        <div class="rates" id="rates"></div>
+
+        <div class="section-title" style="margin-top:18px" data-ru="Поведение" data-en="Behavior">Поведение</div>
+        <label class="line"><span data-ru="Клики" data-en="Clicks">Клики</span><span class="switch"><input type="checkbox" id="opt-clicks" checked><span></span></span></label>
+        <label class="line"><span data-ru="Прокрутка" data-en="Scroll">Прокрутка</span><span class="switch"><input type="checkbox" id="opt-scroll" checked><span></span></span></label>
+        <label class="line"><span data-ru="Уступать пользователю" data-en="Yield to user">Уступать пользователю</span><span class="switch"><input type="checkbox" id="opt-pause" checked><span></span></span></label>
+        <label class="line"><span data-ru="Не давать экрану гаснуть" data-en="Keep screen awake (Wake Lock)">Не давать экрану гаснуть</span><span class="switch"><input type="checkbox" id="opt-wake"><span></span></span></label>
+        <div class="mode-note" id="wake-note"></div>
+      </section>
+
+      <!-- ░░ right: live + stage ░░ -->
+      <section class="card">
+        <div class="livegrid">
+          <div class="gauge-wrap"><canvas id="gauge" width="160" height="160"></canvas></div>
+          <div class="kpis">
+            <div class="kpi"><div class="n" id="kpi-events">0</div><div class="l" data-ru="событий за час" data-en="events / hour">событий за час</div></div>
+            <div class="kpi"><div class="n syn" id="kpi-syn">0</div><div class="l" data-ru="синтетические" data-en="synthetic">синтетические</div></div>
+            <div class="kpi"><div class="n real" id="kpi-real">0</div><div class="l" data-ru="реальные (вы)" data-en="real (you)">реальные (вы)</div></div>
           </div>
         </div>
-        <div class="sand-pops" id="sand-pops"></div>
-        <div class="cursor" id="cursor">
-          <svg viewBox="0 0 24 24" width="22" height="22"><path d="M5 3 L5 19 L9.5 14.8 L12.7 21 L15 20 L11.8 14 L18 14 Z" fill="#f2f2f8" stroke="#7c5cff" stroke-width="1"/></svg>
+        <div class="section-title" style="margin-top:16px" data-ru="Песочница активности" data-en="Activity sandbox">Песочница активности</div>
+        <div class="stage" id="stage">
+          <div class="sand-os">
+            <div class="swin">
+              <div class="swin-bar"><i class="sdot"></i><i class="sdot"></i><i class="sdot"></i><b data-ru="Документ" data-en="Document">Документ</b></div>
+              <div class="swin-scroll">
+                <div class="swin-list" id="sand-list"></div>
+                <div class="swin-thumb" id="sand-thumb"></div>
+              </div>
+            </div>
+            <div class="swin swin-panel">
+              <div class="swin-bar"><i class="sdot"></i><i class="sdot"></i><i class="sdot"></i><b data-ru="Панель" data-en="Panel">Панель</b></div>
+              <div class="swin-pad">
+                <div class="sand-input" data-target><span id="sand-type"></span><i class="sand-caret"></i></div>
+                <button class="sand-btn" data-target data-ru="Сохранить" data-en="Save">Сохранить</button>
+                <button class="sand-btn ghost" data-target data-ru="Открыть" data-en="Open">Открыть</button>
+              </div>
+            </div>
+          </div>
+          <div class="sand-pops" id="sand-pops"></div>
+          <div class="cursor" id="cursor">
+            <svg viewBox="0 0 24 24" width="22" height="22"><path d="M5 3 L5 19 L9.5 14.8 L12.7 21 L15 20 L11.8 14 L18 14 Z" fill="#f2f2f8" stroke="#7c5cff" stroke-width="1"/></svg>
+          </div>
         </div>
+      </section>
+    </div>
+
+    <section class="card chart-card" style="margin-top:18px">
+      <h3 data-ru="История активности (последний час)" data-en="Activity history (last hour)">История активности (последний час)</h3>
+      <div class="hint" data-ru="Фиолетовые зоны — когда работал генератор." data-en="Violet bands mark when the generator ran.">Фиолетовые зоны — когда работал генератор.</div>
+      <canvas id="chart"></canvas>
+      <div class="legend">
+        <div class="it"><span class="sw" style="background:#9d86ff"></span><span data-ru="Синтетическая" data-en="Synthetic">Синтетическая</span></div>
+        <div class="it"><span class="sw" style="background:#2dd4bf"></span><span data-ru="Реальная" data-en="Real">Реальная</span></div>
       </div>
     </section>
   </div>
 
-  <section class="card chart-card" style="margin-top:18px">
-    <h3 data-ru="История активности (последний час)" data-en="Activity history (last hour)">История активности (последний час)</h3>
-    <div class="hint" data-ru="Фиолетовые зоны — когда работал генератор." data-en="Violet bands mark when the generator ran.">Фиолетовые зоны — когда работал генератор.</div>
-    <canvas id="chart"></canvas>
-    <div class="legend">
-      <div class="it"><span class="sw" style="background:#9d86ff"></span><span data-ru="Синтетическая" data-en="Synthetic">Синтетическая</span></div>
-      <div class="it"><span class="sw" style="background:#2dd4bf"></span><span data-ru="Реальная" data-en="Real">Реальная</span></div>
-    </div>
-  </section>
-
-  <section class="card" style="margin-top:18px">
-    <h3 data-ru="Сравнение и экспорт" data-en="Compare & export">Сравнение и экспорт</h3>
-    <div class="compare-bars" style="margin:8px 0 16px">
-      <div class="cmp"><div class="top"><span data-ru="Активный (с Driftly)" data-en="Shadow">Активный (с Driftly)</span><b id="cmp-shadow-v">0</b></div><div class="bar"><i id="cmp-shadow" style="background:var(--grad);width:0%"></i></div></div>
-      <div class="cmp"><div class="top"><span data-ru="Пассивный (только вы)" data-en="Passive">Пассивный (только вы)</span><b id="cmp-passive-v">0</b></div><div class="bar"><i id="cmp-passive" style="background:#2dd4bf;width:0%"></i></div></div>
-    </div>
-    <div class="actions-row">
-      <button class="btn primary" id="exp-csv" data-ru="Экспорт CSV" data-en="Export CSV">Экспорт CSV</button>
-      <button class="btn" id="exp-json" data-ru="Экспорт JSON" data-en="Export JSON">Экспорт JSON</button>
-      <button class="btn danger" id="reset" data-ru="Сбросить" data-en="Reset">Сбросить</button>
-    </div>
-  </section>
-
-  <section class="card" id="sub-panel" style="margin-top:18px">
-    <div class="plan-head">
-      <div>
-        <h3>Driftly Pro</h3>
-        <div class="hint" data-ru="Единая подписка: оплатив один раз, вы получаете доступ и в вебе, и в десктопе." data-en="One subscription: pay once, use it on both web and desktop.">Единая подписка: оплатив один раз, вы получаете доступ и в вебе, и в десктопе.</div>
+  <!-- ════════════════ TAB: Подписка ════════════════ -->
+  <div class="tab-panel" data-panel="sub" hidden>
+    <section class="card" id="sub-panel">
+      <div class="plan-head">
+        <div>
+          <h3>Driftly Pro</h3>
+          <div class="hint" data-ru="Единая подписка: оплатив один раз, вы получаете доступ и в вебе, и в десктопе." data-en="One subscription: pay once, use it on both web and desktop.">Единая подписка: оплатив один раз, вы получаете доступ и в вебе, и в десктопе.</div>
+        </div>
+        <div class="price"><b>249 ₽</b><span data-ru="/ мес" data-en="/ mo">/ мес</span></div>
       </div>
-      <div class="price"><b>249 ₽</b><span data-ru="/ мес" data-en="/ mo">/ мес</span></div>
-    </div>
-    <div id="sub-state"></div>
+      <div id="sub-state"></div>
 
-    <div class="section-title" style="margin-top:18px" data-ru="Аккаунт" data-en="Account">Аккаунт</div>
-    <div id="sub-signin">
-      <div class="range-row" id="sub-step-email"><input type="email" id="sub-email" placeholder="you@email.com" style="flex:1;min-width:0">
-        <button class="btn primary" id="btn-getcode" data-ru="Получить код" data-en="Get code">Получить код</button></div>
-      <div class="range-row" id="sub-step-code" style="display:none"><input type="text" id="sub-code" inputmode="numeric" maxlength="6" placeholder="000000" style="flex:1;min-width:0">
-        <button class="btn primary" id="btn-verify" data-ru="Войти" data-en="Sign in">Войти</button></div>
-      <div class="mode-note" id="sub-auth-note"></div>
-    </div>
-    <div id="sub-signedin" style="display:none">
-      <label class="line"><span data-ru="Вы вошли как" data-en="Signed in as">Вы вошли как</span><b id="sub-who"></b></label>
-      <button class="btn ghost" id="btn-signout" style="margin-top:10px" data-ru="Выйти" data-en="Sign out">Выйти</button>
-    </div>
+      <div class="note" style="margin-top:16px" data-ru="При подключении карты первые 3 дня — бесплатно, далее автосписание (рекуррентный платёж) до отмены. Отмена в любой момент — доступ сохранится до конца оплаченного периода. Если списание не прошло — доступ приостанавливается до оплаты. Платежи через Т‑Банк или ЮKassa; Driftly не хранит данные карты. Вопросы: support@driftly.site" data-en="Connecting a card gives 3 free days, then recurring billing until canceled. Cancel anytime — access stays until the end of the paid period. If a charge fails, access pauses until paid. Payments via T-Bank or YooKassa; Driftly does not store card data. Questions: support@driftly.site">…</div>
+      <div class="hint" style="margin-top:10px">
+        <span data-ru="Подключая карту, вы принимаете" data-en="By adding a card you accept the">Подключая карту, вы принимаете</span>
+        <a href="../legal/oferta.html" target="_blank" rel="noopener" data-ru="Оферту" data-en="Offer">Оферту</a>
+        <span data-ru="и" data-en="and">и</span>
+        <a href="../legal/privacy.html" target="_blank" rel="noopener" data-ru="Политику конфиденциальности" data-en="Privacy Policy">Политику конфиденциальности</a>.
+      </div>
+    </section>
+  </div>
 
-    <div class="section-title" style="margin-top:18px" data-ru="Сервер лицензий" data-en="Licensing server">Сервер лицензий</div>
-    <div class="range-row"><input type="text" id="sub-api" placeholder="https://api.driftly.site" style="flex:1;min-width:0">
-      <button class="btn" id="btn-setapi" data-ru="Сохранить" data-en="Save">Сохранить</button></div>
-    <div class="mode-note" id="sub-api-state"></div>
+  <!-- ════════════════ TAB: Аккаунт (вход · лицензия · данные) ════════════════ -->
+  <div class="tab-panel" data-panel="account" hidden>
+    <section class="card">
+      <div class="section-title" data-ru="Аккаунт" data-en="Account">Аккаунт</div>
+      <div id="sub-signin">
+        <div class="range-row" id="sub-step-email"><input type="email" id="sub-email" placeholder="you@email.com" style="flex:1;min-width:0">
+          <button class="btn primary" id="btn-getcode" data-ru="Получить код" data-en="Get code">Получить код</button></div>
+        <div class="range-row" id="sub-step-code" style="display:none"><input type="text" id="sub-code" inputmode="numeric" maxlength="6" placeholder="000000" style="flex:1;min-width:0">
+          <button class="btn primary" id="btn-verify" data-ru="Войти" data-en="Sign in">Войти</button></div>
+        <div class="mode-note" id="sub-auth-note"></div>
+      </div>
+      <div id="sub-signedin" style="display:none">
+        <label class="line"><span data-ru="Вы вошли как" data-en="Signed in as">Вы вошли как</span><b id="sub-who"></b></label>
+        <button class="btn ghost" id="btn-signout" style="margin-top:10px" data-ru="Выйти" data-en="Sign out">Выйти</button>
+      </div>
+    </section>
 
-    <div class="note" style="margin-top:16px" data-ru="При подключении карты первые 3 дня — бесплатно, далее автосписание (рекуррентный платёж) до отмены. Отмена в любой момент — доступ сохранится до конца оплаченного периода. Если списание не прошло — доступ приостанавливается до оплаты. Платежи через Т‑Банк или ЮKassa; Driftly не хранит данные карты. Вопросы: support@driftly.site" data-en="Connecting a card gives 3 free days, then recurring billing until canceled. Cancel anytime — access stays until the end of the paid period. If a charge fails, access pauses until paid. Payments via T-Bank or YooKassa; Driftly does not store card data. Questions: support@driftly.site">…</div>
-    <div class="hint" style="margin-top:10px">
-      <span data-ru="Подключая карту, вы принимаете" data-en="By adding a card you accept the">Подключая карту, вы принимаете</span>
-      <a href="../legal/oferta.html" target="_blank" rel="noopener" data-ru="Оферту" data-en="Offer">Оферту</a>
-      <span data-ru="и" data-en="and">и</span>
-      <a href="../legal/privacy.html" target="_blank" rel="noopener" data-ru="Политику конфиденциальности" data-en="Privacy Policy">Политику конфиденциальности</a>.
-    </div>
-  </section>
+    <section class="card" style="margin-top:18px">
+      <div class="section-title" data-ru="Сервер лицензий" data-en="Licensing server">Сервер лицензий</div>
+      <div class="range-row"><input type="text" id="sub-api" placeholder="https://api.driftly.site" style="flex:1;min-width:0">
+        <button class="btn" id="btn-setapi" data-ru="Сохранить" data-en="Save">Сохранить</button></div>
+      <div class="mode-note" id="sub-api-state"></div>
+    </section>
+
+    <section class="card" style="margin-top:18px">
+      <h3 data-ru="Данные · сравнение и экспорт" data-en="Data · compare & export">Данные · сравнение и экспорт</h3>
+      <div class="compare-bars" style="margin:8px 0 16px">
+        <div class="cmp"><div class="top"><span data-ru="Активный (с Driftly)" data-en="Shadow">Активный (с Driftly)</span><b id="cmp-shadow-v">0</b></div><div class="bar"><i id="cmp-shadow" style="background:var(--grad);width:0%"></i></div></div>
+        <div class="cmp"><div class="top"><span data-ru="Пассивный (только вы)" data-en="Passive">Пассивный (только вы)</span><b id="cmp-passive-v">0</b></div><div class="bar"><i id="cmp-passive" style="background:#2dd4bf;width:0%"></i></div></div>
+      </div>
+      <div class="actions-row">
+        <button class="btn primary" id="exp-csv" data-ru="Экспорт CSV" data-en="Export CSV">Экспорт CSV</button>
+        <button class="btn" id="exp-json" data-ru="Экспорт JSON" data-en="Export JSON">Экспорт JSON</button>
+        <button class="btn danger" id="reset" data-ru="Сбросить" data-en="Reset">Сбросить</button>
+      </div>
+    </section>
+  </div>
 
   <p class="foot muted" data-ru="100% локально · без сбора данных · © 2026 Driftly — все права защищены" data-en="100% local · no data collection · © 2026 Driftly — all rights reserved">100% локально · без сбора данных · © 2026 Driftly — все права защищены</p>
 </main>
