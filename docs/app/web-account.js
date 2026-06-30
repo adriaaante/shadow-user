@@ -84,8 +84,8 @@
 
   /* ------------------------------- rendering ------------------------------- */
   var L = {
-    ru: { preview: 'Демо-режим: сервер лицензий не подключён — доступ открыт.', signin: 'Войдите, чтобы управлять подпиской.', goAccount: 'Перейти в «Аккаунт»', trial: 'Подключить карту — 3 дня бесплатно', trialActive: 'Пробный период', daysLeft: 'дн. осталось', active: 'Подписка активна', renews: 'Продление', inactive: 'Подписка неактивна', pastDue: 'Необходимо оплатить', pastDueDesc: 'Списание не прошло. Оплатите, чтобы продолжить.', retry: 'Повторить оплату', cancel: 'Отменить подписку', pwText: 'Подключите карту и получите 3 дня бесплатно. Driftly работает и в браузере, и в десктоп-приложении.', goSub: 'Открыть подписку', sendCode: 'Код отправлен на почту', codeBad: 'Неверный код', resume: 'Возобновить', accessUntil: 'доступ до', trialCanceled: 'Пробный период отменён', subCanceled: 'Подписка отменена', noRenew: 'продление не произойдёт', monthly: 'Помесячно', yearly: 'За год', perMonth: '₽/мес', perYear: '₽/год', planYearWord: 'годовая', planMonthWord: 'месячная', changePlan: 'Тариф', intervalNote: 'Смена тарифа применится со следующего списания.' },
-    en: { preview: 'Demo mode: no licensing server — access is open.', signin: 'Sign in to manage your subscription.', goAccount: 'Go to Account', trial: 'Add a card — 3 days free', trialActive: 'Free trial', daysLeft: 'days left', active: 'Subscription active', renews: 'Renews', inactive: 'Subscription inactive', pastDue: 'Payment required', pastDueDesc: 'The charge failed. Pay to continue.', retry: 'Retry payment', cancel: 'Cancel subscription', pwText: 'Add a card and get 3 days free. Driftly works in the browser and in the desktop app.', goSub: 'Open subscription', sendCode: 'Code sent to your email', codeBad: 'Invalid code', resume: 'Resume', accessUntil: 'access until', trialCanceled: 'Trial cancelled', subCanceled: 'Subscription cancelled', noRenew: 'will not renew', monthly: 'Monthly', yearly: 'Yearly', perMonth: '₽/mo', perYear: '₽/yr', planYearWord: 'yearly', planMonthWord: 'monthly', changePlan: 'Plan', intervalNote: 'The plan change applies from your next charge.' },
+    ru: { preview: 'Демо-режим: сервер лицензий не подключён — доступ открыт.', signin: 'Войдите, чтобы управлять подпиской.', goAccount: 'Перейти в «Аккаунт»', trial: 'Подключить карту — 3 дня бесплатно', trialActive: 'Пробный период', daysLeft: 'дн. осталось', active: 'Подписка активна', renews: 'Продление', inactive: 'Подписка неактивна', pastDue: 'Необходимо оплатить', pastDueDesc: 'Списание не прошло. Оплатите, чтобы продолжить.', retry: 'Повторить оплату', cancel: 'Отменить подписку', pwText: 'Подключите карту и получите 3 дня бесплатно. Driftly работает и в браузере, и в десктоп-приложении.', goSub: 'Открыть подписку', codeBad: 'Неверный код', emailEmpty: 'Введите email', emailBad: 'Неверный формат email', codeValidFor: 'Код действителен ещё', codeExpired: 'Код истёк — запросите новый', codeSent: 'Код отправлен — проверьте почту', resume: 'Возобновить', accessUntil: 'доступ до', trialCanceled: 'Пробный период отменён', subCanceled: 'Подписка отменена', noRenew: 'продление не произойдёт', monthly: 'Помесячно', yearly: 'За год', perMonth: '₽/мес', perYear: '₽/год', planYearWord: 'годовая', planMonthWord: 'месячная', changePlan: 'Тариф', intervalNote: 'Смена тарифа применится со следующего списания.' },
+    en: { preview: 'Demo mode: no licensing server — access is open.', signin: 'Sign in to manage your subscription.', goAccount: 'Go to Account', trial: 'Add a card — 3 days free', trialActive: 'Free trial', daysLeft: 'days left', active: 'Subscription active', renews: 'Renews', inactive: 'Subscription inactive', pastDue: 'Payment required', pastDueDesc: 'The charge failed. Pay to continue.', retry: 'Retry payment', cancel: 'Cancel subscription', pwText: 'Add a card and get 3 days free. Driftly works in the browser and in the desktop app.', goSub: 'Open subscription', codeBad: 'Invalid code', emailEmpty: 'Enter your email', emailBad: 'Invalid email format', codeValidFor: 'Code valid for', codeExpired: 'Code expired — request a new one', codeSent: 'Code sent — check your email', resume: 'Resume', accessUntil: 'access until', trialCanceled: 'Trial cancelled', subCanceled: 'Subscription cancelled', noRenew: 'will not renew', monthly: 'Monthly', yearly: 'Yearly', perMonth: '₽/mo', perYear: '₽/yr', planYearWord: 'yearly', planMonthWord: 'monthly', changePlan: 'Plan', intervalNote: 'The plan change applies from your next charge.' },
   };
   function lang() { return localStorage.getItem('driftly.lang') || 'ru'; }
   function t(k) { return L[lang()][k]; }
@@ -181,22 +181,48 @@
     else if (act === 'cancel') call('POST', '/v1/billing/cancel');
     else if (act === 'resume') call('POST', '/v1/billing/resume');
   });
+  /* ---- sign-in code: validation toast + a persistent countdown timer ---- */
+  var CODE_TTL = 600000; // 10 min, matches the server (AUTH_CODE_TTL_MS)
+  var codeTimer = null;
+  function notify(msg, kind) { if (window.DriftlyToast) window.DriftlyToast(msg, kind); else if ($('sub-auth-note')) $('sub-auth-note').textContent = msg; }
+  function mmss(ms) { var s = Math.max(0, Math.round(ms / 1000)); return Math.floor(s / 60) + ':' + ('0' + (s % 60)).slice(-2); }
+  function stopCodeTimer() { if (codeTimer) { clearTimeout(codeTimer); codeTimer = null; } }
+  function clearCode() { stopCodeTimer(); localStorage.removeItem('driftly.codeExp'); localStorage.removeItem('driftly.codeEmail'); if ($('sub-step-code')) $('sub-step-code').style.display = 'none'; if ($('sub-auth-note')) $('sub-auth-note').innerHTML = ''; }
+  function runCodeTimer(exp) {
+    if ($('sub-step-code')) $('sub-step-code').style.display = 'flex';
+    stopCodeTimer();
+    (function tick() {
+      var note = $('sub-auth-note'); if (!note) return;
+      var left = exp - Date.now();
+      if (left <= 0) { stopCodeTimer(); localStorage.removeItem('driftly.codeExp'); note.innerHTML = '<span class="code-timer warn">' + t('codeExpired') + '</span>'; return; }
+      note.innerHTML = '<span class="code-timer">⏳ ' + t('codeValidFor') + ' <b>' + mmss(left) + '</b></span>';
+      codeTimer = setTimeout(tick, 1000);
+    })();
+  }
+  // Resume the countdown after a tab reload if a code is still valid.
+  (function () { var exp = +localStorage.getItem('driftly.codeExp') || 0; if (!state.token && exp > Date.now()) { var em = localStorage.getItem('driftly.codeEmail'); if (em && $('sub-email')) $('sub-email').value = em; runCodeTimer(exp); } else if (exp) { localStorage.removeItem('driftly.codeExp'); } })();
+  window.addEventListener('driftly-lang-changed', function () { var exp = +localStorage.getItem('driftly.codeExp') || 0; if (exp > Date.now()) runCodeTimer(exp); });
+
   if ($('btn-getcode')) $('btn-getcode').addEventListener('click', async function () {
     var email = ($('sub-email').value || '').trim();
-    if (!/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(email)) return;
+    if (!email) { notify(t('emailEmpty'), 'warn'); $('sub-email').focus(); return; }
+    if (!/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(email)) { notify(t('emailBad'), 'warn'); $('sub-email').focus(); return; }
     var r = await authRequest(email);
     if (r && r.ok) {
-      $('sub-step-code').style.display = 'flex';
-      $('sub-auth-note').textContent = t('sendCode') + (r.devCode ? ' (dev: ' + r.devCode + ')' : '');
-      if (r.devCode) $('sub-code').value = r.devCode;
-      $('sub-code').focus();
-    }
+      var exp = Date.now() + CODE_TTL;
+      localStorage.setItem('driftly.codeExp', String(exp));
+      localStorage.setItem('driftly.codeEmail', email);
+      notify(t('codeSent'), 'ok');
+      runCodeTimer(exp);
+      if (r.devCode && $('sub-code')) $('sub-code').value = r.devCode;
+      if ($('sub-code')) $('sub-code').focus();
+    } else { notify(t('codeBad'), 'warn'); }
   });
   if ($('btn-verify')) $('btn-verify').addEventListener('click', async function () {
     var email = ($('sub-email').value || '').trim();
     var r = await authVerify(email, ($('sub-code').value || '').trim());
-    if (r && r.ok) { $('sub-step-code').style.display = 'none'; $('sub-auth-note').textContent = ''; }
-    else if ($('sub-auth-note')) $('sub-auth-note').textContent = t('codeBad');
+    if (r && r.ok) { clearCode(); }
+    else notify(t('codeBad'), 'warn');
   });
   if ($('btn-signout')) $('btn-signout').addEventListener('click', function () {
     // Best-effort: free this device's seat on the server, then clear locally.

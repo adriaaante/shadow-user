@@ -332,7 +332,8 @@
   $('exp-json').addEventListener('click', () => { download('driftly-web-metrics.json', M.json(), 'application/json'); toast(t('exported')); });
   $('reset').addEventListener('click', () => { M.reset(); refreshCharts(); toast(t('reset')); });
   document.querySelectorAll('#lang-ru,#lang-en').forEach((b) => b.addEventListener('click', () => { lang = b.id.endsWith('ru') ? 'ru' : 'en'; localStorage.setItem('driftly.lang', lang); applyLang(); window.dispatchEvent(new Event('driftly-lang-changed')); }));
-  let toastTimer; function toast(m) { const el = $('toast'); el.textContent = m; el.classList.add('show'); clearTimeout(toastTimer); toastTimer = setTimeout(() => el.classList.remove('show'), 2200); }
+  let toastTimer; function toast(m, kind) { const el = $('toast'); el.textContent = m; el.className = 'toast show' + (kind ? ' ' + kind : ''); clearTimeout(toastTimer); toastTimer = setTimeout(() => el.classList.remove('show'), 2600); }
+  window.DriftlyToast = toast; // prominent notifications, reused by web-account.js
 
   /* --------------------------------- loop ------------------------------- */
   setInterval(() => { const lv = M.live(); const h = M.lastHour(); window.Charts.gauge($('gauge'), lv.gauge); $('kpi-events').textContent = h.total; $('kpi-syn').textContent = h.synthetic; $('kpi-real').textContent = h.real; }, 1000);
