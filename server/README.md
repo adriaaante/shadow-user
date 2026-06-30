@@ -83,10 +83,9 @@ UNISENDER_GO_API_KEY=xxx \
 # UNISENDER_GO_API_URL=https://go1.unisender.ru/ru/transactional/api/v1  # default; set your region's base
 # MAIL_FROM_EMAIL=support@driftly.site  MAIL_FROM_NAME=Driftly           # optional
 npm start
-
-# Resend (international fallback)
-DRIFTLY_MAILER=resend RESEND_API_KEY=re_xxx [MAIL_FROM="Driftly <support@driftly.site>"] npm start
 ```
+(The live PHP deployment sends via host SMTP — `php-mail` in `server-php/lib/mailer.php` — so it
+needs no ESP. This Node server is the VPS reference.)
 
 The sending domain (`driftly.site`) must be **verified** in the provider (add the SPF/DKIM/DMARC
 records it shows — and keep a **single** merged SPF record). With no key the mailer falls back to

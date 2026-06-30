@@ -3,9 +3,10 @@
  *
  * Dev default ("console") logs the code and returns it in the API response so the
  * flow is testable without a real mailbox. For production select a provider via
- * env: DRIFTLY_MAILER=unisender-go | resend (both use Node's global fetch — no deps).
+ * env: DRIFTLY_MAILER=unisender-go (uses Node's global fetch — no deps).
  * The sending domain (driftly.site) must be verified (SPF/DKIM/DMARC) or codes
- * land in spam. Sign-in codes are time-sensitive — a code in spam breaks login. */
+ * land in spam. Sign-in codes are time-sensitive — a code in spam breaks login.
+ * (The live PHP deployment uses host SMTP via php-mail; see server-php/lib/mailer.php.) */
 
 // Shared bilingual (RU/EN) code email body.
 function codeEmail(code) {
@@ -66,31 +67,7 @@ const unisenderGoMailer = {
   },
 };
 
-// Resend (https://resend.com) — international fallback, HTTPS API.
-//   DRIFTLY_MAILER=resend  RESEND_API_KEY=re_xxx  [MAIL_FROM="Driftly <support@driftly.site>"]
-const resendMailer = {
-  name: 'resend',
-  ready() { return !!process.env.RESEND_API_KEY; },
-  async send(email, code) {
-    const e = codeEmail(code);
-    const res = await fetch('https://api.resend.com/emails', {
-      method: 'POST',
-      headers: { Authorization: 'Bearer ' + process.env.RESEND_API_KEY, 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        from: process.env.MAIL_FROM || 'Driftly <support@driftly.site>',
-        to: [email], reply_to: process.env.MAIL_REPLY_TO || 'support@driftly.site',
-        subject: e.subject, text: e.text, html: e.html,
-      }),
-    });
-    if (!res.ok) {
-      const detail = await res.text().catch(() => '');
-      throw new Error(`resend_failed_${res.status}: ${detail.slice(0, 200)}`);
-    }
-    return {};
-  },
-};
-
-const REGISTRY = { console: consoleMailer, 'unisender-go': unisenderGoMailer, resend: resendMailer };
+const REGISTRY = { console: consoleMailer, 'unisender-go': unisenderGoMailer };
 
 function select() {
   const want = (process.env.DRIFTLY_MAILER || 'console').toLowerCase();
