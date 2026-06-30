@@ -93,3 +93,14 @@ curl https://api.driftly.site/v1/health      # {"ok":true,"provider":"tbank","ke
 curl https://api.driftly.site/v1/config      # price 249 / 2500
 ```
 Updating later: `cd ~/driftly-src && git pull` (CRON + API pick it up immediately).
+
+## Front-end (driftly.site) — deploy after changing `docs/`
+The live `driftly.site` front is a **real-directory copy** on `u3544543@server135`, NOT a
+symlink and NOT auto-updated by git — sync it from the checkout after every `docs/` change:
+```bash
+cd /var/www/u3544543/data/driftly-src && git pull --ff-only origin main
+rsync -a --delete /var/www/u3544543/data/driftly-src/docs/ /var/www/u3544543/data/www/driftly.site/
+curl -s https://driftly.site/app/web.js | grep -c function   # sanity check
+```
+(GitHub Pages `adriaaante.github.io/shadow-user/` updates on push by itself; the custom domain
+does not — no `docs/CNAME`.)

@@ -118,5 +118,8 @@ Note: `node:sqlite` prints an ExperimentalWarning (harmless; stable in Node 24+)
 - Recopy shared: `cp shared/entitlement.js shared/license.js shared/verify-node.js shared/license-public.pem app/src/shared/ && cp shared/entitlement.js shared/license.js docs/app/shared/`
 - Desktop: `cd app && npm install && npm start` · `npm run dist` (installers).
 - Site/web preview: `cd docs && python3 -m http.server 8080`.
+- **Deploy front-end to live `driftly.site`** (on `u3544543@server135`, after pushing to `main`):
+  `cd /var/www/u3544543/data/driftly-src && git pull --ff-only origin main && rsync -a --delete /var/www/u3544543/data/driftly-src/docs/ /var/www/u3544543/data/www/driftly.site/`
+  (verify: `curl -s https://driftly.site/app/web.js | grep -c function`). GitHub Pages updates on push by itself.
 - Browser e2e (dev-only, needs `playwright-core` + the headless-shell binary): drove the full web
   subscription flow; not committed (avoids adding a heavy test dep).
