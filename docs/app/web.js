@@ -352,6 +352,7 @@
   // their element ids, so web-account.js keeps rendering into them regardless of
   // which tab is visible. window.DriftlyTabs.show lets the paywall jump to a tab.
   function showTab(name) {
+    if (!document.querySelector('.tab-panel[data-panel="' + name + '"]')) name = 'app'; // guard stale/removed tabs (e.g. old "account")
     document.querySelectorAll('#tabs button').forEach((b) => b.classList.toggle('active', b.dataset.tab === name));
     document.querySelectorAll('.tab-panel').forEach((p) => { p.hidden = (p.dataset.panel !== name); });
     try { localStorage.setItem('driftly.tab', name); } catch (_) {}

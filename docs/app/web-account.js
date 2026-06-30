@@ -84,8 +84,8 @@
 
   /* ------------------------------- rendering ------------------------------- */
   var L = {
-    ru: { preview: 'Демо-режим: сервер лицензий не подключён — доступ открыт.', signin: 'Войдите, чтобы управлять подпиской.', goAccount: 'Перейти в «Аккаунт»', trial: 'Подключить карту — 3 дня бесплатно', trialActive: 'Пробный период', daysLeft: 'дн. осталось', active: 'Подписка активна', renews: 'Продление', inactive: 'Подписка неактивна', pastDue: 'Необходимо оплатить', pastDueDesc: 'Списание не прошло. Оплатите, чтобы продолжить.', retry: 'Повторить оплату', cancel: 'Отменить подписку', pwText: 'Подключите карту и получите 3 дня бесплатно. Driftly работает и в браузере, и в десктоп-приложении.', goSub: 'Открыть подписку', codeBad: 'Неверный код', emailEmpty: 'Введите email', emailBad: 'Неверный формат email', codeSent: 'Код отправлен — проверьте почту', sentTo: 'Код отправлен на', resend: 'Отправить ещё раз', changeEmail: 'Изменить email', codeValidFor: 'Код действителен ещё', codeExpired: 'Код истёк — запросите новый', resume: 'Возобновить', accessUntil: 'доступ до', trialCanceled: 'Пробный период отменён', subCanceled: 'Подписка отменена', noRenew: 'продление не произойдёт', monthly: 'Помесячно', yearly: 'За год', perMonth: '₽/мес', perYear: '₽/год', planYearWord: 'годовая', planMonthWord: 'месячная', changePlan: 'Тариф', intervalNote: 'Смена тарифа применится со следующего списания.' },
-    en: { preview: 'Demo mode: no licensing server — access is open.', signin: 'Sign in to manage your subscription.', goAccount: 'Go to Account', trial: 'Add a card — 3 days free', trialActive: 'Free trial', daysLeft: 'days left', active: 'Subscription active', renews: 'Renews', inactive: 'Subscription inactive', pastDue: 'Payment required', pastDueDesc: 'The charge failed. Pay to continue.', retry: 'Retry payment', cancel: 'Cancel subscription', pwText: 'Add a card and get 3 days free. Driftly works in the browser and in the desktop app.', goSub: 'Open subscription', codeBad: 'Invalid code', emailEmpty: 'Enter your email', emailBad: 'Invalid email format', codeSent: 'Code sent — check your email', sentTo: 'Code sent to', resend: 'Resend code', changeEmail: 'Change email', codeValidFor: 'Code valid for', codeExpired: 'Code expired — request a new one', resume: 'Resume', accessUntil: 'access until', trialCanceled: 'Trial cancelled', subCanceled: 'Subscription cancelled', noRenew: 'will not renew', monthly: 'Monthly', yearly: 'Yearly', perMonth: '₽/mo', perYear: '₽/yr', planYearWord: 'yearly', planMonthWord: 'monthly', changePlan: 'Plan', intervalNote: 'The plan change applies from your next charge.' },
+    ru: { preview: 'Демо-режим: сервер лицензий не подключён — доступ открыт.', signin: 'Войдите, чтобы управлять подпиской.', trial: 'Подключить карту — 3 дня бесплатно', trialActive: 'Пробный период', daysLeft: 'дн. осталось', active: 'Подписка активна', renews: 'Продление', inactive: 'Подписка неактивна', pastDue: 'Необходимо оплатить', pastDueDesc: 'Списание не прошло. Оплатите, чтобы продолжить.', retry: 'Повторить оплату', cancel: 'Отменить подписку', pwText: 'Подключите карту и получите 3 дня бесплатно. Driftly работает и в браузере, и в десктоп-приложении.', goSub: 'Открыть подписку', codeBad: 'Неверный код', emailEmpty: 'Введите email', emailBad: 'Неверный формат email', codeSent: 'Код отправлен — проверьте почту', sentTo: 'Код отправлен на', resend: 'Отправить ещё раз', changeEmail: 'Изменить email', codeValidFor: 'Код действителен ещё', codeExpired: 'Код истёк — запросите новый', resume: 'Возобновить', accessUntil: 'доступ до', trialCanceled: 'Пробный период отменён', subCanceled: 'Подписка отменена', noRenew: 'продление не произойдёт', monthly: 'Помесячно', yearly: 'За год', perMonth: '₽/мес', perYear: '₽/год', planYearWord: 'годовая', planMonthWord: 'месячная', changePlan: 'Тариф', intervalNote: 'Смена тарифа применится со следующего списания.' },
+    en: { preview: 'Demo mode: no licensing server — access is open.', signin: 'Sign in to manage your subscription.', trial: 'Add a card — 3 days free', trialActive: 'Free trial', daysLeft: 'days left', active: 'Subscription active', renews: 'Renews', inactive: 'Subscription inactive', pastDue: 'Payment required', pastDueDesc: 'The charge failed. Pay to continue.', retry: 'Retry payment', cancel: 'Cancel subscription', pwText: 'Add a card and get 3 days free. Driftly works in the browser and in the desktop app.', goSub: 'Open subscription', codeBad: 'Invalid code', emailEmpty: 'Enter your email', emailBad: 'Invalid email format', codeSent: 'Code sent — check your email', sentTo: 'Code sent to', resend: 'Resend code', changeEmail: 'Change email', codeValidFor: 'Code valid for', codeExpired: 'Code expired — request a new one', resume: 'Resume', accessUntil: 'access until', trialCanceled: 'Trial cancelled', subCanceled: 'Subscription cancelled', noRenew: 'will not renew', monthly: 'Monthly', yearly: 'Yearly', perMonth: '₽/mo', perYear: '₽/yr', planYearWord: 'yearly', planMonthWord: 'monthly', changePlan: 'Plan', intervalNote: 'The plan change applies from your next charge.' },
   };
   function lang() { return localStorage.getItem('driftly.lang') || 'ru'; }
   function t(k) { return L[lang()][k]; }
@@ -119,13 +119,14 @@
         $('pw-cta').textContent = t('goSub');
       }
     }
-    // account panel
+    // account block (sign-in / signed-in) — lives at the top of the Subscription card
+    if ($('sub-auth')) $('sub-auth').style.display = preview() ? 'none' : 'block';
     if ($('sub-signin')) $('sub-signin').style.display = (!preview() && !state.token) ? 'block' : 'none';
     if ($('sub-signedin')) $('sub-signedin').style.display = (state.token && !preview()) ? 'block' : 'none';
     if ($('sub-who')) $('sub-who').textContent = e.account || '';
     var box = $('sub-state'); if (!box) return;
     if (preview()) { box.innerHTML = sb('trial', '✨', t('preview'), ''); return; }
-    if (!state.token) { box.innerHTML = sb('', '👤', t('signin'), '') + '<button class="btn primary" data-acc="goaccount" style="margin-top:12px">' + t('goAccount') + '</button>'; return; }
+    if (!state.token) { box.innerHTML = sb('', '👤', t('signin'), ''); return; }
     if (e.reason === 'trial') box.innerHTML = e.canceled
       ? sb('trial', '✨', t('trialCanceled'), t('accessUntil') + ' ' + fmt(e.renewsAt)) + rbtn()
       : sb('trial', '✨', t('trialActive'), e.trialDaysLeft + ' ' + t('daysLeft')) + cbtn() + itoggle(e.interval);
@@ -176,7 +177,6 @@
         if (url) window.location.href = url; // T-Bank: card binding (AddCard) + 3-D Secure
       });
     }
-    else if (act === 'goaccount') { if (window.DriftlyTabs) window.DriftlyTabs.show('account'); }
     else if (act === 'retry') call('POST', '/v1/billing/retry');
     else if (act === 'cancel') call('POST', '/v1/billing/cancel');
     else if (act === 'resume') call('POST', '/v1/billing/resume');

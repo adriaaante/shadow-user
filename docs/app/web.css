@@ -194,6 +194,7 @@ body{overflow:auto;background:radial-gradient(1200px 600px at 80% -10%,rgba(124,
 .signed-as b{color:var(--text);font-weight:600}
 .btn.signout{flex:0 0 auto;padding:9px 18px;background:transparent;border:1px solid var(--border2);color:var(--dim);border-radius:10px;font-weight:600;font-size:13px;transition:border-color .15s,color .15s,background .15s}
 .btn.signout:hover{border-color:rgba(240,86,110,.55);color:var(--danger);background:rgba(240,86,110,.09)}
+hr.sep{border:0;border-top:1px solid var(--border2);margin:20px 0}
 
 /* «Запустить» — заметная зелёная CTA: сразу видно, что её надо нажать */
 #runmode button[data-mode="on"]{color:#04130d;background:linear-gradient(135deg,#34d399,#14b8a6);font-weight:700}
