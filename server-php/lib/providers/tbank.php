@@ -1,15 +1,18 @@
 <?php
 /* providers/tbank.php — T-Bank (Tinkoff) acquiring. Port of tbank.js to real HTTPS.
  *
- * Recurring model (https://www.tbank.ru/kassa/dev/payments/):
- *   startTrial → Init {Recurrent:Y, CustomerKey} → return PaymentURL for 3-DS card binding.
- *                On the payment notification store RebillId + cardOnFile.
- *   chargeRecurring → Init a new payment, then Charge {PaymentId, RebillId} (no user).
+ * Recurring model (https://developer.tbank.ru/eacq/):
+ *   startTrial → AddCard {CheckType:3DS, CustomerKey} → PaymentURL for 0₽ card binding.
+ *                The trial is FREE — nothing is charged now. The binding notification
+ *                carries RebillId; we store it + set cardOnFile.
+ *   chargeRecurring → Init a new payment, then Charge {PaymentId, RebillId} (no user) —
+ *                the FIRST real charge, run by tick.php only when the trial/period ends.
  *   webhook → T-Bank POSTs status; Token verified by recomputing the signature.
  *
- * ⚠️ The Init/Charge/webhook round-trips MUST be validated against the T-Bank TEST
- * terminal before going live (can't be unit-tested without it). The Token signature
- * IS deterministic and unit-tested. */
+ * ⚠️ AddCard/Charge are recurrent methods — the terminal must have рекуррентные
+ * платежи enabled, and NotificationURL/SuccessURL set in the Т-Касса cabinet (AddCard
+ * doesn't take them per-request). Validate the round-trips on the TEST terminal before
+ * going live. The Token signature IS deterministic and unit-tested. */
 
 require_once __DIR__ . '/../config.php';
 require_once __DIR__ . '/../entitlement.php';
@@ -53,20 +56,19 @@ class TbankProvider {
     $acc['provider'] = 'tbank'; $acc['plan'] = 'pro'; $acc['status'] = 'trialing';
     $acc['trialEndsAt'] = $now + TRIAL_DAYS * DAY_MS; $acc['canceled'] = false;
     $acc['interval'] = (($pd['interval'] ?? '') === 'year') ? 'year' : 'month';
-    $acc['cardOnFile'] = false; $acc['_pendingConfirm'] = true;
-    $r = $this->call('Init', [
-      'Amount' => $this->amountKopecks($acc),
-      'OrderId' => 'trial-' . $acc['email'] . '-' . $now,
-      'Recurrent' => 'Y', 'CustomerKey' => $acc['email'],
-      'NotificationURL' => env('TBANK_NOTIFICATION_URL', ''),
-      'SuccessURL' => env('TBANK_SUCCESS_URL', ''), 'FailURL' => env('TBANK_FAIL_URL', ''),
-      'Description' => 'Driftly Pro',
+    $acc['cardOnFile'] = false;
+    // FREE trial: BIND the card without charging. AddCard CheckType=3DS runs a 0₽
+    // verification and returns a RebillId in the binding notification; the first real
+    // charge happens only when the trial ends (tick.php → chargeRecurring, day 4).
+    $r = $this->call('AddCard', [
+      'CustomerKey' => $acc['email'],
+      'CheckType' => '3DS',
     ]);
     if (!empty($r['Success']) && !empty($r['PaymentURL'])) {
-      $acc['providerPaymentId'] = $r['PaymentId'] ?? null;
+      $acc['providerRequestKey'] = $r['RequestKey'] ?? null;
       return ['ok' => true, 'needsConfirm' => true, 'redirectUrl' => $r['PaymentURL']];
     }
-    return ['ok' => false, 'error' => $r['Message'] ?? 'init_failed', 'detail' => $r['Details'] ?? null];
+    return ['ok' => false, 'error' => $r['Message'] ?? 'addcard_failed', 'detail' => $r['Details'] ?? null];
   }
 
   function chargeRecurring(array &$acc, int $now): array {

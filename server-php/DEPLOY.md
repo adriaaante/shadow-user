@@ -75,11 +75,17 @@ otherwise live visitors hit a sign-in/paywall that can't complete. To test end-t
 flipping the default, append `?api=https://api.driftly.site` to the web app URL.
 
 ## 9. T-Bank merchant settings
-In the Т-Касса shop set:
-- **NotificationURL** = `https://api.driftly.site/v1/webhooks/tbank`
-- **Success/Fail URL** = your `TBANK_SUCCESS_URL` / `TBANK_FAIL_URL`
-Test on the **test terminal** first (the Init/Charge/webhook round-trips must be
-validated live), then swap in the live terminal key/password.
+Billing model: the **3-day trial is free** — `startTrial` calls **AddCard** (CheckType=3DS,
+a 0₽ card verification, NOT a charge) and stores the `RebillId` from the binding notification;
+the **first real charge runs only when the trial ends** (`tick.php` → Charge by RebillId, day 4).
+This needs the terminal set up for recurring + the URLs in the cabinet (AddCard, unlike Init,
+does NOT take them per-request):
+- Ask Т-Касса support to **enable рекуррентные платежи** for the terminal (otherwise AddCard/
+  Charge return "Метод ... заблокирован для данного терминала").
+- Set the terminal's **NotificationURL** = `https://api.driftly.site/v1/webhooks/tbank`.
+- Set the terminal's **Success/Fail URL** = `https://driftly.site/app/?paid=1` / `?paid=0`.
+Validate the AddCard→notification→Charge round-trips on the **test terminal** first (test card
+`4300 0000 0000 0777`, 3-DS `12345678`), then swap in the live terminal key/password.
 
 ## Verify
 ```bash

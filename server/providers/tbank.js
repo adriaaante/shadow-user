@@ -4,13 +4,15 @@
  * Implements the same interface as mock.js. Wire the real HTTPS calls where the
  * TODOs are, then set env: DRIFTLY_PROVIDER=tbank, TBANK_TERMINAL_KEY, TBANK_PASSWORD.
  *
- * T-Bank recurring-payment model (https://www.tbank.ru/kassa/dev/payments/):
- *   1) Init       — create a payment; for the first/trial payment pass Recurrent=Y
- *                   and CustomerKey to allow future charges, plus a Token (signature).
- *   2) The customer confirms the card (3-D Secure) → you receive a RebillId.
+ * T-Bank recurring-payment model (https://developer.tbank.ru/eacq/):
+ *   1) AddCard    — for a FREE trial, bind the card with CheckType=3DS (a 0₽ check,
+ *                   NOT a charge), CustomerKey=acc.email, plus a Token (signature).
+ *   2) The customer confirms the card (3-D Secure) → the binding notification carries
+ *                   a RebillId (store it; set cardOnFile). No money is taken.
  *   3) Charge     — Init a new payment then call Charge with {PaymentId, RebillId}
- *                   to debit the saved card WITHOUT the customer (the auto-renewal).
+ *                   to debit the saved card WITHOUT the customer (the day-4 auto-renewal).
  *   4) Notifications (webhook) — T-Bank POSTs payment status; verify the Token.
+ *   (See server-php/lib/providers/tbank.php for the live PHP implementation.)
  *
  * Signature (Token): SHA-256 of the request params (incl. Password) sorted by key.
  */
