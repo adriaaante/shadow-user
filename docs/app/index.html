@@ -33,12 +33,14 @@
 <main class="wrap">
   <div id="acc-banner" class="note info" style="display:none;margin-bottom:18px"></div>
 
+  <div class="shell">
   <nav class="tabs" id="tabs">
     <button data-tab="app" class="active" data-ru="Приложение" data-en="App">Приложение</button>
     <button data-tab="sub" data-ru="Подписка" data-en="Subscription">Подписка</button>
     <button data-tab="account" data-ru="Аккаунт" data-en="Account">Аккаунт</button>
   </nav>
 
+  <div class="panels">
   <!-- ════════════════ TAB: Приложение (рабочий экран) ════════════════ -->
   <div class="tab-panel" data-panel="app">
     <div class="note info" data-ru="Это веб-версия. Она работает в браузере без установки: имитирует активность в песочнице ниже, не даёт экрану гаснуть и измеряет активность на этой странице. Управлять системным курсором или мерить активность всей ОС браузер не может — для этого скачайте десктоп-приложение." data-en="This is the web version. It runs in the browser with no install: it simulates activity in the sandbox below, keeps the screen awake (Wake Lock), and measures activity on this page. A browser cannot control the OS cursor or measure system-wide activity — for that, download the desktop app.">…</div>
@@ -122,6 +124,19 @@
         <div class="it"><span class="sw" style="background:#2dd4bf"></span><span data-ru="Реальная" data-en="Real">Реальная</span></div>
       </div>
     </section>
+
+    <section class="card" style="margin-top:18px">
+      <h3 data-ru="Данные · сравнение и экспорт" data-en="Data · compare & export">Данные · сравнение и экспорт</h3>
+      <div class="compare-bars" style="margin:8px 0 16px">
+        <div class="cmp"><div class="top"><span data-ru="Активный (с Driftly)" data-en="Shadow">Активный (с Driftly)</span><b id="cmp-shadow-v">0</b></div><div class="bar"><i id="cmp-shadow" style="background:var(--grad);width:0%"></i></div></div>
+        <div class="cmp"><div class="top"><span data-ru="Пассивный (только вы)" data-en="Passive">Пассивный (только вы)</span><b id="cmp-passive-v">0</b></div><div class="bar"><i id="cmp-passive" style="background:#2dd4bf;width:0%"></i></div></div>
+      </div>
+      <div class="actions-row">
+        <button class="btn primary" id="exp-csv" data-ru="Экспорт CSV" data-en="Export CSV">Экспорт CSV</button>
+        <button class="btn" id="exp-json" data-ru="Экспорт JSON" data-en="Export JSON">Экспорт JSON</button>
+        <button class="btn danger" id="reset" data-ru="Сбросить" data-en="Reset">Сбросить</button>
+      </div>
+    </section>
   </div>
 
   <!-- ════════════════ TAB: Подписка ════════════════ -->
@@ -170,19 +185,8 @@
       <div class="mode-note" id="sub-api-state"></div>
     </section>
 
-    <section class="card" style="margin-top:18px">
-      <h3 data-ru="Данные · сравнение и экспорт" data-en="Data · compare & export">Данные · сравнение и экспорт</h3>
-      <div class="compare-bars" style="margin:8px 0 16px">
-        <div class="cmp"><div class="top"><span data-ru="Активный (с Driftly)" data-en="Shadow">Активный (с Driftly)</span><b id="cmp-shadow-v">0</b></div><div class="bar"><i id="cmp-shadow" style="background:var(--grad);width:0%"></i></div></div>
-        <div class="cmp"><div class="top"><span data-ru="Пассивный (только вы)" data-en="Passive">Пассивный (только вы)</span><b id="cmp-passive-v">0</b></div><div class="bar"><i id="cmp-passive" style="background:#2dd4bf;width:0%"></i></div></div>
-      </div>
-      <div class="actions-row">
-        <button class="btn primary" id="exp-csv" data-ru="Экспорт CSV" data-en="Export CSV">Экспорт CSV</button>
-        <button class="btn" id="exp-json" data-ru="Экспорт JSON" data-en="Export JSON">Экспорт JSON</button>
-        <button class="btn danger" id="reset" data-ru="Сбросить" data-en="Reset">Сбросить</button>
-      </div>
-    </section>
   </div>
+  </div></div>
 
   <p class="foot muted" data-ru="100% локально · без сбора данных · © 2026 Driftly — все права защищены" data-en="100% local · no data collection · © 2026 Driftly — all rights reserved">100% локально · без сбора данных · © 2026 Driftly — все права защищены</p>
 </main>
