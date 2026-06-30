@@ -39,8 +39,17 @@ recopy to both (see Commands), or clients run stale logic. `entitlement.js`, `li
 (+`-wal`/`-shm`, the SQLite store), `app/dist/` (installers), `config.json`/`metrics.json` (desktop runtime).
 
 ## Deploy / what actually ships
-- **Site + web app:** static, **no build**. GitHub Pages from `docs/` (Settings → Pages →
-  branch + `/docs`). Pushing the published branch updates it. Live: `…/` and `…/app/`.
+- **Hosting accounts (REG):** the Driftly stack lives on **`u3544543` @ `server135`** — both
+  `driftly.site` (front + web app) and the `api.driftly.site` subdomain, git checkout at
+  `/var/www/u3544543/data/driftly-src`, site docroots under `/var/www/u3544543/data/www/`.
+  (A second REG account `u3501870` @ `server292` hosts unrelated sites — not Driftly.)
+- **Site + web app:** static, **no build** (`docs/`). Deployed in TWO places, keep both in mind:
+  1. **GitHub Pages** — auto-updates on every push to `main`; URL `adriaaante.github.io/shadow-user/`.
+  2. **The LIVE domain `driftly.site` is REG-hosted** (nginx) at `/var/www/u3544543/data/www/driftly.site`
+     — this copy is **NOT** updated by a git push; it must be **synced from `docs/`** after pulling
+     the checkout (deploy step in `server-php/DEPLOY.md`). The custom domain is on REG, not Pages
+     (no `docs/CNAME`). So after changing `docs/`: push → `git pull` on server135 → sync into the
+     `driftly.site` docroot.
 - **Desktop:** `cd app && npm run dist` (electron-builder → Win/macOS/Linux installers) →
   upload to **GitHub Releases**; site download buttons point there. Native input modules are
   optional — without them the app runs in **simulation mode** (full UI still works).
