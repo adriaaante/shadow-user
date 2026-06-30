@@ -73,23 +73,13 @@ code is sent via `mailer.js` (dev default `console` logs it and returns it in th
 response as `devCode`). Codes are single-use, expire in 10 minutes, and lock out after
 5 wrong tries.
 
-**Sending real codes.** Two built-in providers (both HTTPS API, no deps), selected by
-`DRIFTLY_MAILER`:
+**Sending real codes.** The live deployment is the **PHP server** (`server-php/`), which sends
+via host SMTP (`php-mail`) — no ESP, no cost. See `server-php/lib/mailer.php` + `DEPLOY.md`.
+This Node server is the VPS reference; its `mailer.js` ships only the `console` backend — wire
+your SMTP/ESP of choice as an extra `REGISTRY` entry for a Node/VPS deployment.
 
-```bash
-# Unisender Go (RU — best inbox rates for Yandex/Mail.ru)
-DRIFTLY_MAILER=unisender-go \
-UNISENDER_GO_API_KEY=xxx \
-# UNISENDER_GO_API_URL=https://go1.unisender.ru/ru/transactional/api/v1  # default; set your region's base
-# MAIL_FROM_EMAIL=support@driftly.site  MAIL_FROM_NAME=Driftly           # optional
-npm start
-```
-(The live PHP deployment sends via host SMTP — `php-mail` in `server-php/lib/mailer.php` — so it
-needs no ESP. This Node server is the VPS reference.)
-
-The sending domain (`driftly.site`) must be **verified** in the provider (add the SPF/DKIM/DMARC
-records it shows — and keep a **single** merged SPF record). With no key the mailer falls back to
-`console`. (Sign-in codes are time-sensitive — a code in spam breaks login.)
+Whatever sends the mail, the sending domain (`driftly.site`) must have **SPF + DKIM + DMARC** set
+so codes don't land in spam (a code in spam breaks login).
 
 ## Selecting a payment provider
 

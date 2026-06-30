@@ -26,8 +26,8 @@ for desktop. Bilingual RU/EN.
   - `license-public.pem` — committed public key embedded in clients.
 - `app/` — Electron desktop. Entry `src/main/index.js` (lifecycle, IPC, `reconcile()` drives the generator). Main modules: `store.js`, `metrics.js`, `monitor.js`, `generator.js`, `scheduler.js`, `input-backend.js`, `license.js` (subscription client, offline verify). Bridge: `src/preload/preload.js`. UI: `src/renderer/index.html` + `assets/app.js` + `app.css`.
 - `docs/` — **GitHub Pages root**. `index.html` = marketing (bilingual, reveal-on-scroll, JSON-LD). `docs/app/` = web app: `index.html`, `web.js` (engine+UI), `web-account.js` (subscription client + `window.DriftlyGate`), `web.css`.
-- `server/` — licensing backend (Node http+crypto, no external deps): `index.js` (endpoints, auth, billing, auto-charge tick), `store.js` (SQLite via built-in `node:sqlite`), `lib.js` (**ES256** signing), `keygen.js`, `mailer.js` (console + Unisender Go), `providers/{index,mock,tbank,yookassa}.js`, `test.js`, `README.md`. Reference/VPS option.
-- `server-php/` — **the actual deployment target** (free, runs on REG shared hosting: PHP 8 + MySQL + CRON, no Node). Same API/JSON as `server/` so clients are unchanged. `index.php` (front controller, all `/v1/*`), `lib/{config,store(PDO),entitlement,jwt(ES256/openssl),license,mailer(Unisender Go),providers/{mock,tbank}}.php`, `keygen.php` (EC P-256), `tick.php` (CRON recurring-charge), `.htaccess`, `test.php` (14 checks), `.env.example`, `DEPLOY.md`. Tested locally on PHP 8.4 (SQLite) + e2e via `php -S` (20 checks). **`.keys/` and `.env` are gitignored.** ⚠️ T-Bank Init/Charge/webhook round-trips still need live validation on the test terminal.
+- `server/` — licensing backend (Node http+crypto, no external deps): `index.js` (endpoints, auth, billing, auto-charge tick), `store.js` (SQLite via built-in `node:sqlite`), `lib.js` (**ES256** signing), `keygen.js`, `mailer.js` (console; prod email is `php-mail` in server-php), `providers/{index,mock,tbank,yookassa}.js`, `test.js`, `README.md`. Reference/VPS option.
+- `server-php/` — **the actual deployment target** (free, runs on REG shared hosting: PHP 8 + MySQL + CRON, no Node). Same API/JSON as `server/` so clients are unchanged. `index.php` (front controller, all `/v1/*`), `lib/{config,store(PDO),entitlement,jwt(ES256/openssl),license,mailer(php-mail host SMTP),providers/{mock,tbank}}.php`, `keygen.php` (EC P-256), `tick.php` (CRON recurring-charge), `.htaccess`, `test.php` (14 checks), `.env.example`, `DEPLOY.md`. Tested locally on PHP 8.4 (SQLite) + e2e via `php -S` (20 checks). **`.keys/` and `.env` are gitignored.** ⚠️ T-Bank Init/Charge/webhook round-trips still need live validation on the test terminal.
 - Docs: `PLAN.md` (architecture), `PRIVACY.md`, `TERMS.md` (offer template), `README.md`.
 
 **Vendored (do not hand-edit as the source):** `app/src/shared/` and `docs/app/shared/` are
@@ -77,12 +77,11 @@ Note: `node:sqlite` prints an ExperimentalWarning (harmless; stable in Node 24+)
   + a copy of `.htaccess`. Bonus: `.env`/`.keys/` stay outside the webroot. Code resolves all paths via `__DIR__`.
 - **nginx serves the ACME challenge itself** (`/.well-known/acme-challenge/` → `alias /usr/local/mgr5/www/letsencrypt/`),
   so HTTP-01 doesn't touch our docroot. The self-signed cert at site creation is replaced by LE once issued.
-- **Email default is `php-mail`** (hosting SMTP via PHP `mail()`, `server-php/lib/mailer.php`) — free +
+- **Email = `php-mail`** (hosting SMTP via PHP `mail()`, `server-php/lib/mailer.php`) — free +
   self-contained, sends as `support@driftly.site` through the host MTA. Needs **DKIM enabled in the panel**
-  + host IP in SPF (already present) so codes don't hit spam; create the `support@driftly.site` mailbox.
-  Chosen over Unisender Go because UG's only *forever-free* tier sends to **own domains only** (external →
-  code 903) and its paid promo lasts 2 months. UG remains a `DRIFTLY_MAILER=unisender-go` option (better RU
-  deliverability, paid): node-pinned, ours is **go2** (`UNISENDER_GO_API_URL`); wrong node → code 114.
+  + host IP in SPF + a simple `_dmarc` TXT so codes don't hit spam; create the `support@driftly.site` mailbox.
+  Chosen over Unisender Go (its forever-free tier sends to **own domains only**; external → code 903) and
+  over an ESP generally — host SMTP costs nothing and needs no third party. Tested: code reached Gmail inbox.
 - **CRON uses `/usr/bin/php`** (CLI is 8.2) — `*/10 * * * * /usr/bin/php …/server-php/tick.php >/dev/null 2>&1`.
 - **Preview mode:** clients with no licensing API set run open + a banner (usable pre-deploy).
   Setting the API activates real trial/paywall/past_due gating.

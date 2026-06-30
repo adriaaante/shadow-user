@@ -55,18 +55,15 @@ absolute `php` binary path — the shared host's CLI php is 8.x:
 Tick "не отправлять отчёт по e-mail" so it doesn't mail you every 10 minutes.
 
 ## 7. Email for sign-in codes
-Default is **`DRIFTLY_MAILER=php-mail`** — free + self-contained: codes are sent as
-`MAIL_FROM_EMAIL` (`support@driftly.site`) through the host's MTA via PHP `mail()`. No
-third-party service, no ongoing cost. To keep codes out of spam:
+**`DRIFTLY_MAILER=php-mail`** — free + self-contained: codes are sent as `MAIL_FROM_EMAIL`
+(`support@driftly.site`) through the host's MTA via PHP `mail()`. No third-party service, no
+ongoing cost. To keep codes out of spam:
 - **Enable DKIM** for `driftly.site` in the panel (Почта → DKIM) — it adds a TXT record.
-- Keep the host IP in **SPF** (`driftly.site` TXT already has `ip4:37.140.192.157` +
-  `include:_spf.hosting.reg.ru`), so the envelope sender passes SPF.
-- Create the `support@driftly.site` mailbox in the panel (so the From/Return-Path is a real
-  local address).
-
-Alternative `unisender-go`: better RU deliverability but the free_tier only sends to
-*verified* domains (external recipient → code 903), so it needs a paid plan. Node-pinned —
-ours is `go2` (set `UNISENDER_GO_API_URL`). Switch by setting `DRIFTLY_MAILER=unisender-go`.
+- Keep the host IP in **SPF** (`driftly.site` TXT: `v=spf1 ip4:37.140.192.157 a mx
+  include:_spf.hosting.reg.ru ~all`), so the envelope sender passes SPF.
+- Add a simple DMARC TXT at `_dmarc.driftly.site`: `v=DMARC1; p=none; rua=mailto:you@…`.
+- Create the `support@driftly.site` mailbox in the panel (so From/Return-Path is a real local
+  address).
 
 ## 8. Point the clients at the API
 In both clients set the licensing API to `https://api.driftly.site`:

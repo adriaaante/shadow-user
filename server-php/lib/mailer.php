@@ -1,6 +1,6 @@
 <?php
-/* server-php/lib/mailer.php — sign-in code sender. Port of the Node mailer.
- * console (dev, returns devCode) | unisender-go (RU transactional, curl). */
+/* server-php/lib/mailer.php — sign-in code sender.
+ * php-mail (prod: host SMTP via PHP mail()) | console (dev, returns devCode). */
 
 require_once __DIR__ . '/config.php';
 
@@ -42,31 +42,6 @@ function mailer_select(): array {
         . "--$b\r\nContent-Type: text/html; charset=UTF-8\r\nContent-Transfer-Encoding: base64\r\n\r\n"
         . chunk_split(base64_encode($e['html'])) . "\r\n--$b--";
       if (!@mail($email, $subject, $body, $headers, '-f' . $from)) throw new Exception('php_mail_failed');
-      return [];
-    }];
-  }
-
-  if ($want === 'unisender-go' && env('UNISENDER_GO_API_KEY')) {
-    return ['name' => 'unisender-go', 'send' => function (string $email, string $code): array {
-      $base = rtrim(env('UNISENDER_GO_API_URL', 'https://go1.unisender.ru/ru/transactional/api/v1'), '/');
-      $e = mail_code_body($code);
-      $payload = ['api_key' => env('UNISENDER_GO_API_KEY'), 'message' => [
-        'recipients' => [['email' => $email]],
-        'body' => ['html' => $e['html'], 'plaintext' => $e['text']],
-        'subject' => $e['subject'],
-        'from_email' => env('MAIL_FROM_EMAIL', 'support@driftly.site'),
-        'from_name' => env('MAIL_FROM_NAME', 'Driftly'),
-        'track_links' => 0, 'track_read' => 0,
-      ]];
-      $ch = curl_init($base . '/email/send.json');
-      curl_setopt_array($ch, [CURLOPT_POST => true, CURLOPT_RETURNTRANSFER => true, CURLOPT_TIMEOUT => 15,
-        CURLOPT_HTTPHEADER => ['Content-Type: application/json'], CURLOPT_POSTFIELDS => json_encode($payload)]);
-      $res = curl_exec($ch); $http = curl_getinfo($ch, CURLINFO_HTTP_CODE); curl_close($ch);
-      $j = json_decode($res ?: '{}', true);
-      $failed = is_array($j) && !empty($j['failed_emails']) ? count($j['failed_emails']) : 0;
-      if ($http < 200 || $http >= 300 || ($j['status'] ?? '') === 'error' || $failed) {
-        throw new Exception('unisender_go_failed: ' . substr((string) $res, 0, 200));
-      }
       return [];
     }];
   }
