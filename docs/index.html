@@ -4,8 +4,8 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <title>Driftly — эмулятор активности, защита от простоя и измерение | 3 дня бесплатно</title>
-<meta name="description" content="Driftly — программа активности для веба и Windows, macOS, Linux. Гуманизированный эмулятор активности защищает от простоя: генерирует движения мыши и клики по расписанию, измеряет активность и сравнивает активный и пассивный режимы. 3 дня бесплатно, затем подписка. Локально, без сбора данных.">
-<meta name="keywords" content="программа активности, эмулятор активности, anti-idle, измерение активности, shadow user, keep computer active, мышь не засыпает, имитация активности, движение мыши">
+<meta name="description" content="Driftly — программа активности для браузера и для Windows, macOS, Linux. Гуманизированный эмулятор активности защищает от простоя: двигает мышь и кликает по расписанию, переключает и сворачивает окна программ, измеряет активность и сравнивает активный и пассивный режимы. 3 дня бесплатно, затем подписка. Локально, без сбора данных.">
+<meta name="keywords" content="программа активности, эмулятор активности, anti-idle, защита от простоя, измерение активности, shadow user, keep computer active, мышь не засыпает, имитация активности, движение мыши, переключение окон, имитация работы за компьютером, alt tab, имитатор активности в браузере">
 <meta name="robots" content="index,follow,max-image-preview:large">
 <meta name="theme-color" content="#08080c">
 <meta name="author" content="The Driftly Owner">
@@ -52,12 +52,13 @@
   "image": "https://driftly.site/assets/img/og.svg",
   "downloadUrl": "https://github.com/adriaaante/shadow-user/releases/latest",
   "license": "https://driftly.site/#license",
+  "featureList": "Имитация активности (движение мыши, клики, прокрутка), уровни и расписание, переключение между программами и сворачивание окон (Alt+Tab) в десктоп-приложении, измерение и сравнение активного и пассивного режимов, экспорт CSV/JSON, работа в браузере и на Windows, macOS, Linux",
   "offers": {
     "@type": "Offer",
     "price": "249",
     "priceCurrency": "RUB",
     "category": "subscription",
-    "description": "Driftly Pro — единая подписка на веб-версию и десктоп. 3 дня бесплатно при подключении карты, затем 249 ₽/мес или 2500 ₽/год (−16%) (рекуррентный платёж) до отмены подписки."
+    "description": "Driftly Pro — единая подписка на версию в браузере и десктоп-приложение. 3 дня бесплатно при подключении карты, затем 249 ₽/мес или 2500 ₽/год (−16%) (рекуррентный платёж) до отмены подписки."
   }
 }
 </script>
@@ -66,9 +67,11 @@
   "@context": "https://schema.org",
   "@type": "FAQPage",
   "mainEntity": [
-    {"@type":"Question","name":"Сколько стоит Driftly?","acceptedAnswer":{"@type":"Answer","text":"При подключении карты первые 3 дня бесплатны, далее — подписка Driftly Pro: 249 ₽/мес или 2500 ₽/год (−16%) с автопродлением до отмены. Одна подписка работает и в веб-версии, и в десктопе. Отменить можно в любой момент."}},
+    {"@type":"Question","name":"Сколько стоит Driftly?","acceptedAnswer":{"@type":"Answer","text":"При подключении карты первые 3 дня бесплатны, далее — подписка Driftly Pro: 249 ₽/мес или 2500 ₽/год (−16%) с автопродлением до отмены. Одна подписка работает и в браузере, и в десктоп-приложении. Отменить можно в любой момент."}},
     {"@type":"Question","name":"Собираете ли вы данные?","acceptedAnswer":{"@type":"Answer","text":"Driftly не собирает данные об активности — настройки и метрики хранятся локально на вашем компьютере, без аналитики и телеметрии. Для работы подписки используется только email и платёжный статус аккаунта; данные банковской карты обрабатывает платёжный провайдер (Т‑Банк или ЮKassa), Driftly их не хранит."}},
     {"@type":"Question","name":"На каких операционных системах работает Driftly?","acceptedAnswer":{"@type":"Answer","text":"Driftly — кроссплатформенное настольное приложение на Electron и работает на Windows, macOS и Linux."}},
+    {"@type":"Question","name":"Driftly переключает и сворачивает окна программ?","acceptedAnswer":{"@type":"Answer","text":"Да. Десктоп-приложение может переключаться между открытыми программами (Alt+Tab) и сворачивать или разворачивать окна, чтобы экран на мониторе менялся, как при настоящей работе за компьютером. В версии для браузера это имитируется анимацией открытия и сворачивания окон в песочнице — браузер не может управлять другими программами."}},
+    {"@type":"Question","name":"Чем версия в браузере отличается от десктоп-приложения?","acceptedAnswer":{"@type":"Answer","text":"Версия в браузере запускается без установки и имитирует активность в песочнице на своей странице, удерживая экран активным (Wake Lock). Десктоп-приложение для Windows, macOS и Linux управляет реальным курсором, переключает и сворачивает окна программ и работает в фоне. Подписка единая — работает в обоих."}},
     {"@type":"Question","name":"Это безопасно и ответственно?","acceptedAnswer":{"@type":"Answer","text":"Driftly предназначен для автоматизации, защиты от простоя и тестирования на системах, которыми вы владеете или которые вам разрешено использовать. Нажатия клавиш по умолчанию отключены и используют безопасные клавиши; есть режим паузы при реальной активности."}},
     {"@type":"Question","name":"Чем измерение отличается от генерации активности?","acceptedAnswer":{"@type":"Answer","text":"Генерация создаёт синтетические события (движения, клики, прокрутку). Измерение непрерывно считает события и вычисляет оценку активности, разделяя синтетические и реальные события и сравнивая активный и пассивный режимы."}},
     {"@type":"Question","name":"Можно ли сравнить Driftly с другой программой измерения?","acceptedAnswer":{"@type":"Answer","text":"Да. Driftly производит контролируемую известную активность и экспортирует свои метрики в CSV/JSON, чтобы вы могли сопоставить их с результатами внешней программы измерения активности."}}
@@ -105,7 +108,7 @@
       <a href="#privacy" class="nav-link-more" data-ru="Приватность" data-en="Privacy">Приватность</a>
       <a href="#pricing" data-ru="Подписка" data-en="Pricing">Подписка</a>
       <a href="#faq" data-ru="FAQ" data-en="FAQ">FAQ</a>
-      <a href="app/" class="nav-link-web" data-ru="Веб-версия" data-en="Web app">Веб-версия</a>
+      <a href="app/" class="nav-link-web" data-ru="В браузере" data-en="In browser">В браузере</a>
     </nav>
 
     <div class="nav-actions">
@@ -113,7 +116,7 @@
         <button type="button" data-lang-btn="ru" class="active" aria-pressed="true">RU</button>
         <button type="button" data-lang-btn="en" aria-pressed="false">EN</button>
       </div>
-      <a class="btn btn-ghost nav-web" href="app/" data-ru="Веб-версия" data-en="Web app">Веб-версия</a>
+      <a class="btn btn-ghost nav-web" href="app/" data-ru="В браузере" data-en="In browser">В браузере</a>
       <a class="btn btn-primary nav-dl" href="#download" data-ru="Скачать" data-en="Download">Скачать</a>
       <button class="hamburger" id="hamburger" aria-label="Меню" aria-expanded="false" aria-controls="navLinks">
         <span></span><span></span><span></span>
@@ -131,7 +134,7 @@
     <div class="hero-copy reveal">
       <span class="pill" data-ru="Эмулятор активности · защита от простоя · измерение" data-en="Activity emulator · anti-idle · measurement">Эмулятор активности · защита от простоя · измерение</span>
       <h1 data-ru="Поддерживайте рабочую сессию активной — и измеряйте её." data-en="Keep your session alive — and measure it.">Поддерживайте рабочую сессию активной — и измеряйте её.</h1>
-      <p class="lead" data-ru="Driftly — приложение для веба и десктопа, которое генерирует гуманизированную активность по расписанию, чтобы компьютер не считался простаивающим, и непрерывно измеряет её, сравнивая режимы Активный (с Driftly) и Пассивный (без Driftly). 3 дня бесплатно при подключении карты." data-en="Driftly is a web + desktop app that generates humanized activity on a schedule so your computer never registers as idle — and continuously measures it, comparing Shadow and Passive modes. 3 days free when you add a card.">Driftly — приложение для веба и десктопа, которое генерирует гуманизированную активность по расписанию, чтобы компьютер не считался простаивающим, и непрерывно измеряет её, сравнивая режимы Активный (с Driftly) и Пассивный (без Driftly). 3 дня бесплатно при подключении карты.</p>
+      <p class="lead" data-ru="Driftly — приложение для браузера и для компьютера (десктоп), которое генерирует гуманизированную активность по расписанию, чтобы компьютер не считался простаивающим, и непрерывно измеряет её, сравнивая режимы Активный (с Driftly) и Пассивный (без Driftly). 3 дня бесплатно при подключении карты." data-en="Driftly is a browser + desktop app that generates humanized activity on a schedule so your computer never registers as idle — and continuously measures it, comparing Shadow and Passive modes. 3 days free when you add a card.">Driftly — приложение для браузера и для компьютера (десктоп), которое генерирует гуманизированную активность по расписанию, чтобы компьютер не считался простаивающим, и непрерывно измеряет её, сравнивая режимы Активный (с Driftly) и Пассивный (без Driftly). 3 дня бесплатно при подключении карты.</p>
       <div class="hero-cta">
         <a class="btn btn-primary btn-lg" href="#pricing" data-ru="Начать — 3 дня бесплатно" data-en="Start — 3 days free">Начать — 3 дня бесплатно</a>
         <a class="btn btn-ghost btn-lg" href="app/" data-ru="Запустить в браузере" data-en="Open in browser">Запустить в браузере</a>
@@ -175,6 +178,11 @@
         <p data-ru="Гуманизированные движения мыши, клики, прокрутка и опциональные безопасные нажатия клавиш — с плавными траекториями и микро-джиттером." data-en="Humanized mouse movement, clicks, scroll and optional safe keystrokes — eased paths with micro-jitter.">Гуманизированные движения мыши, клики, прокрутка и опциональные безопасные нажатия клавиш — с плавными траекториями и микро-джиттером.</p>
       </article>
       <article class="card reveal">
+        <div class="ic ic-accent" aria-hidden="true">🪟</div>
+        <h3 data-ru="Переключение окон" data-en="Window switching">Переключение окон</h3>
+        <p data-ru="Десктоп-приложение переключается между открытыми программами (Alt+Tab) и сворачивает/разворачивает окна — экран на мониторе реально меняется, как при настоящей работе за компьютером. В браузерной версии окна открываются и сворачиваются анимацией в песочнице." data-en="The desktop app switches between your open programs (Alt+Tab) and minimizes/restores windows — the screen visibly changes, just like real work at a computer. In the browser version, windows open and minimize as an animation in the sandbox.">Десктоп-приложение переключается между открытыми программами (Alt+Tab) и сворачивает/разворачивает окна — экран на мониторе реально меняется, как при настоящей работе за компьютером. В браузерной версии окна открываются и сворачиваются анимацией в песочнице.</p>
+      </article>
+      <article class="card reveal">
         <div class="ic ic-accent" aria-hidden="true">⚡</div>
         <h3 data-ru="Уровни активности" data-en="Activity levels">Уровни активности</h3>
         <p data-ru="Спокойный, Сбалансированный, Энергичный или своя интенсивность 1–100. Подбирайте темп под задачу." data-en="Gentle, Balanced, Energetic or a custom 1–100 intensity. Tune the pace to your task.">Спокойный, Сбалансированный, Энергичный или своя интенсивность 1–100. Подбирайте темп под задачу.</p>
@@ -193,6 +201,11 @@
         <div class="ic ic-brand" aria-hidden="true">⤓</div>
         <h3 data-ru="Экспорт CSV / JSON" data-en="Export CSV / JSON">Экспорт CSV / JSON</h3>
         <p data-ru="Выгружайте метрики, чтобы сравнить Driftly с внешней программой измерения активности." data-en="Export metrics to benchmark Driftly against an external activity-measuring program.">Выгружайте метрики, чтобы сравнить Driftly с внешней программой измерения активности.</p>
+      </article>
+      <article class="card reveal">
+        <div class="ic ic-brand" aria-hidden="true">🌙</div>
+        <h3 data-ru="Экран не гаснет" data-en="No screen sleep">Экран не гаснет</h3>
+        <p data-ru="Пока Driftly работает, экран не уходит в сон и компьютер не блокируется: в браузере — через Wake Lock, в десктоп-приложении — на уровне системы, даже когда окно свёрнуто." data-en="While Driftly runs, the screen won't sleep and the computer won't lock: via Wake Lock in the browser, and at the OS level in the desktop app — even when the window is minimized.">Пока Driftly работает, экран не уходит в сон и компьютер не блокируется: в браузере — через Wake Lock, в десктоп-приложении — на уровне системы, даже когда окно свёрнуто.</p>
       </article>
       <article class="card reveal">
         <div class="ic ic-accent" aria-hidden="true">🔒</div>
@@ -240,7 +253,7 @@
     </header>
     <div class="grid cards-3 gallery-grid">
       <figure class="shot-card reveal">
-        <img src="assets/shots/web-dashboard.png" alt="Driftly — веб-приложение: датчик активности, события за час и песочница активности" loading="lazy" width="1180" height="760">
+        <img src="assets/shots/web-dashboard.png" alt="Driftly в браузере: датчик активности, события за час и песочница активности" loading="lazy" width="1180" height="760">
         <figcaption data-ru="Дашборд: живая активность" data-en="Dashboard: live activity">Дашборд: живая активность</figcaption>
       </figure>
       <figure class="shot-card reveal">
@@ -390,7 +403,7 @@
     <header class="section-head reveal">
       <span class="eyebrow" data-ru="Подписка" data-en="Pricing">Подписка</span>
       <h2 data-ru="Driftly Pro — единая подписка" data-en="Driftly Pro — one subscription">Driftly Pro — единая подписка</h2>
-      <p class="section-sub" data-ru="Одна подписка открывает обе версии: веб-версию и десктоп. Платите один раз — пользуйтесь везде." data-en="One subscription unlocks both versions: web and desktop. Pay once — use everywhere.">Одна подписка открывает обе версии: веб-версию и десктоп. Платите один раз — пользуйтесь везде.</p>
+      <p class="section-sub" data-ru="Одна подписка открывает обе версии: в браузере и десктоп-приложение. Платите один раз — пользуйтесь везде." data-en="One subscription unlocks both versions: browser and desktop. Pay once — use everywhere.">Одна подписка открывает обе версии: в браузере и десктоп-приложение. Платите один раз — пользуйтесь везде.</p>
     </header>
     <div class="grid cards-3 dl-grid pricing-grid">
       <article class="dl-card price-card reveal featured">
@@ -402,7 +415,7 @@
           <span class="price-save" data-ru="выгода 16%" data-en="save 16%">выгода 16%</span>
         </p>
         <ul class="price-list">
-          <li data-ru="Доступ к веб-версии и десктопу" data-en="Access to web and desktop">Доступ к веб-версии и десктопу</li>
+          <li data-ru="Доступ в браузере и в десктоп-приложении" data-en="Access in the browser and the desktop app">Доступ в браузере и в десктоп-приложении</li>
           <li data-ru="Генерация активности" data-en="Activity generation">Генерация активности</li>
           <li data-ru="Измерение Активный / Пассивный" data-en="Shadow / Passive measurement">Измерение Активный / Пассивный</li>
           <li data-ru="Экспорт CSV / JSON" data-en="CSV / JSON export">Экспорт CSV / JSON</li>
@@ -447,9 +460,9 @@
     </div>
     <p class="dl-soft reveal" data-ru="Десктоп-сборки публикуются на GitHub по мере выпуска. Уже сейчас Driftly работает прямо в браузере — без установки." data-en="Desktop builds are published to GitHub Releases as they ship. Meanwhile Driftly runs right in your browser — no install.">Десктоп-сборки публикуются в GitHub Releases по мере выпуска. Уже сейчас Driftly работает прямо в браузере — без установки.</p>
     <div class="dl-soft-cta reveal">
-      <a class="btn btn-ghost" href="app/" data-ru="Открыть веб-версию" data-en="Open the web app">Открыть веб-версию</a>
+      <a class="btn btn-ghost" href="app/" data-ru="Открыть в браузере" data-en="Open in browser">Открыть в браузере</a>
     </div>
-    <p class="dl-note reveal" data-ru="3 дня бесплатно при подключении карты, далее подписка. Одна подписка — веб и десктоп. Все права принадлежат владельцу." data-en="3 days free when you add a card, then a subscription. One subscription — web and desktop. All rights reserved to the owner.">3 дня бесплатно при подключении карты, далее подписка. Одна подписка — веб и десктоп. Все права принадлежат владельцу.</p>
+    <p class="dl-note reveal" data-ru="3 дня бесплатно при подключении карты, далее подписка. Одна подписка — браузер и десктоп. Все права принадлежат владельцу." data-en="3 days free when you add a card, then a subscription. One subscription — browser and desktop. All rights reserved to the owner.">3 дня бесплатно при подключении карты, далее подписка. Одна подписка — браузер и десктоп. Все права принадлежат владельцу.</p>
   </div>
 </section>
 
@@ -463,7 +476,7 @@
     <div class="faq" id="faqList">
       <details class="faq-item reveal">
         <summary><span data-ru="Сколько стоит Driftly?" data-en="How much does it cost?">Сколько стоит Driftly?</span><span class="faq-icon" aria-hidden="true"></span></summary>
-        <div class="faq-a"><p data-ru="При подключении карты первые 3 дня бесплатны, далее — подписка Driftly Pro: 249 ₽/мес или 2500 ₽/год (−16%) с автопродлением до отмены. Одна подписка работает и в веб-версии, и в десктопе. Отменить можно в любой момент; при неуспешном списании доступ приостанавливается до оплаты." data-en="Connecting a card gives you 3 free days, then a Driftly Pro subscription: 249 ₽/mo or 2500 ₽/yr (−16%) that renews until you cancel. One subscription covers web and desktop. Cancel anytime; if a charge fails, access pauses until paid.">При подключении карты первые 3 дня бесплатны, далее — подписка Driftly Pro: 249 ₽/мес или 2500 ₽/год (−16%) с автопродлением до отмены. Одна подписка работает и в веб-версии, и в десктопе. Отменить можно в любой момент; при неуспешном списании доступ приостанавливается до оплаты.</p></div>
+        <div class="faq-a"><p data-ru="При подключении карты первые 3 дня бесплатны, далее — подписка Driftly Pro: 249 ₽/мес или 2500 ₽/год (−16%) с автопродлением до отмены. Одна подписка работает и в браузере, и в десктоп-приложении. Отменить можно в любой момент; при неуспешном списании доступ приостанавливается до оплаты." data-en="Connecting a card gives you 3 free days, then a Driftly Pro subscription: 249 ₽/mo or 2500 ₽/yr (−16%) that renews until you cancel. One subscription covers web and desktop. Cancel anytime; if a charge fails, access pauses until paid.">При подключении карты первые 3 дня бесплатны, далее — подписка Driftly Pro: 249 ₽/мес или 2500 ₽/год (−16%) с автопродлением до отмены. Одна подписка работает и в браузере, и в десктоп-приложении. Отменить можно в любой момент; при неуспешном списании доступ приостанавливается до оплаты.</p></div>
       </details>
       <details class="faq-item reveal">
         <summary><span data-ru="Собираете ли вы данные?" data-en="Do you collect data?">Собираете ли вы данные?</span><span class="faq-icon" aria-hidden="true"></span></summary>
