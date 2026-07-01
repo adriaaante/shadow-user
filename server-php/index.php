@@ -73,7 +73,8 @@ try {
     $secret = (string) env('DRIFTLY_TEST_PAY', '');
     if ($secret === '' || (string) ($_GET['t'] ?? '') !== $secret) send(404, ['error' => 'not_found']);
     $amount = max(100, (int) ($_GET['amount'] ?? 10000)); // kopecks; default 100 ₽
-    $r = $provider->testInit($amount, 'test-' . now_ms());
+    $email = strtolower(trim((string) ($_GET['email'] ?? 'test@driftly.site')));
+    $r = $provider->testInit($amount, 'test-' . now_ms(), $email);
     if (!empty($r['url'])) { header('Location: ' . $r['url']); http_response_code(302); exit; }
     send(502, ['error' => 'init_failed', 'detail' => $r]);
   }

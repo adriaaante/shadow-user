@@ -52,6 +52,25 @@ class TbankProvider {
     return (($acc['interval'] ?? '') === 'year' ? $p['priceYearly'] : $p['priceMonthly']) * 100;
   }
 
+  /** 54-ФЗ fiscal receipt for Init. Taxation/VAT come from .env so they match the ИП's real
+   *  regime (default: УСН «доходы», без НДС). The receipt is an array, so makeToken() excludes
+   *  it from the Token — correct per T-Bank (Token uses only root-level scalars). */
+  private function receipt(string $email, int $amountKopecks, string $name): array {
+    return [
+      'Email' => $email !== '' ? $email : (env('MAIL_FROM_EMAIL', 'support@driftly.site')),
+      'Taxation' => env('TBANK_TAXATION', 'usn_income'),
+      'Items' => [[
+        'Name' => mb_substr($name, 0, 64),
+        'Price' => $amountKopecks,
+        'Quantity' => 1,
+        'Amount' => $amountKopecks,
+        'Tax' => env('TBANK_VAT', 'none'),
+        'PaymentMethod' => 'full_payment',
+        'PaymentObject' => 'service',
+      ]],
+    ];
+  }
+
   function startTrial(array &$acc, array $pd, int $now): array {
     $acc['provider'] = 'tbank'; $acc['plan'] = 'pro'; $acc['status'] = 'trialing';
     $acc['trialEndsAt'] = $now + TRIAL_DAYS * DAY_MS; $acc['canceled'] = false;
@@ -74,8 +93,10 @@ class TbankProvider {
   function chargeRecurring(array &$acc, int $now): array {
     if (!empty($acc['canceled'])) { $acc['status'] = 'expired'; return ['ok' => false, 'status' => 'expired']; }
     if (empty($acc['providerRebillId'])) { $acc['status'] = 'past_due'; return ['ok' => false, 'status' => 'past_due', 'reason' => 'no_rebill_id']; }
-    $init = $this->call('Init', ['Amount' => $this->amountKopecks($acc),
-      'OrderId' => 'renew-' . $acc['email'] . '-' . $now, 'CustomerKey' => $acc['email'], 'Description' => 'Driftly Pro renewal']);
+    $amount = $this->amountKopecks($acc);
+    $init = $this->call('Init', ['Amount' => $amount,
+      'OrderId' => 'renew-' . $acc['email'] . '-' . $now, 'CustomerKey' => $acc['email'], 'Description' => 'Driftly Pro renewal',
+      'Receipt' => $this->receipt((string) ($acc['email'] ?? ''), $amount, 'Подписка Driftly Pro')]);
     if (empty($init['Success']) || empty($init['PaymentId'])) { $acc['status'] = 'past_due'; return ['ok' => false, 'status' => 'past_due', 'reason' => 'init_failed']; }
     $charge = $this->call('Charge', ['PaymentId' => $init['PaymentId'], 'RebillId' => $acc['providerRebillId']]);
     if (!empty($charge['Success']) && ($charge['Status'] ?? '') === 'CONFIRMED') {
@@ -89,8 +110,9 @@ class TbankProvider {
 
   /** TEMP (T-Bank certification): create a standard one-off payment (Init) so their
    *  test cards can run success/fail/refund. Not used by the product flow. */
-  function testInit(int $amountKopecks, string $orderId): array {
-    $r = $this->call('Init', ['Amount' => $amountKopecks, 'OrderId' => $orderId, 'Description' => 'Driftly certification test']);
+  function testInit(int $amountKopecks, string $orderId, string $email = 'test@driftly.site'): array {
+    $r = $this->call('Init', ['Amount' => $amountKopecks, 'OrderId' => $orderId, 'Description' => 'Driftly certification test',
+      'Receipt' => $this->receipt($email, $amountKopecks, 'Подписка Driftly Pro (тест)')]);
     if (!empty($r['Success']) && !empty($r['PaymentURL'])) return ['ok' => true, 'url' => $r['PaymentURL'], 'paymentId' => $r['PaymentId'] ?? null];
     return ['ok' => false, 'error' => $r['Message'] ?? 'init_failed', 'detail' => $r['Details'] ?? null, 'raw' => $r];
   }
