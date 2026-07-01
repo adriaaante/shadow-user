@@ -38,7 +38,7 @@ function expireTrial(email) { const a = srv.store.getAccount(email); a.trialEnds
 
   // health/config
   let r = await api('GET', '/v1/health'); ok('health ok + keys present', r.json.ok && r.json.keys);
-  r = await api('GET', '/v1/config'); ok('config exposes 3-day trial + price', r.json.trialDays === 3 && r.json.price.monthly === 249 && r.json.price.yearly === 2500);
+  r = await api('GET', '/v1/config'); ok('config exposes 3-day trial + price', r.json.trialDays === 3 && r.json.price.monthly === 199 && r.json.price.yearly === 1999);
 
   // ---- passwordless sign-in (email code) ----
   const ar = await api('POST', '/v1/auth/request', null, { email: 'Alice@Example.com' });

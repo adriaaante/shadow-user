@@ -13,7 +13,7 @@ function ent_features(): array {
 }
 
 function ent_plan(): array {
-  $m = 249; $y = 2500;
+  $m = 199; $y = 1999;
   return [
     'id' => 'pro', 'name' => 'Driftly Pro', 'currency' => 'RUB',
     'priceMonthly' => $m, 'priceYearly' => $y, 'trialDays' => TRIAL_DAYS,

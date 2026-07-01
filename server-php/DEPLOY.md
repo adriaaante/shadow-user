@@ -90,7 +90,7 @@ Validate the AddCard→notification→Charge round-trips on the **test terminal*
 ## Verify
 ```bash
 curl https://api.driftly.site/v1/health      # {"ok":true,"provider":"tbank","keys":true}
-curl https://api.driftly.site/v1/config      # price 249 / 2500
+curl https://api.driftly.site/v1/config      # price 199 / 1999
 ```
 Updating later: `cd ~/driftly-src && git pull` (CRON + API pick it up immediately).
 
