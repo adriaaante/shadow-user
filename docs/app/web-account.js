@@ -23,6 +23,7 @@
   var qApi = new URLSearchParams(location.search).get('api');
   if (qApi !== null) { state.api = qApi; localStorage.setItem('driftly.api', qApi); }
   var dismissed = false; // paywall temporarily dismissed so the sign-in/pay panel stays reachable
+  var activating = false; // showing "activating…" while we confirm a card binding after redirect
   var PRICE = (Ent && Ent.PLAN) || { priceMonthly: 199, priceYearly: 1999, yearlyDiscountPct: 16 };
   var selectedInterval = 'month';
 
@@ -85,8 +86,8 @@
 
   /* ------------------------------- rendering ------------------------------- */
   var L = {
-    ru: { preview: 'Демо-режим: сервер лицензий не подключён — доступ открыт.', signin: 'Войдите, чтобы управлять подпиской.', trial: 'Подключить карту — 3 дня бесплатно', trialActive: 'Пробный период', daysLeft: 'дн. осталось', active: 'Подписка активна', renews: 'Продление', inactive: 'Подписка неактивна', pastDue: 'Необходимо оплатить', pastDueDesc: 'Списание не прошло. Оплатите, чтобы продолжить.', retry: 'Повторить оплату', cancel: 'Отменить подписку', attachCard: 'Привязать карту', updateCard: 'Обновить карту', pwText: 'Подключите карту и получите 3 дня бесплатно. Driftly работает и в браузере, и в десктоп-приложении.', goSub: 'Открыть подписку', codeBad: 'Неверный код', emailEmpty: 'Введите email', emailBad: 'Неверный формат email', codeSent: 'Код отправлен — проверьте почту', sentTo: 'Код отправлен на', resend: 'Отправить ещё раз', changeEmail: 'Изменить email', codeValidFor: 'Код действителен ещё', codeExpired: 'Код истёк — запросите новый', resume: 'Возобновить', accessUntil: 'доступ до', trialCanceled: 'Пробный период отменён', subCanceled: 'Подписка отменена', noRenew: 'продление не произойдёт', monthly: 'Помесячно', yearly: 'За год', perMonth: '₽/мес', perYear: '₽/год', planYearWord: 'годовая', planMonthWord: 'месячная', changePlan: 'Тариф', intervalNote: 'Смена тарифа применится со следующего списания.' },
-    en: { preview: 'Demo mode: no licensing server — access is open.', signin: 'Sign in to manage your subscription.', trial: 'Add a card — 3 days free', trialActive: 'Free trial', daysLeft: 'days left', active: 'Subscription active', renews: 'Renews', inactive: 'Subscription inactive', pastDue: 'Payment required', pastDueDesc: 'The charge failed. Pay to continue.', retry: 'Retry payment', cancel: 'Cancel subscription', attachCard: 'Add a card', updateCard: 'Update card', pwText: 'Add a card and get 3 days free. Driftly works in the browser and in the desktop app.', goSub: 'Open subscription', codeBad: 'Invalid code', emailEmpty: 'Enter your email', emailBad: 'Invalid email format', codeSent: 'Code sent — check your email', sentTo: 'Code sent to', resend: 'Resend code', changeEmail: 'Change email', codeValidFor: 'Code valid for', codeExpired: 'Code expired — request a new one', resume: 'Resume', accessUntil: 'access until', trialCanceled: 'Trial cancelled', subCanceled: 'Subscription cancelled', noRenew: 'will not renew', monthly: 'Monthly', yearly: 'Yearly', perMonth: '₽/mo', perYear: '₽/yr', planYearWord: 'yearly', planMonthWord: 'monthly', changePlan: 'Plan', intervalNote: 'The plan change applies from your next charge.' },
+    ru: { preview: 'Демо-режим: сервер лицензий не подключён — доступ открыт.', signin: 'Войдите, чтобы управлять подпиской.', trial: 'Подключить карту — 3 дня бесплатно', trialActive: 'Пробный период', daysLeft: 'дн. осталось', active: 'Подписка активна', renews: 'Продление', inactive: 'Подписка неактивна', pastDue: 'Необходимо оплатить', pastDueDesc: 'Списание не прошло. Оплатите, чтобы продолжить.', retry: 'Повторить оплату', cancel: 'Отменить подписку', attachCard: 'Привязать карту', updateCard: 'Изменить карту', activating: 'Активируем подписку… несколько секунд', confirmCancel: 'Отменить подписку? Доступ сохранится до конца оплаченного периода, автосписание не произойдёт.', confirmPlanQ: 'Перейти на тариф', bindFailed: 'Не удалось привязать карту. Попробуйте ещё раз.', pwText: 'Подключите карту и получите 3 дня бесплатно. Driftly работает и в браузере, и в десктоп-приложении.', goSub: 'Открыть подписку', codeBad: 'Неверный код', emailEmpty: 'Введите email', emailBad: 'Неверный формат email', codeSent: 'Код отправлен — проверьте почту', sentTo: 'Код отправлен на', resend: 'Отправить ещё раз', changeEmail: 'Изменить email', codeValidFor: 'Код действителен ещё', codeExpired: 'Код истёк — запросите новый', resume: 'Возобновить', accessUntil: 'доступ до', trialCanceled: 'Пробный период отменён', subCanceled: 'Подписка отменена', noRenew: 'продление не произойдёт', monthly: 'Помесячно', yearly: 'За год', perMonth: '₽/мес', perYear: '₽/год', planYearWord: 'годовая', planMonthWord: 'месячная', changePlan: 'Тариф', intervalNote: 'Смена тарифа применится со следующего списания.' },
+    en: { preview: 'Demo mode: no licensing server — access is open.', signin: 'Sign in to manage your subscription.', trial: 'Add a card — 3 days free', trialActive: 'Free trial', daysLeft: 'days left', active: 'Subscription active', renews: 'Renews', inactive: 'Subscription inactive', pastDue: 'Payment required', pastDueDesc: 'The charge failed. Pay to continue.', retry: 'Retry payment', cancel: 'Cancel subscription', attachCard: 'Add a card', updateCard: 'Change card', activating: 'Activating your subscription… a few seconds', confirmCancel: 'Cancel subscription? Access stays until the end of the paid period; no auto-charge will happen.', confirmPlanQ: 'Switch to plan', bindFailed: 'Could not link the card. Please try again.', pwText: 'Add a card and get 3 days free. Driftly works in the browser and in the desktop app.', goSub: 'Open subscription', codeBad: 'Invalid code', emailEmpty: 'Enter your email', emailBad: 'Invalid email format', codeSent: 'Code sent — check your email', sentTo: 'Code sent to', resend: 'Resend code', changeEmail: 'Change email', codeValidFor: 'Code valid for', codeExpired: 'Code expired — request a new one', resume: 'Resume', accessUntil: 'access until', trialCanceled: 'Trial cancelled', subCanceled: 'Subscription cancelled', noRenew: 'will not renew', monthly: 'Monthly', yearly: 'Yearly', perMonth: '₽/mo', perYear: '₽/yr', planYearWord: 'yearly', planMonthWord: 'monthly', changePlan: 'Plan', intervalNote: 'The plan change applies from your next charge.' },
   };
   function lang() { return localStorage.getItem('driftly.lang') || 'ru'; }
   function t(k) { return L[lang()][k]; }
@@ -128,6 +129,8 @@
     var box = $('sub-state'); if (!box) return;
     if (preview()) { box.innerHTML = sb('trial', '✨', t('preview'), ''); return; }
     if (!state.token) { box.innerHTML = sb('', '👤', t('signin'), ''); return; }
+    // Just returned from the card form — confirming the binding before showing the plan.
+    if (activating && !(e.reason === 'trial' || e.reason === 'active')) { box.innerHTML = sb('trial', '⏳', t('activating'), ''); return; }
     var cof = !!(state.account && state.account.cardOnFile);
     if (e.reason === 'trial') box.innerHTML = e.canceled
       ? sb('trial', '✨', t('trialCanceled'), t('accessUntil') + ' ' + fmt(e.renewsAt)) + rbtn()
@@ -148,7 +151,8 @@
   }
   function tbtn() { return ptoggle() + '<button class="btn primary btn-lg" data-acc="trial">' + t('trial') + '</button>'; }
   function cbtn() { return '<button class="btn ghost" data-acc="cancel" style="margin-top:12px">' + t('cancel') + '</button>'; }
-  // (Re)bind a card in-account. Primary when no card yet (e.g. binding failed), ghost to just change it.
+  // In-account card management: a subtle "Изменить карту" when a card is on file, a
+  // prominent "Привязать карту" only if somehow there's none.
   function cardbtn(cof) { return '<button class="btn ' + (cof ? 'ghost' : 'primary') + '" data-acc="attach-card" style="margin-top:12px">' + (cof ? t('updateCard') : t('attachCard')) + '</button>'; }
   function rbtn() { return '<button class="btn primary" data-acc="resume" style="margin-top:12px">' + t('resume') + '</button>'; }
   // Plan switch for an active/trial sub: highlights the CURRENT interval; clicking
@@ -167,10 +171,14 @@
     var a = ev.target.closest('[data-acc],[data-interval]'); if (!a) return;
     if (a.dataset.interval) {
       var ent = entitlement();
-      // Subscribed (trial/active) → switch the billing interval on the server;
-      // otherwise it's just the pre-trial choice for the start-trial call.
+      // Subscribed (trial/active) → switch the billing interval on the server (with a
+      // confirmation); otherwise it's just the pre-trial choice for the start-trial call.
       if (!preview() && state.token && (ent.reason === 'trial' || ent.reason === 'active') && a.dataset.interval !== ent.interval) {
-        call('POST', '/v1/billing/interval', { interval: a.dataset.interval });
+        var yr = a.dataset.interval === 'year';
+        var price = yr ? (PRICE.priceYearly + ' ' + t('perYear')) : (PRICE.priceMonthly + ' ' + t('perMonth'));
+        var msg = t('confirmPlanQ') + ' «' + (yr ? t('yearly') : t('monthly')) + '» (' + price + ')?\n' + t('intervalNote');
+        if (window.confirm(msg)) call('POST', '/v1/billing/interval', { interval: a.dataset.interval });
+        else render();
       } else { selectedInterval = a.dataset.interval; render(); }
       return;
     }
@@ -188,7 +196,7 @@
       });
     }
     else if (act === 'retry') call('POST', '/v1/billing/retry');
-    else if (act === 'cancel') call('POST', '/v1/billing/cancel');
+    else if (act === 'cancel') { if (window.confirm(t('confirmCancel'))) call('POST', '/v1/billing/cancel'); }
     else if (act === 'resume') call('POST', '/v1/billing/resume');
   });
   /* ---- sign-in code: validation toast + a persistent countdown timer ---- */
@@ -283,22 +291,31 @@
 
   refresh();
   setInterval(refresh, 60000);
-  // Actively confirm the card binding (GetCardList) so the trial activates without waiting on the
-  // webhook — triggered on return from the card form (?paid=1) AND whenever the account is still
-  // "pending" a card (covers redirects that don't land on ?paid=1). Retries a few times.
+  // After the card form, confirm the binding server-side (GetState/GetCardList) so the trial
+  // activates automatically — no manual refresh. Polls persistently to cover webhook latency,
+  // shows an "activating…" state, and cleans the ?paid flag from the URL.
   function confirmCardBinding() {
     if (!state.token) return;
+    activating = true; render();
     var tries = 0;
     var run = function () {
-      call('POST', '/v1/billing/confirm-card').then(function (j) {
-        var done = j && j.account && (j.account.cardOnFile || j.account.status === 'trialing' || j.account.status === 'active');
-        if (!done && ++tries < 5) setTimeout(run, 2000);
+      call('POST', '/v1/billing/confirm-card').then(function () {
+        var e = entitlement();
+        if (e.reason === 'trial' || e.reason === 'active') { activating = false; render(); return; }
+        if (++tries < 30) setTimeout(run, 3000); else { activating = false; if (window.DriftlyToast) window.DriftlyToast(t('bindFailed'), 'warn'); render(); }
       });
     };
     run();
   }
-  if (/[?&]paid=1\b/.test(location.search)) confirmCardBinding();
-  else window.addEventListener('driftly-access-changed', function once() {
-    if (state.account && state.account.status === 'pending') { window.removeEventListener('driftly-access-changed', once); confirmCardBinding(); }
-  });
+  if (/[?&]paid=1\b/.test(location.search)) {
+    try { history.replaceState({}, '', location.pathname); } catch (e) {}
+    confirmCardBinding();
+  } else if (/[?&]paid=0\b/.test(location.search)) {
+    try { history.replaceState({}, '', location.pathname); } catch (e) {}
+    if (window.DriftlyToast) window.DriftlyToast(t('bindFailed'), 'warn');
+  } else {
+    window.addEventListener('driftly-access-changed', function once() {
+      if (state.account && state.account.status === 'pending') { window.removeEventListener('driftly-access-changed', once); confirmCardBinding(); }
+    });
+  }
 }());
