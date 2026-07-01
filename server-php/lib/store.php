@@ -46,6 +46,9 @@ class Store {
     }
     $this->db->prepare($sql)->execute([$acc['email'], $data]);
   }
+  function deleteAccount(string $email): void {
+    $this->db->prepare('DELETE FROM accounts WHERE email = ?')->execute([$email]);
+  }
   function allAccounts(): array {
     $rows = $this->db->query('SELECT data FROM accounts')->fetchAll(PDO::FETCH_ASSOC);
     return array_map(fn ($r) => json_decode($r['data'], true), $rows);

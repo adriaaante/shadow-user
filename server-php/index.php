@@ -95,6 +95,14 @@ try {
     ]]);
   }
 
+  // TEMPORARY: reset an account so the trial/card-binding can be re-run from scratch. Same secret.
+  if ($path === '/v1/test/reset' && $provider->name() === 'tbank') {
+    $secret = (string) env('DRIFTLY_TEST_PAY', '');
+    if ($secret === '' || (string) ($_GET['t'] ?? '') !== $secret) send(404, ['error' => 'not_found']);
+    $email = strtolower(trim((string) ($_GET['email'] ?? '')));
+    if ($email !== '') $store->deleteAccount($email);
+    send(200, ['reset' => true, 'email' => $email]);
+  }
   // TEMPORARY: view the T-Bank debug log (AddCard responses + raw webhooks). Same secret; remove the flag to disable.
   if ($path === '/v1/test/log') {
     $secret = (string) env('DRIFTLY_TEST_PAY', '');
