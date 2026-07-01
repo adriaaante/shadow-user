@@ -248,20 +248,28 @@ try {
         $rebill = !empty($ev['RebillId']);
         if ($rebill) { $a['providerRebillId'] = (string) $ev['RebillId']; $a['cardOnFile'] = true; }
         $status = strtoupper((string) ($ev['Status'] ?? ''));
-        if (!empty($a['pendingTrial']) && $rebill) {
-          // ~1 ₽ verification succeeded (RebillId captured) → activate the free trial and
-          // refund the verification amount so the customer keeps their money.
-          $a['status'] = 'trialing';
-          $a['trialEndsAt'] = now_ms() + TRIAL_DAYS * DAY_MS;
-          $a['pendingTrial'] = false;
-          if (!empty($a['providerPaymentId']) && method_exists($provider, 'cancelPayment')) {
-            $provider->cancelPayment((string) $a['providerPaymentId']);
+        $paid = in_array($status, ['CONFIRMED', 'AUTHORIZED', 'COMPLETED'], true);
+        // The OrderId tells apart a ~1 ₽ card verification (trial-…, used for both the initial
+        // trial AND changing the card) from a real renewal charge (renew-…). This prevents a card
+        // change from being mistaken for a paid renewal and extending the period for 1 ₽.
+        $isVerify = strpos((string) ($ev['OrderId'] ?? ''), 'trial-') === 0;
+        if ($isVerify) {
+          if ($paid || $rebill) {
+            // Card verified → activate the trial only if it was pending; always refund the ~1 ₽.
+            if (!empty($a['pendingTrial'])) {
+              $a['status'] = 'trialing';
+              $a['trialEndsAt'] = now_ms() + TRIAL_DAYS * DAY_MS;
+              $a['pendingTrial'] = false;
+            }
+            if (!empty($ev['PaymentId']) && $paid && method_exists($provider, 'cancelPayment')) {
+              $provider->cancelPayment((string) $ev['PaymentId']); // return the ~1 ₽
+            }
           }
-        } elseif (($status === 'CONFIRMED' || $status === 'AUTHORIZED') && empty($a['pendingTrial'])) {
-          // A real renewal charge confirmed → paid period.
-          if (($a['status'] ?? '') !== 'trialing') { $a['status'] = 'active'; $a['currentPeriodEnd'] = now_ms() + (($a['interval'] ?? '') === 'year' ? 365 : 30) * DAY_MS; }
-        } elseif ($status === 'REJECTED' && empty($a['pendingTrial'])) {
-          $a['status'] = 'past_due';
+          // A failed verification (REJECTED) simply leaves a pending trial un-activated.
+        } else {
+          // Renewal (renew-…): chargeRecurring() owns the success path; the webhook only flags a
+          // failed charge so access is paused until paid.
+          if ($status === 'REJECTED') $a['status'] = 'past_due';
         }
         $store->putAccount($a);
       }
