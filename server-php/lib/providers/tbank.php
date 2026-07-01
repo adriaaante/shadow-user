@@ -118,6 +118,12 @@ class TbankProvider {
     return $this->verifyCardInit($acc, $now = now_ms());
   }
 
+  /** Raw GetState for a payment (diagnostics + reliable RebillId capture without the webhook). */
+  function getStateRaw(string $paymentId): array {
+    $r = $this->call('GetState', ['PaymentId' => $paymentId]);
+    dbg_log('GetState.resp', $r);
+    return is_array($r) ? $r : [];
+  }
   /** Raw GetCardList for a customer (also used for diagnostics). */
   function getCardListRaw(string $email): array {
     $r = $this->call('GetCardList', ['CustomerKey' => $email]);
@@ -125,12 +131,24 @@ class TbankProvider {
     return is_array($r) ? $r : [];
   }
   function confirmCard(array &$acc): array {
+    // 1) The verification payment (GetState) is the reliable source of RebillId — no webhook needed.
+    if (!empty($acc['providerPaymentId'])) {
+      $st = $this->getStateRaw((string) $acc['providerPaymentId']);
+      $paid = in_array(strtoupper((string) ($st['Status'] ?? '')), ['CONFIRMED', 'AUTHORIZED'], true);
+      if (!empty($st['RebillId'])) {
+        $acc['providerRebillId'] = (string) $st['RebillId'];
+        $acc['cardOnFile'] = true;
+        return ['ok' => true, 'cardOnFile' => true, 'via' => 'getstate', 'status' => $st['Status'] ?? null];
+      }
+      if ($paid) { $acc['cardOnFile'] = true; return ['ok' => true, 'cardOnFile' => true, 'via' => 'getstate-norebill', 'status' => $st['Status'] ?? null]; }
+    }
+    // 2) Fallback: a card saved for recurrent shows up in GetCardList with a RebillId.
     $r = $this->getCardListRaw($acc['email']);
     foreach ((is_array($r) ? $r : []) as $c) {
       if (is_array($c) && ($c['Status'] ?? '') === 'A' && !empty($c['RebillId'])) {
         $acc['providerRebillId'] = (string) $c['RebillId'];
         $acc['cardOnFile'] = true;
-        return ['ok' => true, 'cardOnFile' => true];
+        return ['ok' => true, 'cardOnFile' => true, 'via' => 'getcardlist'];
       }
     }
     return ['ok' => true, 'cardOnFile' => false, 'cards' => is_array($r) ? count($r) : 0];

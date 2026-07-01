@@ -95,6 +95,24 @@ try {
     ]]);
   }
 
+  // TEMPORARY: raw GetState for a paymentId, or confirm+activate a pending trial for an email. Same secret.
+  if ($path === '/v1/test/state' && $provider->name() === 'tbank') {
+    $secret = (string) env('DRIFTLY_TEST_PAY', '');
+    if ($secret === '' || (string) ($_GET['t'] ?? '') !== $secret) send(404, ['error' => 'not_found']);
+    if (!empty($_GET['paymentId']) && method_exists($provider, 'getStateRaw')) {
+      send(200, ['state' => $provider->getStateRaw((string) $_GET['paymentId'])]);
+    }
+    $email = strtolower(trim((string) ($_GET['email'] ?? '')));
+    $a = $email !== '' ? $store->getAccount($email) : null;
+    if (!$a) send(404, ['error' => 'no_account', 'email' => $email]);
+    $r = method_exists($provider, 'confirmCard') ? $provider->confirmCard($a) : ['ok' => false];
+    if (!empty($a['cardOnFile']) && !empty($a['pendingTrial'])) {
+      $a['status'] = 'trialing'; $a['trialEndsAt'] = now_ms() + TRIAL_DAYS * DAY_MS; $a['pendingTrial'] = false;
+      if (!empty($a['providerPaymentId']) && method_exists($provider, 'cancelPayment')) $provider->cancelPayment((string) $a['providerPaymentId']);
+    }
+    $store->putAccount($a);
+    send(200, ['result' => $r, 'account' => ['status' => $a['status'] ?? null, 'cardOnFile' => (bool) ($a['cardOnFile'] ?? false), 'rebillId' => isset($a['providerRebillId']) && $a['providerRebillId'] !== '' ? 'set' : 'missing']]);
+  }
   // TEMPORARY: raw GetCardList for an email (diagnostics). Same secret.
   if ($path === '/v1/test/cards' && $provider->name() === 'tbank') {
     $secret = (string) env('DRIFTLY_TEST_PAY', '');
