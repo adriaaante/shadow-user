@@ -78,6 +78,22 @@ try {
     if (!empty($r['url'])) { header('Location: ' . $r['url']); http_response_code(302); exit; }
     send(502, ['error' => 'init_failed', 'detail' => $r]);
   }
+  // TEMPORARY: force a recurring charge for <email> to validate the AddCard→RebillId→Charge loop
+  // without waiting for day 4. Same DRIFTLY_TEST_PAY secret; remove the flag to disable.
+  if ($path === '/v1/test/charge' && $provider->name() === 'tbank') {
+    $secret = (string) env('DRIFTLY_TEST_PAY', '');
+    if ($secret === '' || (string) ($_GET['t'] ?? '') !== $secret) send(404, ['error' => 'not_found']);
+    $email = strtolower(trim((string) ($_GET['email'] ?? '')));
+    $a = $email !== '' ? $store->getAccount($email) : null;
+    if (!$a) send(404, ['error' => 'no_account', 'email' => $email]);
+    $r = $provider->chargeRecurring($a, now_ms());
+    $store->putAccount($a);
+    send(200, ['charge' => $r, 'account' => [
+      'status' => $a['status'] ?? null, 'cardOnFile' => (bool) ($a['cardOnFile'] ?? false),
+      'rebillId' => isset($a['providerRebillId']) ? 'set' : 'missing',
+      'currentPeriodEnd' => $a['currentPeriodEnd'] ?? null,
+    ]]);
+  }
 
   if ($path === '/v1/auth/request' && $method === 'POST') {
     $email = strtolower(trim(body()['email'] ?? ''));
