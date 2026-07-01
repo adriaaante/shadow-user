@@ -37,5 +37,5 @@ function makePNG(size,file){
   fs.writeFileSync(path.join(__dirname,file),png);
   console.log('wrote',file,png.length,'bytes');
 }
-makePNG(256,'icon.png');
+makePNG(1024,'icon.png'); // ≥512 required for macOS packaging
 makePNG(32,'tray.png');
