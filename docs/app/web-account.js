@@ -283,4 +283,9 @@
 
   refresh();
   setInterval(refresh, 60000);
+  // Returning from the card form (?paid=1): the trial is activated by the webhook,
+  // which may land a moment after redirect — poll a few times so it appears promptly.
+  if (/[?&]paid=1\b/.test(location.search)) {
+    var tries = 0, poll = setInterval(function () { if (++tries > 6) { clearInterval(poll); return; } refresh(); }, 1500);
+  }
 }());

@@ -207,11 +207,21 @@ try {
         }
       }
       if ($a) {
-        if (!empty($ev['RebillId'])) { $a['providerRebillId'] = (string) $ev['RebillId']; $a['cardOnFile'] = true; }
-        $status = $ev['Status'] ?? '';
-        if ($status === 'CONFIRMED' || $status === 'AUTHORIZED') {
+        $rebill = !empty($ev['RebillId']);
+        if ($rebill) { $a['providerRebillId'] = (string) $ev['RebillId']; $a['cardOnFile'] = true; }
+        $status = strtoupper((string) ($ev['Status'] ?? ''));
+        $ok = $rebill || in_array($status, ['CONFIRMED', 'AUTHORIZED', 'COMPLETED'], true);
+        if ($ok && !empty($a['pendingTrial'])) {
+          // Card verified (small hold charged & returned) → NOW start the free trial.
+          $a['status'] = 'trialing';
+          $a['trialEndsAt'] = now_ms() + TRIAL_DAYS * DAY_MS;
+          $a['pendingTrial'] = false;
+        } elseif ($status === 'CONFIRMED' || $status === 'AUTHORIZED') {
+          // A real renewal charge confirmed → paid period.
           if (($a['status'] ?? '') !== 'trialing') { $a['status'] = 'active'; $a['currentPeriodEnd'] = now_ms() + (($a['interval'] ?? '') === 'year' ? 365 : 30) * DAY_MS; }
-        } elseif ($status === 'REJECTED') { $a['status'] = 'past_due'; }
+        } elseif ($status === 'REJECTED' && empty($a['pendingTrial'])) {
+          $a['status'] = 'past_due';
+        }
         $store->putAccount($a);
       }
     }

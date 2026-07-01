@@ -87,10 +87,13 @@ class TbankProvider {
   }
 
   function startTrial(array &$acc, array $pd, int $now): array {
-    $acc['provider'] = 'tbank'; $acc['plan'] = 'pro'; $acc['status'] = 'trialing';
-    $acc['trialEndsAt'] = $now + TRIAL_DAYS * DAY_MS; $acc['canceled'] = false;
+    $acc['provider'] = 'tbank'; $acc['plan'] = 'pro';
     $acc['interval'] = (($pd['interval'] ?? '') === 'year') ? 'year' : 'month';
-    $acc['cardOnFile'] = false;
+    $acc['canceled'] = false; $acc['cardOnFile'] = false;
+    // Do NOT grant the trial yet — it activates in the webhook only after the card is
+    // verified (small hold charged & returned → RebillId). Until then the account is "pending".
+    $acc['status'] = 'pending'; $acc['pendingTrial'] = true;
+    unset($acc['trialEndsAt']);
     return $this->bindCardUrl($acc);
   }
 
