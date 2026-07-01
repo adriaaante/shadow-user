@@ -230,13 +230,16 @@ try {
         $rebill = !empty($ev['RebillId']);
         if ($rebill) { $a['providerRebillId'] = (string) $ev['RebillId']; $a['cardOnFile'] = true; }
         $status = strtoupper((string) ($ev['Status'] ?? ''));
-        $ok = $rebill || in_array($status, ['CONFIRMED', 'AUTHORIZED', 'COMPLETED'], true);
-        if ($ok && !empty($a['pendingTrial'])) {
-          // Card verified (small hold charged & returned) → NOW start the free trial.
+        if (!empty($a['pendingTrial']) && $rebill) {
+          // ~1 ₽ verification succeeded (RebillId captured) → activate the free trial and
+          // refund the verification amount so the customer keeps their money.
           $a['status'] = 'trialing';
           $a['trialEndsAt'] = now_ms() + TRIAL_DAYS * DAY_MS;
           $a['pendingTrial'] = false;
-        } elseif ($status === 'CONFIRMED' || $status === 'AUTHORIZED') {
+          if (!empty($a['providerPaymentId']) && method_exists($provider, 'cancelPayment')) {
+            $provider->cancelPayment((string) $a['providerPaymentId']);
+          }
+        } elseif (($status === 'CONFIRMED' || $status === 'AUTHORIZED') && empty($a['pendingTrial'])) {
           // A real renewal charge confirmed → paid period.
           if (($a['status'] ?? '') !== 'trialing') { $a['status'] = 'active'; $a['currentPeriodEnd'] = now_ms() + (($a['interval'] ?? '') === 'year' ? 365 : 30) * DAY_MS; }
         } elseif ($status === 'REJECTED' && empty($a['pendingTrial'])) {

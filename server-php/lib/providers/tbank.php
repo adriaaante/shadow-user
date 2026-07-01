@@ -71,37 +71,51 @@ class TbankProvider {
     ];
   }
 
-  // FREE trial / card change: BIND the card without charging. AddCard runs a 0₽ verification and
-  // returns a RebillId in the binding notification; the first real charge is tick.php on day 4.
-  private function bindCardUrl(array &$acc): array {
-    $r = $this->call('AddCard', [
+  private function verifyKopecks(): int { return max(100, (int) env('TBANK_VERIFY_KOPECKS', '100')); } // ~1 ₽
+
+  // Card verification for the free trial: a tiny recurrent payment (Recurrent=Y) that RELIABLY
+  // returns a RebillId in the CONFIRMED webhook (AddCard on this acquirer yields no RebillId).
+  // The webhook then refunds this amount (Cancel) and activates the trial. First real charge = day 4.
+  private function verifyCardInit(array &$acc, int $now): array {
+    $amount = $this->verifyKopecks();
+    $r = $this->call('Init', [
+      'Amount' => $amount,
+      'OrderId' => 'trial-' . $acc['email'] . '-' . $now,
       'CustomerKey' => $acc['email'],
-      'CheckType' => env('TBANK_CHECKTYPE', '3DS'), // NO | 3DS | HOLD | 3DSHOLD — 3DS can fail to link on test terminals
+      'Recurrent' => 'Y',
+      'Description' => 'Driftly — привязка карты (возврат ' . number_format($amount / 100, 2, '.', '') . ' ₽)',
+      'Receipt' => $this->receipt((string) ($acc['email'] ?? ''), $amount, 'Привязка карты Driftly'),
     ]);
-    dbg_log('AddCard.resp', $r);
+    dbg_log('verifyInit.resp', $r);
     if (!empty($r['Success']) && !empty($r['PaymentURL'])) {
-      $acc['providerRequestKey'] = $r['RequestKey'] ?? null;
-      if (!empty($r['PaymentId'])) $acc['providerPaymentId'] = (string) $r['PaymentId'];
+      $acc['providerPaymentId'] = (string) ($r['PaymentId'] ?? '');
       return ['ok' => true, 'needsConfirm' => true, 'redirectUrl' => $r['PaymentURL']];
     }
-    return ['ok' => false, 'error' => $r['Message'] ?? 'addcard_failed', 'detail' => $r['Details'] ?? null];
+    return ['ok' => false, 'error' => $r['Message'] ?? 'init_failed', 'detail' => $r['Details'] ?? null];
+  }
+
+  /** Refund/reverse the verification payment so the ~1 ₽ is returned. */
+  function cancelPayment(string $paymentId): array {
+    $r = $this->call('Cancel', ['PaymentId' => $paymentId]);
+    dbg_log('Cancel.resp', $r);
+    return $r;
   }
 
   function startTrial(array &$acc, array $pd, int $now): array {
     $acc['provider'] = 'tbank'; $acc['plan'] = 'pro';
     $acc['interval'] = (($pd['interval'] ?? '') === 'year') ? 'year' : 'month';
     $acc['canceled'] = false; $acc['cardOnFile'] = false;
-    // Do NOT grant the trial yet — it activates in the webhook only after the card is
-    // verified (small hold charged & returned → RebillId). Until then the account is "pending".
+    // Do NOT grant the trial yet — it activates in the webhook only after the ~1 ₽ verification
+    // succeeds (RebillId captured). Until then the account is "pending".
     $acc['status'] = 'pending'; $acc['pendingTrial'] = true;
     unset($acc['trialEndsAt']);
-    return $this->bindCardUrl($acc);
+    return $this->verifyCardInit($acc, $now);
   }
 
   /** Re-bind or change the saved card WITHOUT resetting the trial/period. */
   function attachCard(array &$acc): array {
     $acc['provider'] = 'tbank';
-    return $this->bindCardUrl($acc);
+    return $this->verifyCardInit($acc, $now = now_ms());
   }
 
   /** Raw GetCardList for a customer (also used for diagnostics). */
