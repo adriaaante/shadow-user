@@ -172,6 +172,18 @@ body{overflow:auto;background:radial-gradient(1200px 600px at 80% -10%,rgba(124,
 .toast.show{opacity:1;transform:translateX(-50%) translateY(0)}
 .toast.ok{border-color:var(--accent)}
 .toast.warn{border-color:var(--danger)}
+/* one-time code: per-digit boxes */
+.otp{display:flex;gap:8px;flex:1;min-width:0}
+.otp input{flex:1;min-width:0;width:100%;text-align:center;font-size:19px;font-weight:700;font-variant-numeric:tabular-nums;padding:12px 0;color:var(--text);background:var(--s2);border:1px solid var(--border);border-radius:12px;outline:none;transition:border-color .15s,box-shadow .15s,background .15s}
+.otp input:focus{border-color:var(--brand);background:var(--s1);box-shadow:0 0 0 3px rgba(124,92,255,.2)}
+/* in-account action buttons: keep them spaced */
+.sub-actions{display:flex;flex-wrap:wrap;gap:10px;margin-top:14px}
+.sub-actions .btn{margin-top:0}
+/* styled confirm modal (replaces window.confirm) */
+.modal-overlay{position:fixed;inset:0;background:rgba(4,4,10,.66);backdrop-filter:blur(3px);display:flex;align-items:center;justify-content:center;padding:20px;z-index:80}
+.modal{width:min(420px,100%);background:var(--s2,#14141c);border:1px solid var(--border2);border-radius:16px;padding:22px;box-shadow:0 24px 60px rgba(0,0,0,.5)}
+.modal-msg{font-size:14.5px;line-height:1.5;color:var(--text);white-space:pre-line;margin-bottom:18px}
+.modal-actions{display:flex;justify-content:flex-end;gap:10px}
 
 /* sign-in code countdown */
 .code-timer{display:inline-flex;align-items:center;gap:6px;color:var(--brand2);font-size:13px;font-weight:500}
@@ -197,11 +209,15 @@ body{overflow:auto;background:radial-gradient(1200px 600px at 80% -10%,rgba(124,
 hr.sep{border:0;border-top:1px solid var(--border2);margin:20px 0}
 
 /* «Запустить» — заметная зелёная CTA: сразу видно, что её надо нажать */
-#runmode button[data-mode="on"]{color:#04130d;background:linear-gradient(135deg,#34d399,#14b8a6);font-weight:700}
+/* Only one control shows at a time (JS toggles display): green Run when stopped, red Stop when running. */
+#runmode{display:flex}
+#runmode button{flex:1}
+#runmode button[data-mode="on"]{color:#04130d;background:linear-gradient(135deg,#34d399,#14b8a6);font-weight:700;animation:runpulse 2.2s ease-in-out infinite}
 #runmode button[data-mode="on"]::before{content:"▶";font-size:.78em;margin-right:6px;position:relative;top:-1px}
 #runmode button[data-mode="on"]:hover{filter:brightness(1.08)}
-#runmode button[data-mode="on"]:not(.active){animation:runpulse 2.2s ease-in-out infinite}
-#runmode button[data-mode="off"].active{background:transparent;color:var(--text);box-shadow:0 0 0 1px var(--border) inset}
+#runmode button[data-mode="off"]{color:#fff;background:linear-gradient(135deg,#f0566e,#d6455c);font-weight:700}
+#runmode button[data-mode="off"]::before{content:"■";font-size:.72em;margin-right:7px;position:relative;top:-1px}
+#runmode button[data-mode="off"]:hover{filter:brightness(1.06)}
 @keyframes runpulse{0%,100%{box-shadow:0 0 0 0 rgba(45,212,191,0)}50%{box-shadow:0 0 18px 1px rgba(45,212,191,.5)}}
 h3{font-size:15px;margin-bottom:4px}
 .hint{color:var(--muted);font-size:12.5px;margin-bottom:14px}

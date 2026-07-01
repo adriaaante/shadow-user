@@ -147,7 +147,15 @@
         <div id="sub-signin">
           <div class="range-row" id="sub-step-email"><input type="text" id="sub-email" inputmode="email" autocomplete="email" placeholder="you@email.com" style="flex:1;min-width:0">
             <button class="btn primary" id="btn-getcode" data-ru="Получить код" data-en="Get code">Получить код</button></div>
-          <div class="range-row" id="sub-step-code" style="display:none"><input type="text" id="sub-code" inputmode="numeric" maxlength="6" placeholder="000000" style="flex:1;min-width:0">
+          <div class="range-row" id="sub-step-code" style="display:none">
+            <div class="otp" id="sub-otp">
+              <input type="text" inputmode="numeric" maxlength="1" autocomplete="one-time-code" aria-label="1">
+              <input type="text" inputmode="numeric" maxlength="1" aria-label="2">
+              <input type="text" inputmode="numeric" maxlength="1" aria-label="3">
+              <input type="text" inputmode="numeric" maxlength="1" aria-label="4">
+              <input type="text" inputmode="numeric" maxlength="1" aria-label="5">
+              <input type="text" inputmode="numeric" maxlength="1" aria-label="6">
+            </div>
             <button class="btn primary" id="btn-verify" data-ru="Войти" data-en="Sign in">Войти</button></div>
           <div class="mode-note" id="sub-auth-note"></div>
         </div>
@@ -194,6 +202,15 @@
 </div>
 
 <div class="toast" id="toast"></div>
+<div class="modal-overlay" id="confirm-modal" style="display:none">
+  <div class="modal">
+    <div class="modal-msg" id="confirm-msg"></div>
+    <div class="modal-actions">
+      <button class="btn ghost" id="confirm-no" data-ru="Отмена" data-en="Cancel">Отмена</button>
+      <button class="btn primary" id="confirm-yes" data-ru="Подтвердить" data-en="Confirm">Подтвердить</button>
+    </div>
+  </div>
+</div>
 <script src="shared/entitlement.js"></script>
 <script src="shared/license.js"></script>
 <script src="assets/chart.js"></script>

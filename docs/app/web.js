@@ -295,7 +295,8 @@
   function renderStatus() {
     $('dot').className = 'statusdot' + (cfg.running ? ' on' : '');
     $('statustext').textContent = cfg.running ? t('running') : t('paused');
-    document.querySelectorAll('#runmode button').forEach((b) => b.classList.toggle('active', (b.dataset.mode === 'on') === cfg.running));
+    // Show only one control: green "Run" when stopped, red "Stop" when running.
+    document.querySelectorAll('#runmode button').forEach((b) => { b.style.display = ((b.dataset.mode === 'on') === !cfg.running) ? '' : 'none'; });
   }
   function renderRates() {
     let b; if (cfg.level === 'custom') { const x = cfg.intensity / 100; b = { move: 4 + 46 * x, click: 0.3 + 5.7 * x, scroll: 0.5 + 6.5 * x }; } else b = PRESET[cfg.level] || PRESET.balanced;
@@ -334,6 +335,22 @@
   document.querySelectorAll('#lang-ru,#lang-en').forEach((b) => b.addEventListener('click', () => { lang = b.id.endsWith('ru') ? 'ru' : 'en'; localStorage.setItem('driftly.lang', lang); applyLang(); window.dispatchEvent(new Event('driftly-lang-changed')); }));
   let toastTimer; function toast(m, kind) { const el = $('toast'); el.textContent = m; el.className = 'toast show' + (kind ? ' ' + kind : ''); clearTimeout(toastTimer); toastTimer = setTimeout(() => el.classList.remove('show'), 2600); }
   window.DriftlyToast = toast; // prominent notifications, reused by web-account.js
+  // Styled confirmation dialog (replaces window.confirm), returns a Promise<boolean>.
+  function driftlyConfirm(message) {
+    return new Promise((resolve) => {
+      const ov = $('confirm-modal');
+      if (!ov) { resolve(window.confirm(message)); return; }
+      $('confirm-msg').textContent = message;
+      ov.style.display = 'flex';
+      const yes = $('confirm-yes'), no = $('confirm-no');
+      const done = (v) => { ov.style.display = 'none'; yes.removeEventListener('click', onYes); no.removeEventListener('click', onNo); ov.removeEventListener('click', onBg); document.removeEventListener('keydown', onKey); resolve(v); };
+      const onYes = () => done(true), onNo = () => done(false);
+      const onBg = (e) => { if (e.target === ov) done(false); };
+      const onKey = (e) => { if (e.key === 'Escape') done(false); if (e.key === 'Enter') done(true); };
+      yes.addEventListener('click', onYes); no.addEventListener('click', onNo); ov.addEventListener('click', onBg); document.addEventListener('keydown', onKey);
+    });
+  }
+  window.DriftlyConfirm = driftlyConfirm;
 
   /* --------------------------------- loop ------------------------------- */
   setInterval(() => { const lv = M.live(); const h = M.lastHour(); window.Charts.gauge($('gauge'), lv.gauge); $('kpi-events').textContent = h.total; $('kpi-syn').textContent = h.synthetic; $('kpi-real').textContent = h.real; }, 1000);

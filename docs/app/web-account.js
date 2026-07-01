@@ -134,10 +134,10 @@
     var cof = !!(state.account && state.account.cardOnFile);
     if (e.reason === 'trial') box.innerHTML = e.canceled
       ? sb('trial', '✨', t('trialCanceled'), t('accessUntil') + ' ' + fmt(e.renewsAt)) + rbtn()
-      : sb('trial', '✨', t('trialActive'), e.trialDaysLeft + ' ' + t('daysLeft')) + cardbtn(cof) + cbtn() + itoggle(e.interval);
+      : sb('trial', '✨', t('trialActive'), e.trialDaysLeft + ' ' + t('daysLeft')) + acts(cof) + itoggle(e.interval);
     else if (e.reason === 'active') box.innerHTML = e.canceled
       ? sb('ok', '✓', t('subCanceled'), t('accessUntil') + ' ' + fmt(e.renewsAt) + ' · ' + t('noRenew')) + rbtn()
-      : sb('ok', '✓', t('active') + ' · ' + (e.interval === 'year' ? t('planYearWord') : t('planMonthWord')), t('renews') + ': ' + fmt(e.renewsAt)) + cardbtn(cof) + cbtn() + itoggle(e.interval);
+      : sb('ok', '✓', t('active') + ' · ' + (e.interval === 'year' ? t('planYearWord') : t('planMonthWord')), t('renews') + ': ' + fmt(e.renewsAt)) + acts(cof) + itoggle(e.interval);
     else if (e.needsPayment) box.innerHTML = sb('bad', '⚠', t('pastDue'), t('pastDueDesc')) + '<button class="btn primary" data-acc="retry">' + t('retry') + '</button>';
     else box.innerHTML = sb('', '🔓', t('inactive'), '') + tbtn();
   }
@@ -150,10 +150,11 @@
       + '</div>';
   }
   function tbtn() { return ptoggle() + '<button class="btn primary btn-lg" data-acc="trial">' + t('trial') + '</button>'; }
-  function cbtn() { return '<button class="btn ghost" data-acc="cancel" style="margin-top:12px">' + t('cancel') + '</button>'; }
   // In-account card management: a subtle "Изменить карту" when a card is on file, a
   // prominent "Привязать карту" only if somehow there's none.
-  function cardbtn(cof) { return '<button class="btn ' + (cof ? 'ghost' : 'primary') + '" data-acc="attach-card" style="margin-top:12px">' + (cof ? t('updateCard') : t('attachCard')) + '</button>'; }
+  function cardbtn(cof) { return '<button class="btn ' + (cof ? 'ghost' : 'primary') + '" data-acc="attach-card">' + (cof ? t('updateCard') : t('attachCard')) + '</button>'; }
+  // Card + cancel buttons in a spaced row.
+  function acts(cof) { return '<div class="sub-actions">' + cardbtn(cof) + '<button class="btn ghost" data-acc="cancel">' + t('cancel') + '</button></div>'; }
   function rbtn() { return '<button class="btn primary" data-acc="resume" style="margin-top:12px">' + t('resume') + '</button>'; }
   // Plan switch for an active/trial sub: highlights the CURRENT interval; clicking
   // the other one switches via /v1/billing/interval (applies from the next charge).
@@ -177,8 +178,10 @@
         var yr = a.dataset.interval === 'year';
         var price = yr ? (PRICE.priceYearly + ' ' + t('perYear')) : (PRICE.priceMonthly + ' ' + t('perMonth'));
         var msg = t('confirmPlanQ') + ' «' + (yr ? t('yearly') : t('monthly')) + '» (' + price + ')?\n' + t('intervalNote');
-        if (window.confirm(msg)) call('POST', '/v1/billing/interval', { interval: a.dataset.interval });
-        else render();
+        var iv = a.dataset.interval;
+        (window.DriftlyConfirm ? window.DriftlyConfirm(msg) : Promise.resolve(window.confirm(msg))).then(function (ok) {
+          if (ok) call('POST', '/v1/billing/interval', { interval: iv }); else render();
+        });
       } else { selectedInterval = a.dataset.interval; render(); }
       return;
     }
@@ -196,12 +199,23 @@
       });
     }
     else if (act === 'retry') call('POST', '/v1/billing/retry');
-    else if (act === 'cancel') { if (window.confirm(t('confirmCancel'))) call('POST', '/v1/billing/cancel'); }
+    else if (act === 'cancel') { (window.DriftlyConfirm ? window.DriftlyConfirm(t('confirmCancel')) : Promise.resolve(window.confirm(t('confirmCancel')))).then(function (ok) { if (ok) call('POST', '/v1/billing/cancel'); }); }
     else if (act === 'resume') call('POST', '/v1/billing/resume');
   });
   /* ---- sign-in code: validation toast + a persistent countdown timer ---- */
   var CODE_TTL = 300000; // 5 min — code validity, MUST match the server (AUTH_CODE_TTL_MS)
   var codeTimer = null;
+  // Per-digit sign-in code boxes.
+  var OTP = (function () {
+    function boxes() { var el = $('sub-otp'); return el ? Array.prototype.slice.call(el.querySelectorAll('input')) : []; }
+    return {
+      each: function (fn) { var b = boxes(); b.forEach(function (box, i) { fn(box, i, b); }); },
+      val: function () { return boxes().map(function (b) { return (b.value || '').replace(/\D/g, ''); }).join(''); },
+      set: function (v) { var d = (v || '').replace(/\D/g, '').slice(0, 6).split(''); boxes().forEach(function (b, i) { b.value = d[i] || ''; }); },
+      clear: function () { boxes().forEach(function (b) { b.value = ''; }); },
+      focusFirst: function () { var b = boxes(); if (b[0]) b[0].focus(); },
+    };
+  })();
   // Inline feedback right under the email/code field (not a bottom toast).
   function notify(msg, kind) { var n = $('sub-auth-note'); if (n) { stopCodeTimer(); n.innerHTML = '<span class="auth-msg ' + (kind || '') + '">' + msg + '</span>'; } else if (window.DriftlyToast) window.DriftlyToast(msg, kind); }
   function mmss(ms) { var s = Math.max(0, Math.round(ms / 1000)); return Math.floor(s / 60) + ':' + ('0' + (s % 60)).slice(-2); }
@@ -212,7 +226,7 @@
     if ($('sub-step-code')) $('sub-step-code').style.display = on ? 'flex' : 'none';
   }
   function codeExpired() { return (+localStorage.getItem('driftly.codeExp') || 0) <= Date.now(); }
-  function clearCode() { stopCodeTimer(); localStorage.removeItem('driftly.codeExp'); localStorage.removeItem('driftly.codeEmail'); showCodeStep(false); if ($('sub-code')) $('sub-code').value = ''; if ($('sub-auth-note')) $('sub-auth-note').innerHTML = ''; }
+  function clearCode() { stopCodeTimer(); localStorage.removeItem('driftly.codeExp'); localStorage.removeItem('driftly.codeEmail'); showCodeStep(false); OTP.clear(); if ($('sub-auth-note')) $('sub-auth-note').innerHTML = ''; }
   // Renders the code row + a 5-min validity countdown. While the code is live it
   // shows the time left; once it expires the code is dead (sign-in is blocked) and
   // "Отправить ещё раз" appears to request a fresh one.
@@ -242,8 +256,8 @@
       localStorage.setItem('driftly.codeExp', String(Date.now() + CODE_TTL));
       localStorage.setItem('driftly.codeEmail', email);
       runCodeTimer();
-      if (r.devCode && $('sub-code')) $('sub-code').value = r.devCode;
-      if ($('sub-code')) $('sub-code').focus();
+      if (r.devCode) OTP.set(r.devCode);
+      OTP.focusFirst();
       return true;
     }
     notify(t('codeBad'), 'warn');
@@ -272,14 +286,36 @@
       if ($('sub-email')) $('sub-email').focus();
     }
   });
-  if ($('btn-verify')) $('btn-verify').addEventListener('click', async function () {
-    // The code dies with the 5-min timer — refuse an expired one before hitting the server.
+  var verifying = false;
+  async function verifyCode() {
+    if (verifying) return;
     if (codeExpired()) { runCodeTimer(); return; }
+    var code = OTP.val(); if (code.length !== 6) return;
     var email = (localStorage.getItem('driftly.codeEmail') || ($('sub-email') && $('sub-email').value) || '').trim();
-    var r = await authVerify(email, ($('sub-code').value || '').trim());
+    verifying = true;
+    var r = await authVerify(email, code);
+    verifying = false;
     if (r && r.ok) { clearCode(); }
-    else notify(t('codeBad'), 'warn');
+    else { notify(t('codeBad'), 'warn'); OTP.clear(); OTP.focusFirst(); }
+  }
+  // Per-digit code boxes: auto-advance, backspace-to-previous, paste-to-fill, auto-submit on the 6th.
+  OTP.each(function (box, i, boxes) {
+    box.addEventListener('input', function () {
+      box.value = (box.value || '').replace(/\D/g, '').slice(0, 1);
+      if (box.value && i < boxes.length - 1) boxes[i + 1].focus();
+      if (OTP.val().length === boxes.length) verifyCode();
+    });
+    box.addEventListener('keydown', function (e) {
+      if (e.key === 'Backspace' && !box.value && i > 0) { boxes[i - 1].focus(); boxes[i - 1].value = ''; e.preventDefault(); }
+    });
+    box.addEventListener('paste', function (e) {
+      e.preventDefault();
+      var txt = ((e.clipboardData || window.clipboardData).getData('text') || '');
+      OTP.set(txt);
+      if (OTP.val().length === boxes.length) verifyCode(); else { var n = OTP.val().length; (boxes[n] || boxes[boxes.length - 1]).focus(); }
+    });
   });
+  if ($('btn-verify')) $('btn-verify').addEventListener('click', verifyCode);
   if ($('btn-signout')) $('btn-signout').addEventListener('click', function () {
     // Best-effort: free this device's seat on the server, then clear locally.
     if (state.api && state.token) { try { fetch(state.api + '/v1/auth/signout', { method: 'POST', headers: { Authorization: 'Bearer ' + state.token } }); } catch (e) {} }
