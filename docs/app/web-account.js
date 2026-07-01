@@ -347,10 +347,14 @@
       call('POST', '/v1/billing/confirm-card').then(function () {
         var e = entitlement();
         if (e.reason === 'trial' || e.reason === 'active') { activating = false; render(); return; }
-        if (++tries < 30) setTimeout(run, 3000); else { activating = false; if (window.DriftlyToast) window.DriftlyToast(t('bindFailed'), 'warn'); render(); }
+        // Fast for the first ~20 s (2 s steps — GetState confirms the payment almost at once),
+        // then ease off to cover any webhook lag, up to ~2 min total.
+        if (++tries >= 45) { activating = false; if (window.DriftlyToast) window.DriftlyToast(t('bindFailed'), 'warn'); render(); return; }
+        setTimeout(run, tries < 10 ? 2000 : 4000);
       });
     };
-    run();
+    // Small initial delay so the ~1 ₽ payment has settled before the first GetState.
+    setTimeout(run, 900);
   }
   if (/[?&]paid=1\b/.test(location.search)) {
     try { history.replaceState({}, '', location.pathname); } catch (e) {}
