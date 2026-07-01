@@ -283,9 +283,17 @@
 
   refresh();
   setInterval(refresh, 60000);
-  // Returning from the card form (?paid=1): the trial is activated by the webhook,
-  // which may land a moment after redirect — poll a few times so it appears promptly.
-  if (/[?&]paid=1\b/.test(location.search)) {
-    var tries = 0, poll = setInterval(function () { if (++tries > 6) { clearInterval(poll); return; } refresh(); }, 1500);
+  // Returning from the card form (?paid=1): actively confirm the binding (GetCardList) so the
+  // trial activates without waiting on the webhook; retry a few times in case the card status
+  // lags a moment behind the redirect.
+  if (/[?&]paid=1\b/.test(location.search) && state.token) {
+    var tries = 0;
+    var confirm = function () {
+      call('POST', '/v1/billing/confirm-card').then(function (j) {
+        var done = j && j.account && (j.account.cardOnFile || j.account.status === 'trialing' || j.account.status === 'active');
+        if (!done && ++tries < 5) setTimeout(confirm, 2000);
+      });
+    };
+    confirm();
   }
 }());

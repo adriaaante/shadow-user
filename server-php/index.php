@@ -160,6 +160,19 @@ try {
     $store->putAccount($acc);
     send(200, array_merge(['provider' => $provider->name(), 'result' => $r], $stateResponse($acc)));
   }
+  if ($path === '/v1/billing/confirm-card' && $method === 'POST') {
+    // Actively confirm the card binding via the provider (GetCardList), webhook-independent.
+    // If the card is now on file, activate the pending free trial.
+    if (!method_exists($provider, 'confirmCard')) send(400, ['error' => 'not_supported']);
+    $r = $provider->confirmCard($acc);
+    if (!empty($acc['cardOnFile']) && !empty($acc['pendingTrial'])) {
+      $acc['status'] = 'trialing';
+      $acc['trialEndsAt'] = now_ms() + TRIAL_DAYS * DAY_MS;
+      $acc['pendingTrial'] = false;
+    }
+    $store->putAccount($acc);
+    send(200, array_merge(['result' => $r], $stateResponse($acc)));
+  }
   if ($path === '/v1/billing/attach-card' && $method === 'POST') {
     // (Re)bind or change the saved card without touching the trial/period.
     if (!method_exists($provider, 'attachCard')) send(400, ['error' => 'not_supported']);

@@ -30,6 +30,10 @@ class MockProvider {
     $acc['cardOnFile'] = true;
     return ['ok' => true];
   }
+  function confirmCard(array &$acc): array {
+    $acc['cardOnFile'] = true;
+    return ['ok' => true, 'cardOnFile' => true];
+  }
 
   function chargeRecurring(array &$acc, int $now): array {
     if (!empty($acc['canceled'])) { $acc['status'] = 'expired'; return ['ok' => false, 'status' => 'expired']; }

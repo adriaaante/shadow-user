@@ -81,6 +81,7 @@ class TbankProvider {
     dbg_log('AddCard.resp', $r);
     if (!empty($r['Success']) && !empty($r['PaymentURL'])) {
       $acc['providerRequestKey'] = $r['RequestKey'] ?? null;
+      if (!empty($r['PaymentId'])) $acc['providerPaymentId'] = (string) $r['PaymentId'];
       return ['ok' => true, 'needsConfirm' => true, 'redirectUrl' => $r['PaymentURL']];
     }
     return ['ok' => false, 'error' => $r['Message'] ?? 'addcard_failed', 'detail' => $r['Details'] ?? null];
@@ -101,6 +102,21 @@ class TbankProvider {
   function attachCard(array &$acc): array {
     $acc['provider'] = 'tbank';
     return $this->bindCardUrl($acc);
+  }
+
+  /** Ask T-Bank whether a card is actually linked (webhook-independent). GetCardList returns
+   *  a top-level array of cards; a linked card has Status 'A' and a RebillId for recurrent charges. */
+  function confirmCard(array &$acc): array {
+    $r = $this->call('GetCardList', ['CustomerKey' => $acc['email']]);
+    dbg_log('GetCardList.resp', $r);
+    foreach ((is_array($r) ? $r : []) as $c) {
+      if (is_array($c) && ($c['Status'] ?? '') === 'A' && !empty($c['RebillId'])) {
+        $acc['providerRebillId'] = (string) $c['RebillId'];
+        $acc['cardOnFile'] = true;
+        return ['ok' => true, 'cardOnFile' => true];
+      }
+    }
+    return ['ok' => true, 'cardOnFile' => false, 'cards' => is_array($r) ? count($r) : 0];
   }
 
   function chargeRecurring(array &$acc, int $now): array {
