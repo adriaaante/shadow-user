@@ -83,6 +83,7 @@ class TbankProvider {
       'CustomerKey' => $acc['email'],
       'CheckType' => '3DS',
     ]);
+    dbg_log('AddCard.resp', $r);
     if (!empty($r['Success']) && !empty($r['PaymentURL'])) {
       $acc['providerRequestKey'] = $r['RequestKey'] ?? null;
       return ['ok' => true, 'needsConfirm' => true, 'redirectUrl' => $r['PaymentURL']];

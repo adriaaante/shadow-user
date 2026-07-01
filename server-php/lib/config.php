@@ -22,3 +22,10 @@ function env(string $key, $default = null) {
   $v = getenv($key);
   return $v === false ? $default : $v;
 }
+
+/** TEMP diagnostics: append a line to a debug log while DRIFTLY_TEST_PAY is set. Remove the flag to disable. */
+function dbg_log(string $tag, $data): void {
+  if (!env('DRIFTLY_TEST_PAY')) return;
+  $line = gmdate('c') . " [$tag] " . (is_string($data) ? $data : json_encode($data, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES)) . "\n";
+  @file_put_contents(sys_get_temp_dir() . '/driftly-tbank.log', $line, FILE_APPEND);
+}

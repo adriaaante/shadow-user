@@ -95,6 +95,16 @@ try {
     ]]);
   }
 
+  // TEMPORARY: view the T-Bank debug log (AddCard responses + raw webhooks). Same secret; remove the flag to disable.
+  if ($path === '/v1/test/log') {
+    $secret = (string) env('DRIFTLY_TEST_PAY', '');
+    if ($secret === '' || (string) ($_GET['t'] ?? '') !== $secret) send(404, ['error' => 'not_found']);
+    header('Content-Type: text/plain; charset=utf-8');
+    $f = sys_get_temp_dir() . '/driftly-tbank.log';
+    echo is_file($f) ? mb_substr((string) file_get_contents($f), -6000) : '(log empty)';
+    exit;
+  }
+
   if ($path === '/v1/auth/request' && $method === 'POST') {
     $email = strtolower(trim(body()['email'] ?? ''));
     if (!preg_match('/^[^@\s]+@[^@\s]+\.[^@\s]+$/', $email)) send(400, ['error' => 'invalid_email']);
@@ -164,6 +174,7 @@ try {
 
   if (str_starts_with($path, '/v1/webhooks/')) {
     $raw = file_get_contents('php://input');
+    dbg_log('webhook.raw', $raw ?: '(empty)');
     $ev = $provider->verifyWebhook(getallheaders() ?: [], $raw ?: '');
     if (!$ev) send(400, ['error' => 'bad_webhook']);
     // T-Bank: on a successful authorization store RebillId + cardOnFile, set active/past_due.
