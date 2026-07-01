@@ -283,17 +283,22 @@
 
   refresh();
   setInterval(refresh, 60000);
-  // Returning from the card form (?paid=1): actively confirm the binding (GetCardList) so the
-  // trial activates without waiting on the webhook; retry a few times in case the card status
-  // lags a moment behind the redirect.
-  if (/[?&]paid=1\b/.test(location.search) && state.token) {
+  // Actively confirm the card binding (GetCardList) so the trial activates without waiting on the
+  // webhook — triggered on return from the card form (?paid=1) AND whenever the account is still
+  // "pending" a card (covers redirects that don't land on ?paid=1). Retries a few times.
+  function confirmCardBinding() {
+    if (!state.token) return;
     var tries = 0;
-    var confirm = function () {
+    var run = function () {
       call('POST', '/v1/billing/confirm-card').then(function (j) {
         var done = j && j.account && (j.account.cardOnFile || j.account.status === 'trialing' || j.account.status === 'active');
-        if (!done && ++tries < 5) setTimeout(confirm, 2000);
+        if (!done && ++tries < 5) setTimeout(run, 2000);
       });
     };
-    confirm();
+    run();
   }
+  if (/[?&]paid=1\b/.test(location.search)) confirmCardBinding();
+  else window.addEventListener('driftly-access-changed', function once() {
+    if (state.account && state.account.status === 'pending') { window.removeEventListener('driftly-access-changed', once); confirmCardBinding(); }
+  });
 }());

@@ -104,11 +104,14 @@ class TbankProvider {
     return $this->bindCardUrl($acc);
   }
 
-  /** Ask T-Bank whether a card is actually linked (webhook-independent). GetCardList returns
-   *  a top-level array of cards; a linked card has Status 'A' and a RebillId for recurrent charges. */
-  function confirmCard(array &$acc): array {
-    $r = $this->call('GetCardList', ['CustomerKey' => $acc['email']]);
+  /** Raw GetCardList for a customer (also used for diagnostics). */
+  function getCardListRaw(string $email): array {
+    $r = $this->call('GetCardList', ['CustomerKey' => $email]);
     dbg_log('GetCardList.resp', $r);
+    return is_array($r) ? $r : [];
+  }
+  function confirmCard(array &$acc): array {
+    $r = $this->getCardListRaw($acc['email']);
     foreach ((is_array($r) ? $r : []) as $c) {
       if (is_array($c) && ($c['Status'] ?? '') === 'A' && !empty($c['RebillId'])) {
         $acc['providerRebillId'] = (string) $c['RebillId'];

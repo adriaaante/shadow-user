@@ -95,6 +95,13 @@ try {
     ]]);
   }
 
+  // TEMPORARY: raw GetCardList for an email (diagnostics). Same secret.
+  if ($path === '/v1/test/cards' && $provider->name() === 'tbank') {
+    $secret = (string) env('DRIFTLY_TEST_PAY', '');
+    if ($secret === '' || (string) ($_GET['t'] ?? '') !== $secret) send(404, ['error' => 'not_found']);
+    $email = strtolower(trim((string) ($_GET['email'] ?? '')));
+    send(200, ['email' => $email, 'cards' => method_exists($provider, 'getCardListRaw') ? $provider->getCardListRaw($email) : 'n/a']);
+  }
   // TEMPORARY: reset an account so the trial/card-binding can be re-run from scratch. Same secret.
   if ($path === '/v1/test/reset' && $provider->name() === 'tbank') {
     $secret = (string) env('DRIFTLY_TEST_PAY', '');
