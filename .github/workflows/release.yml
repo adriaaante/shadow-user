@@ -33,7 +33,9 @@ jobs:
         run: npm install --omit=optional --no-audit --no-fund
       - name: Сборка установщика
         working-directory: app
-        run: npm run dist
+        # --publish never: только собрать (публикацией занимается отдельная job ниже,
+        # иначе electron-builder в CI пытается публиковать сам и требует GH_TOKEN).
+        run: npm run dist -- --publish never
         env:
           # не пытаться подписывать сборку (выпускаем без подписи)
           CSC_IDENTITY_AUTO_DISCOVERY: "false"
@@ -43,6 +45,7 @@ jobs:
           path: |
             app/release/*.exe
             app/release/*.dmg
+            app/release/*.zip
             app/release/*.AppImage
           if-no-files-found: ignore
 
