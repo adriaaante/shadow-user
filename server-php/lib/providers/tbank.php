@@ -71,14 +71,9 @@ class TbankProvider {
     ];
   }
 
-  function startTrial(array &$acc, array $pd, int $now): array {
-    $acc['provider'] = 'tbank'; $acc['plan'] = 'pro'; $acc['status'] = 'trialing';
-    $acc['trialEndsAt'] = $now + TRIAL_DAYS * DAY_MS; $acc['canceled'] = false;
-    $acc['interval'] = (($pd['interval'] ?? '') === 'year') ? 'year' : 'month';
-    $acc['cardOnFile'] = false;
-    // FREE trial: BIND the card without charging. AddCard CheckType=3DS runs a 0₽
-    // verification and returns a RebillId in the binding notification; the first real
-    // charge happens only when the trial ends (tick.php → chargeRecurring, day 4).
+  // FREE trial / card change: BIND the card without charging. AddCard runs a 0₽ verification and
+  // returns a RebillId in the binding notification; the first real charge is tick.php on day 4.
+  private function bindCardUrl(array &$acc): array {
     $r = $this->call('AddCard', [
       'CustomerKey' => $acc['email'],
       'CheckType' => env('TBANK_CHECKTYPE', '3DS'), // NO | 3DS | HOLD | 3DSHOLD — 3DS can fail to link on test terminals
@@ -89,6 +84,20 @@ class TbankProvider {
       return ['ok' => true, 'needsConfirm' => true, 'redirectUrl' => $r['PaymentURL']];
     }
     return ['ok' => false, 'error' => $r['Message'] ?? 'addcard_failed', 'detail' => $r['Details'] ?? null];
+  }
+
+  function startTrial(array &$acc, array $pd, int $now): array {
+    $acc['provider'] = 'tbank'; $acc['plan'] = 'pro'; $acc['status'] = 'trialing';
+    $acc['trialEndsAt'] = $now + TRIAL_DAYS * DAY_MS; $acc['canceled'] = false;
+    $acc['interval'] = (($pd['interval'] ?? '') === 'year') ? 'year' : 'month';
+    $acc['cardOnFile'] = false;
+    return $this->bindCardUrl($acc);
+  }
+
+  /** Re-bind or change the saved card WITHOUT resetting the trial/period. */
+  function attachCard(array &$acc): array {
+    $acc['provider'] = 'tbank';
+    return $this->bindCardUrl($acc);
   }
 
   function chargeRecurring(array &$acc, int $now): array {

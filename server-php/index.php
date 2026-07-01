@@ -160,6 +160,12 @@ try {
     $store->putAccount($acc);
     send(200, array_merge(['provider' => $provider->name(), 'result' => $r], $stateResponse($acc)));
   }
+  if ($path === '/v1/billing/attach-card' && $method === 'POST') {
+    // (Re)bind or change the saved card without touching the trial/period.
+    if (!method_exists($provider, 'attachCard')) send(400, ['error' => 'not_supported']);
+    $r = $provider->attachCard($acc); $store->putAccount($acc);
+    send(200, array_merge(['result' => $r], $stateResponse($acc)));
+  }
   if ($path === '/v1/billing/retry' && $method === 'POST') {
     $r = $provider->chargeRecurring($acc, now_ms()); $store->putAccount($acc);
     send(200, array_merge(['result' => $r], $stateResponse($acc)));

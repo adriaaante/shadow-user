@@ -24,6 +24,13 @@ class MockProvider {
     return ['ok' => true];
   }
 
+  function attachCard(array &$acc): array {
+    $acc['provider'] = 'mock';
+    $acc['providerMethodId'] = 'mock_pm_' . bin2hex(random_bytes(4));
+    $acc['cardOnFile'] = true;
+    return ['ok' => true];
+  }
+
   function chargeRecurring(array &$acc, int $now): array {
     if (!empty($acc['canceled'])) { $acc['status'] = 'expired'; return ['ok' => false, 'status' => 'expired']; }
     if (empty($acc['cardOnFile'])) { $acc['status'] = 'past_due'; return ['ok' => false, 'status' => 'past_due']; }
