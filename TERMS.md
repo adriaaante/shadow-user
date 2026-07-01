@@ -28,7 +28,7 @@
 По 54-ФЗ при оплате формируется кассовый чек (онлайн-касса платёжного провайдера) на email
 пользователя.
 
-**5. Способы оплаты.** Платежи обрабатываются платёжными провайдерами **Т‑Банк** или **ЮKassa**.
+**5. Способы оплаты.** Платежи обрабатываются платёжным провайдером **Т‑Банк**.
 Данные банковской карты обрабатываются и хранятся провайдером; Driftly не хранит данные карты.
 
 **6. Неуспешный платёж.** Если очередное списание не прошло (например, недостаточно средств),
@@ -64,7 +64,7 @@ grants the right to use it; **one subscription covers both the web and desktop v
 Connecting a card starts a **3-day free trial**; afterwards the subscription fee is charged
 **automatically and recurrently** until cancelled (the user consents to recurring charges by
 adding a card). Price: 249 ₽/month or 2500 ₽/year (shown at checkout). Payments are processed by
-**T‑Bank** or **YooKassa**; Driftly never stores card data. **If a charge fails, access to both
+**T‑Bank**; Driftly never stores card data. **If a charge fails, access to both
 apps is paused until payment succeeds.** Cancel anytime — access continues until the end of the
 paid period. Activity data is never collected (local only); only email + billing status are
 processed (see PRIVACY.md). Software is provided "as is" (see LICENSE).

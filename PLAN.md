@@ -197,7 +197,7 @@ server/                         reference licensing & subscription backend (Node
 ├─ index.js                     accounts, license issuance, billing endpoints, auto-charge loop
 ├─ lib.js                       Ed25519 token signing
 ├─ keygen.js                    generate the keypair (private → server/.keys, gitignored)
-└─ providers/                   pluggable payments: mock | tbank (T‑Bank) | yookassa (ЮKassa)
+└─ providers/                   pluggable payments: mock | tbank (T‑Bank)
 ```
 
 **Flow:** connect card → `trialing` (3 days) → server auto-charges → `active` (renews monthly).

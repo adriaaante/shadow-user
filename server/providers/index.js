@@ -1,13 +1,12 @@
 'use strict';
 /* providers/index.js — select the active payment provider.
- * DRIFTLY_PROVIDER = mock | tbank | yookassa. Falls back to mock when the chosen
- * provider has no keys configured, so the server is always runnable in dev. */
+ * DRIFTLY_PROVIDER = mock | tbank. Falls back to mock when the chosen provider
+ * has no keys configured, so the server is always runnable in dev. */
 
 const mock = require('./mock');
 const tbank = require('./tbank');
-const yookassa = require('./yookassa');
 
-const REGISTRY = { mock: mock, tbank: tbank, yookassa: yookassa };
+const REGISTRY = { mock: mock, tbank: tbank };
 
 function select() {
   const want = (process.env.DRIFTLY_PROVIDER || 'mock').toLowerCase();

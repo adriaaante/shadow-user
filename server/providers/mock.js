@@ -2,8 +2,8 @@
 /* providers/mock.js — reference payment provider for local development.
  * No real charges. Simulates a card-on-file 3-day trial that auto-charges, and
  * can simulate a FAILED charge (insufficient funds) so the "past_due / необходимо
- * оплатить" blocked flow is fully testable. Real providers (T-Bank, YooKassa)
- * implement the same interface in tbank.js / yookassa.js. */
+ * оплатить" blocked flow is fully testable. Real providers (T-Bank)
+ * implement the same interface in tbank.js. */
 
 const crypto = require('crypto');
 const DAY = 86400000;

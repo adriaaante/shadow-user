@@ -88,7 +88,7 @@ to your email account, unlocks BOTH the web and desktop apps.** After the trial 
 automatically; if a charge fails the apps show a **"необходимо оплатить"** paywall until paid.
 
 The licensing/subscription backend lives in [`server/`](./server) and is fully runnable in
-dev with mock payments. Payments plug into **T‑Bank (Tinkoff)** or **YooKassa (ЮKassa)**:
+dev with mock payments. Payments plug into **T‑Bank (Tinkoff)**:
 
 ```bash
 cd server

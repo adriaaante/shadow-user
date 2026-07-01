@@ -8,7 +8,7 @@
  *
  * This is a reference implementation: storage is embedded SQLite (server/store.js).
  * Run behind HTTPS and configure a real mailer + payment provider in production.
- * Payment goes through a pluggable provider (mock | tbank | yookassa) — see providers/.
+ * Payment goes through a pluggable provider (mock | tbank) — see providers/.
  */
 
 const http = require('http');

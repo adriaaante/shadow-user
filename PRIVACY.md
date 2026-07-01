@@ -18,7 +18,7 @@ and desktop apps, the licensing server processes the minimum necessary:
   dates, so access can be granted or paused.
 
 **Card data is NOT handled by Driftly.** All payments are processed by the payment provider
-(**T‑Bank** or **YooKassa**), who securely store and charge your card. Driftly never sees or
+(**T‑Bank**), who securely stores and charges your card. Driftly never sees or
 stores your card number. If you never start a trial/subscription, no account is created.
 
 You can cancel anytime and request deletion of your account data via the contact below.
