@@ -24,12 +24,22 @@ module.exports = {
     acc.canceled = false;
     acc.plan = 'pro';
     acc.interval = (paymentData && paymentData.interval === 'year') ? 'year' : 'month';
-    acc.status = 'trialing';
-    acc.trialEndsAt = now + TRIAL_DAYS * DAY;
-    acc.currentPeriodEnd = null;
     // test hooks: special tokens simulate a later failed charge
     acc._simFail = (card === 'tok_insufficient' || card === 'tok_fail');
-    return { ok: true };
+    // The free 3-day trial is granted ONCE per account for all time. A returning user
+    // (trial already used) is charged the full period immediately — no second free trial.
+    if (!acc.trialUsed) {
+      acc.status = 'trialing';
+      acc.trialEndsAt = now + TRIAL_DAYS * DAY;
+      acc.currentPeriodEnd = null;
+      acc.trialUsed = true;
+      return { ok: true, trial: true };
+    }
+    if (acc._simFail) { acc.status = 'past_due'; return { ok: false, status: 'past_due' }; }
+    acc.status = 'active';
+    acc.trialEndsAt = null;
+    acc.currentPeriodEnd = now + (acc.interval === 'year' ? 365 : 30) * DAY;
+    return { ok: true, trial: false };
   },
 
   /** Attempt the recurring charge (called when the trial ends, or on retry). */

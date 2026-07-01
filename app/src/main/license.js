@@ -19,7 +19,7 @@ const entitlement = require('../shared/entitlement');
 const PUB = fs.readFileSync(path.join(__dirname, '..', 'shared', 'license-public.pem'), 'utf8');
 
 let store = null;
-const state = { api: '', token: null, license: null, online: false, lastError: null };
+const state = { api: '', token: null, license: null, account: null, online: false, lastError: null };
 
 function init(s) {
   store = s;
@@ -45,7 +45,7 @@ function currentEntitlement() {
 function info() {
   return {
     api: apiBase(), preview: isPreview(), online: state.online, lastError: state.lastError,
-    signedIn: !!state.token, entitlement: currentEntitlement(),
+    signedIn: !!state.token, entitlement: currentEntitlement(), account: state.account || null,
   };
 }
 
@@ -60,6 +60,7 @@ async function refresh() {
     const r = await fetch(apiBase() + '/v1/status', { headers: authHeaders() });
     const j = await r.json();
     if (j && j.license) { state.license = j.license; persist(); }
+    if (j && j.account) state.account = j.account;
     state.online = true; state.lastError = null;
   } catch (e) { state.online = false; state.lastError = String(e && e.message || e); }
   return info();
@@ -93,7 +94,7 @@ async function resume() { if (isPreview() || !state.token) return { ok: false };
 function setApi(url) { state.api = (url || '').trim().replace(/\/$/, ''); persist(); return refresh(); }
 function signOut() {
   const tok = state.token;
-  state.token = null; state.license = null; persist();
+  state.token = null; state.license = null; state.account = null; persist();
   // Best-effort: tell the server to drop this device token so its seat frees up.
   if (tok && !isPreview()) {
     try { fetch(apiBase() + '/v1/auth/signout', { method: 'POST', headers: { Authorization: 'Bearer ' + tok } }).catch(() => {}); } catch (_) { /* noop */ }

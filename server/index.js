@@ -45,7 +45,7 @@ function publicAccount(acc) {
     email: acc.email, plan: acc.plan || 'none', status: acc.status || 'none',
     trialEndsAt: acc.trialEndsAt || null, currentPeriodEnd: acc.currentPeriodEnd || null,
     cardOnFile: !!acc.cardOnFile, provider: acc.provider || provider.name, canceled: !!acc.canceled,
-    interval: acc.interval || 'month',
+    interval: acc.interval || 'month', trialUsed: !!acc.trialUsed,
   };
 }
 

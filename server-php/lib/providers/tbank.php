@@ -73,25 +73,31 @@ class TbankProvider {
 
   private function verifyKopecks(): int { return max(100, (int) env('TBANK_VERIFY_KOPECKS', '100')); } // ~1 ₽
 
-  // Card verification for the free trial: a tiny recurrent payment (Recurrent=Y) that RELIABLY
-  // returns a RebillId in the CONFIRMED webhook (AddCard on this acquirer yields no RebillId).
-  // The webhook then refunds this amount (Cancel) and activates the trial. First real charge = day 4.
-  private function verifyCardInit(array &$acc, int $now): array {
-    $amount = $this->verifyKopecks();
+  // One Init of a recurrent payment (Recurrent=Y) that RELIABLY returns a RebillId in the
+  // CONFIRMED webhook (AddCard on this acquirer yields no RebillId). The OrderId prefix tells
+  // the webhook what this payment means:
+  //   trial-  → ~1 ₽ card verification (refunded), used for the free trial AND card changes.
+  //   sub-    → full first charge for a returning user who has no free trial left (NOT refunded).
+  private function initPayment(array &$acc, int $now, int $amount, string $prefix, string $desc, string $receiptName): array {
     $r = $this->call('Init', [
       'Amount' => $amount,
-      'OrderId' => 'trial-' . $acc['email'] . '-' . $now,
+      'OrderId' => $prefix . $acc['email'] . '-' . $now,
       'CustomerKey' => $acc['email'],
       'Recurrent' => 'Y',
-      'Description' => 'Driftly — привязка карты (возврат ' . number_format($amount / 100, 2, '.', '') . ' ₽)',
-      'Receipt' => $this->receipt((string) ($acc['email'] ?? ''), $amount, 'Привязка карты Driftly'),
+      'Description' => $desc,
+      'Receipt' => $this->receipt((string) ($acc['email'] ?? ''), $amount, $receiptName),
     ]);
-    dbg_log('verifyInit.resp', $r);
+    dbg_log('initPayment.resp', $r);
     if (!empty($r['Success']) && !empty($r['PaymentURL'])) {
       $acc['providerPaymentId'] = (string) ($r['PaymentId'] ?? '');
       return ['ok' => true, 'needsConfirm' => true, 'redirectUrl' => $r['PaymentURL']];
     }
     return ['ok' => false, 'error' => $r['Message'] ?? 'init_failed', 'detail' => $r['Details'] ?? null];
+  }
+
+  /** ~1 ₽ card-verification Init (refunded once confirmed). */
+  private function verifyDesc(int $amount): string {
+    return 'Driftly — привязка карты (возврат ' . number_format($amount / 100, 2, '.', '') . ' ₽)';
   }
 
   /** Refund/reverse the verification payment so the ~1 ₽ is returned. */
@@ -105,17 +111,25 @@ class TbankProvider {
     $acc['provider'] = 'tbank'; $acc['plan'] = 'pro';
     $acc['interval'] = (($pd['interval'] ?? '') === 'year') ? 'year' : 'month';
     $acc['canceled'] = false; $acc['cardOnFile'] = false;
-    // Do NOT grant the trial yet — it activates in the webhook only after the ~1 ₽ verification
-    // succeeds (RebillId captured). Until then the account is "pending".
-    $acc['status'] = 'pending'; $acc['pendingTrial'] = true;
     unset($acc['trialEndsAt']);
-    return $this->verifyCardInit($acc, $now);
+    // The free 3-day trial is granted ONCE per account for all time. If this account has
+    // already used its trial (trialUsed), do NOT hand out another one — charge the full
+    // period now and activate a paid subscription (active, not trialing) on confirmation.
+    if (empty($acc['trialUsed'])) {
+      $acc['status'] = 'pending'; $acc['pendingTrial'] = true; $acc['pendingPaid'] = false;
+      $amount = $this->verifyKopecks();
+      return $this->initPayment($acc, $now, $amount, 'trial-', $this->verifyDesc($amount), 'Привязка карты Driftly');
+    }
+    $acc['status'] = 'pending'; $acc['pendingPaid'] = true; $acc['pendingTrial'] = false;
+    $amount = $this->amountKopecks($acc);
+    return $this->initPayment($acc, $now, $amount, 'sub-', 'Driftly Pro — подписка', 'Подписка Driftly Pro');
   }
 
-  /** Re-bind or change the saved card WITHOUT resetting the trial/period. */
+  /** Re-bind or change the saved card WITHOUT resetting the trial/period (~1 ₽, refunded). */
   function attachCard(array &$acc): array {
     $acc['provider'] = 'tbank';
-    return $this->verifyCardInit($acc, $now = now_ms());
+    $amount = $this->verifyKopecks();
+    return $this->initPayment($acc, now_ms(), $amount, 'trial-', $this->verifyDesc($amount), 'Привязка карты Driftly');
   }
 
   /** Raw GetState for a payment (diagnostics + reliable RebillId capture without the webhook). */

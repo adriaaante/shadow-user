@@ -54,7 +54,7 @@
       runOn: 'Driftly активна', runWait: 'Driftly ждёт расписания', runOff: 'Driftly выключена',
       subPreview: 'Демо-режим: сервер лицензий не подключён — доступ открыт.', previewTitle: 'Демо-режим',
       signInFirst: 'Войдите в аккаунт, чтобы управлять подпиской.', online: 'на связи', offline: 'нет связи',
-      startTrial: 'Подключить карту — 3 дня бесплатно', trialActive: 'Пробный период', daysLeft: 'дн. осталось',
+      startTrial: 'Подключить карту — 3 дня бесплатно', subscribe: 'Оформить подписку', trialActive: 'Пробный период', daysLeft: 'дн. осталось',
       subActive: 'Подписка активна', renews: 'Продление', inactive: 'Подписка неактивна',
       pastDue: 'Необходимо оплатить', pastDueDesc: 'Списание не прошло. Оплатите, чтобы продолжить.',
       retryPay: 'Повторить оплату', cancelSub: 'Отменить подписку', goSub: 'Открыть подписку',
@@ -73,7 +73,7 @@
       runOn: 'Driftly is active', runWait: 'Driftly waits for schedule', runOff: 'Driftly is off',
       subPreview: 'Demo mode: no licensing server connected — access is open.', previewTitle: 'Demo mode',
       signInFirst: 'Sign in to manage your subscription.', online: 'online', offline: 'offline',
-      startTrial: 'Add a card — 3 days free', trialActive: 'Free trial', daysLeft: 'days left',
+      startTrial: 'Add a card — 3 days free', subscribe: 'Subscribe', trialActive: 'Free trial', daysLeft: 'days left',
       subActive: 'Subscription active', renews: 'Renews', inactive: 'Subscription inactive',
       pastDue: 'Payment required', pastDueDesc: 'The charge failed. Please pay to continue.',
       retryPay: 'Retry payment', cancelSub: 'Cancel subscription', goSub: 'Open subscription',
@@ -279,8 +279,13 @@
       <button class="${yr ? 'on' : ''}" data-interval="year"><b>${PRICE.priceYearly} ${t('perYear')}</b><span>${t('yearly')} · −${PRICE.yearlyDiscountPct}%</span></button>
     </div>`;
   }
-  function trialBlock() {
-    return planToggle() + `<button class="btn primary btn-lg" data-act="trial">${t('startTrial')}</button>
+  function trialBlock(info) {
+    // The one-time free trial is only offered while the account hasn't used it yet; a returning
+    // user (trialUsed) subscribes and is charged immediately, so the button says so.
+    const used = !!(info && info.account && info.account.trialUsed);
+    const price = selectedInterval === 'year' ? `${PRICE.priceYearly} ${t('perYear')}` : `${PRICE.priceMonthly} ${t('perMonth')}`;
+    const label = used ? `${t('subscribe')} — ${price}` : t('startTrial');
+    return planToggle() + `<button class="btn primary btn-lg" data-act="trial">${label}</button>
       <div class="devcard">${t('testCard')}<select id="dev-card"><option value="tok_ok">${t('cardOk')}</option><option value="tok_insufficient">${t('cardFail')}</option></select></div>`;
   }
   function planWord(e) { return e.interval === 'year' ? t('planYearWord') : t('planMonthWord'); }
@@ -334,7 +339,7 @@
       ? statusBox('ok', '✓', t('subCanceledNote'), `${t('accessUntil')} ${fmtDate(e.renewsAt)} · ${t('noRenew')}`) + resumeBlock()
       : statusBox('ok', '✓', `${t('subActive')} · ${planWord(e)}`, `${t('renews')}: ${fmtDate(e.renewsAt)}`) + cancelBlock();
     else if (e.needsPayment) box.innerHTML = statusBox('bad', '⚠', t('pastDue'), t('pastDueDesc')) + `<button class="btn primary" data-act="retry">${t('retryPay')}</button>`;
-    else box.innerHTML = statusBox('', '🔓', t('inactive'), '') + trialBlock();
+    else box.innerHTML = statusBox('', '🔓', t('inactive'), '') + trialBlock(info);
   }
 
   function applyInfo(info) { if (!status) status = {}; status.license = info; renderLicense(); renderStatus(); }

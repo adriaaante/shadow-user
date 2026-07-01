@@ -17,11 +17,21 @@ class MockProvider {
     $acc['canceled'] = false;
     $acc['plan'] = 'pro';
     $acc['interval'] = (($pd['interval'] ?? '') === 'year') ? 'year' : 'month';
-    $acc['status'] = 'trialing';
-    $acc['trialEndsAt'] = $now + TRIAL_DAYS * DAY_MS;
-    $acc['currentPeriodEnd'] = null;
     $acc['_simFail'] = in_array($card, ['tok_insufficient', 'tok_fail'], true);
-    return ['ok' => true];
+    // Free 3-day trial granted ONCE per account. A returning user (trial already used) is
+    // charged the full period immediately — no second free trial.
+    if (empty($acc['trialUsed'])) {
+      $acc['status'] = 'trialing';
+      $acc['trialEndsAt'] = $now + TRIAL_DAYS * DAY_MS;
+      $acc['currentPeriodEnd'] = null;
+      $acc['trialUsed'] = true;
+      return ['ok' => true, 'trial' => true];
+    }
+    if (!empty($acc['_simFail'])) { $acc['status'] = 'past_due'; return ['ok' => false, 'status' => 'past_due']; }
+    $acc['status'] = 'active';
+    $acc['trialEndsAt'] = null;
+    $acc['currentPeriodEnd'] = $now + (($acc['interval'] ?? '') === 'year' ? 365 : 30) * DAY_MS;
+    return ['ok' => true, 'trial' => false];
   }
 
   function attachCard(array &$acc): array {
