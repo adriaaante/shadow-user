@@ -130,24 +130,21 @@ class TbankProvider {
     dbg_log('GetCardList.resp', $r);
     return is_array($r) ? $r : [];
   }
+  // Best-effort RebillId lookup (webhook remains the primary source). We only mark the card
+  // "on file" when we actually have a RebillId — without it the day-4 charge can't run.
   function confirmCard(array &$acc): array {
-    // 1) The verification payment (GetState) is the reliable source of RebillId — no webhook needed.
+    if (!empty($acc['providerRebillId'])) return ['ok' => true, 'cardOnFile' => true, 'via' => 'already'];
     if (!empty($acc['providerPaymentId'])) {
       $st = $this->getStateRaw((string) $acc['providerPaymentId']);
-      $paid = in_array(strtoupper((string) ($st['Status'] ?? '')), ['CONFIRMED', 'AUTHORIZED'], true);
       if (!empty($st['RebillId'])) {
-        $acc['providerRebillId'] = (string) $st['RebillId'];
-        $acc['cardOnFile'] = true;
+        $acc['providerRebillId'] = (string) $st['RebillId']; $acc['cardOnFile'] = true;
         return ['ok' => true, 'cardOnFile' => true, 'via' => 'getstate', 'status' => $st['Status'] ?? null];
       }
-      if ($paid) { $acc['cardOnFile'] = true; return ['ok' => true, 'cardOnFile' => true, 'via' => 'getstate-norebill', 'status' => $st['Status'] ?? null]; }
     }
-    // 2) Fallback: a card saved for recurrent shows up in GetCardList with a RebillId.
     $r = $this->getCardListRaw($acc['email']);
     foreach ((is_array($r) ? $r : []) as $c) {
       if (is_array($c) && ($c['Status'] ?? '') === 'A' && !empty($c['RebillId'])) {
-        $acc['providerRebillId'] = (string) $c['RebillId'];
-        $acc['cardOnFile'] = true;
+        $acc['providerRebillId'] = (string) $c['RebillId']; $acc['cardOnFile'] = true;
         return ['ok' => true, 'cardOnFile' => true, 'via' => 'getcardlist'];
       }
     }
