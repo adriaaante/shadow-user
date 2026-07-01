@@ -65,6 +65,19 @@ try {
       'keys' => $hasKey]);
   }
 
+  // ---- TEMPORARY: T-Bank certification (3 test payments). Disable by removing DRIFTLY_TEST_PAY
+  // from .env once the merchant is switched to real data. The flag doubles as the URL secret;
+  // opens a real payment form so the test cards run success/fail/refund. The resulting webhook is
+  // signature-verified then ignored (no matching account), so it can't touch subscriptions.
+  if ($path === '/v1/test/pay' && $provider->name() === 'tbank') {
+    $secret = (string) env('DRIFTLY_TEST_PAY', '');
+    if ($secret === '' || (string) ($_GET['t'] ?? '') !== $secret) send(404, ['error' => 'not_found']);
+    $amount = max(100, (int) ($_GET['amount'] ?? 10000)); // kopecks; default 100 ₽
+    $r = $provider->testInit($amount, 'test-' . now_ms());
+    if (!empty($r['url'])) { header('Location: ' . $r['url']); http_response_code(302); exit; }
+    send(502, ['error' => 'init_failed', 'detail' => $r]);
+  }
+
   if ($path === '/v1/auth/request' && $method === 'POST') {
     $email = strtolower(trim(body()['email'] ?? ''));
     if (!preg_match('/^[^@\s]+@[^@\s]+\.[^@\s]+$/', $email)) send(400, ['error' => 'invalid_email']);

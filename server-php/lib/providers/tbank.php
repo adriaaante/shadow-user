@@ -87,6 +87,14 @@ class TbankProvider {
     return ['ok' => false, 'status' => 'past_due', 'reason' => $charge['Message'] ?? 'charge_failed'];
   }
 
+  /** TEMP (T-Bank certification): create a standard one-off payment (Init) so their
+   *  test cards can run success/fail/refund. Not used by the product flow. */
+  function testInit(int $amountKopecks, string $orderId): array {
+    $r = $this->call('Init', ['Amount' => $amountKopecks, 'OrderId' => $orderId, 'Description' => 'Driftly certification test']);
+    if (!empty($r['Success']) && !empty($r['PaymentURL'])) return ['ok' => true, 'url' => $r['PaymentURL'], 'paymentId' => $r['PaymentId'] ?? null];
+    return ['ok' => false, 'error' => $r['Message'] ?? 'init_failed', 'detail' => $r['Details'] ?? null, 'raw' => $r];
+  }
+
   function verifyWebhook(array $headers, string $raw): ?array {
     $body = json_decode($raw ?: '{}', true);
     if (!is_array($body)) return null;
