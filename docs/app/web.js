@@ -374,6 +374,7 @@
     document.querySelectorAll('.tab-panel').forEach((p) => { p.hidden = (p.dataset.panel !== name); });
     try { localStorage.setItem('driftly.tab', name); } catch (_) {}
     if (name === 'app') { try { refreshCharts(); } catch (_) {} } // re-render canvases sized while hidden
+    window.dispatchEvent(new Event('driftly-tab-changed')); // let the paywall react to the active section
   }
   document.querySelectorAll('#tabs button').forEach((b) => b.addEventListener('click', () => showTab(b.dataset.tab)));
   window.DriftlyTabs = { show: showTab };

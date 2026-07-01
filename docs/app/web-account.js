@@ -106,12 +106,15 @@
       else if (e.needsPayment) { bn.style.display = 'flex'; bn.className = 'note warn'; bn.textContent = '⚠ ' + t('pastDue'); }
       else bn.style.display = 'none';
     }
-    // paywall — dismissable so the sign-in / payment panel below stays reachable.
+    // paywall — blocks the App section only. On the Subscription section it's pointless (the
+    // subscription UI is right there), so we never cover it. Dismissable as a fallback.
     var blocked = e.blocked && !preview();
     if (!blocked) dismissed = false; // reset so it reappears next time access is lost
+    var subPanel = document.querySelector('.tab-panel[data-panel="sub"]');
+    var onSub = !!(subPanel && !subPanel.hidden);
     var pw = $('paywall');
     if (pw) {
-      var show = blocked && !dismissed;
+      var show = blocked && !dismissed && !onSub;
       pw.style.display = show ? 'flex' : 'none';
       if (show) {
         $('pw-title').textContent = e.needsPayment ? t('pastDue') : t('goSub');
@@ -356,11 +359,14 @@
     // Small initial delay so the ~1 ₽ payment has settled before the first GetState.
     setTimeout(run, 900);
   }
+  window.addEventListener('driftly-tab-changed', render); // hide/show the paywall per active section
   if (/[?&]paid=1\b/.test(location.search)) {
     try { history.replaceState({}, '', location.pathname); } catch (e) {}
+    if (window.DriftlyTabs) window.DriftlyTabs.show('sub'); // land on Subscription so activation is visible
     confirmCardBinding();
   } else if (/[?&]paid=0\b/.test(location.search)) {
     try { history.replaceState({}, '', location.pathname); } catch (e) {}
+    if (window.DriftlyTabs) window.DriftlyTabs.show('sub');
     if (window.DriftlyToast) window.DriftlyToast(t('bindFailed'), 'warn');
   } else {
     window.addEventListener('driftly-access-changed', function once() {
