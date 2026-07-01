@@ -81,7 +81,7 @@ class TbankProvider {
     // charge happens only when the trial ends (tick.php → chargeRecurring, day 4).
     $r = $this->call('AddCard', [
       'CustomerKey' => $acc['email'],
-      'CheckType' => '3DS',
+      'CheckType' => env('TBANK_CHECKTYPE', '3DS'), // NO | 3DS | HOLD | 3DSHOLD — 3DS can fail to link on test terminals
     ]);
     dbg_log('AddCard.resp', $r);
     if (!empty($r['Success']) && !empty($r['PaymentURL'])) {
