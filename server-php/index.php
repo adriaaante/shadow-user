@@ -107,11 +107,24 @@ try {
     $a = $email !== '' ? $store->getAccount($email) : null;
     if (!$a) send(404, ['error' => 'no_account', 'email' => $email]);
     $r = method_exists($provider, 'confirmCard') ? $provider->confirmCard($a) : ['ok' => false];
-    if (!empty($a['cardOnFile']) && !empty($a['pendingTrial'])) {
-      $a['status'] = 'trialing'; $a['trialEndsAt'] = now_ms() + TRIAL_DAYS * DAY_MS; $a['pendingTrial'] = false; $a['trialUsed'] = true;
-      if (!empty($a['providerPaymentId']) && method_exists($provider, 'cancelPayment')) $provider->cancelPayment((string) $a['providerPaymentId']);
-    } elseif (!empty($a['cardOnFile']) && !empty($a['pendingPaid'])) {
-      $a['status'] = 'active'; $a['currentPeriodEnd'] = now_ms() + (($a['interval'] ?? '') === 'year' ? 365 : 30) * DAY_MS; $a['pendingPaid'] = false; $a['trialUsed'] = true;
+    // Same activation rule as /v1/billing/confirm-card: only the PENDING payment counts.
+    if (!empty($a['pendingTrial']) || !empty($a['pendingPaid'])) {
+      $pid = (string) ($a['pendingPaymentId'] ?? $a['providerPaymentId'] ?? '');
+      $st = ($pid !== '' && method_exists($provider, 'getStateRaw')) ? $provider->getStateRaw($pid) : [];
+      if (in_array(strtoupper((string) ($st['Status'] ?? '')), ['CONFIRMED', 'AUTHORIZED'], true)) {
+        $a['cardOnFile'] = true;
+        if (!empty($a['pendingTrial'])) {
+          $a['status'] = 'trialing'; $a['trialEndsAt'] = now_ms() + TRIAL_DAYS * DAY_MS;
+          if ($pid !== '' && ($a['refundedPaymentId'] ?? '') !== $pid && method_exists($provider, 'cancelPayment')) {
+            $provider->cancelPayment($pid); $a['refundedPaymentId'] = $pid;
+          }
+        } else {
+          $a['status'] = 'active';
+          $a['currentPeriodEnd'] = now_ms() + ((($a['pendingInterval'] ?? $a['interval'] ?? '') === 'year') ? 365 : 30) * DAY_MS;
+        }
+        $a['trialUsed'] = true;
+        unset($a['pendingTrial'], $a['pendingPaid'], $a['pendingPaymentId'], $a['pendingInterval']);
+      }
     }
     $store->putAccount($a);
     send(200, ['result' => $r, 'account' => ['status' => $a['status'] ?? null, 'cardOnFile' => (bool) ($a['cardOnFile'] ?? false), 'rebillId' => isset($a['providerRebillId']) && $a['providerRebillId'] !== '' ? 'set' : 'missing']]);
@@ -189,32 +202,63 @@ try {
     send(200, array_merge(['provider' => $provider->name(), 'result' => $r], $stateResponse($acc)));
   }
   if ($path === '/v1/billing/confirm-card' && $method === 'POST') {
-    // Actively confirm the card binding via the provider (GetCardList), webhook-independent.
-    // If the card is now on file, activate the pending free trial.
+    // Actively confirm the payment via the provider, webhook-independent.
     if (!method_exists($provider, 'confirmCard')) send(400, ['error' => 'not_supported']);
-    $r = $provider->confirmCard($acc);
-    if (!empty($acc['cardOnFile']) && !empty($acc['pendingTrial'])) {
-      $acc['status'] = 'trialing';
-      $acc['trialEndsAt'] = now_ms() + TRIAL_DAYS * DAY_MS;
-      $acc['pendingTrial'] = false;
-      $acc['trialUsed'] = true;
-    } elseif (!empty($acc['cardOnFile']) && !empty($acc['pendingPaid'])) {
-      // Returning user (no free trial left) — the full charge cleared → paid period starts now.
-      $acc['status'] = 'active';
-      $acc['currentPeriodEnd'] = now_ms() + (($acc['interval'] ?? '') === 'year' ? 365 : 30) * DAY_MS;
-      $acc['pendingPaid'] = false;
-      $acc['trialUsed'] = true;
+    if (!empty($acc['pendingTrial']) || !empty($acc['pendingPaid'])) {
+      // A pending signup activates ONLY when its OWN payment cleared. cardOnFile alone is
+      // not proof of payment — a ~1 ₽ attach-card verify also sets it, and must never be
+      // able to confirm a full 'sub-' activation.
+      $pid = (string) ($acc['pendingPaymentId'] ?? $acc['providerPaymentId'] ?? '');
+      $st = ($pid !== '' && method_exists($provider, 'getStateRaw')) ? $provider->getStateRaw($pid) : [];
+      if (!empty($st['RebillId'])) $acc['providerRebillId'] = (string) $st['RebillId'];
+      $paid = in_array(strtoupper((string) ($st['Status'] ?? '')), ['CONFIRMED', 'AUTHORIZED'], true);
+      $r = ['ok' => true, 'via' => 'pending', 'paid' => $paid];
+      if ($paid) {
+        $acc['cardOnFile'] = true;
+        if (!empty($acc['pendingTrial'])) {
+          $acc['status'] = 'trialing';
+          $acc['trialEndsAt'] = now_ms() + TRIAL_DAYS * DAY_MS;
+          // Refund the ~1 ₽ here too — the webhook can be delayed or misconfigured.
+          // refundedPaymentId keeps the two paths idempotent (one refund per payment).
+          if ($pid !== '' && ($acc['refundedPaymentId'] ?? '') !== $pid && method_exists($provider, 'cancelPayment')) {
+            $provider->cancelPayment($pid); $acc['refundedPaymentId'] = $pid;
+          }
+        } else {
+          // Returning user (no free trial left) — the full charge cleared → paid period
+          // starts now, for the interval that was actually paid for (snapshot at Init).
+          $acc['status'] = 'active';
+          $acc['currentPeriodEnd'] = now_ms() + ((($acc['pendingInterval'] ?? $acc['interval'] ?? '') === 'year') ? 365 : 30) * DAY_MS;
+        }
+        $acc['trialUsed'] = true;
+        unset($acc['pendingTrial'], $acc['pendingPaid'], $acc['pendingPaymentId'], $acc['pendingInterval']);
+      }
+    } else {
+      $r = $provider->confirmCard($acc); // card change: confirm the new binding only
     }
     $store->putAccount($acc);
     send(200, array_merge(['result' => $r], $stateResponse($acc)));
   }
   if ($path === '/v1/billing/attach-card' && $method === 'POST') {
-    // (Re)bind or change the saved card without touching the trial/period.
+    // (Re)bind or change the saved card without touching the trial/period. While a signup
+    // is pending, re-issue the SAME pending payment (correct amount + intent) instead —
+    // otherwise a ~1 ₽ verify would displace the pending 'sub-' payment as the account's
+    // latest payment and could stand in for it.
     if (!method_exists($provider, 'attachCard')) send(400, ['error' => 'not_supported']);
-    $r = $provider->attachCard($acc); $store->putAccount($acc);
+    $r = (!empty($acc['pendingTrial']) || !empty($acc['pendingPaid']))
+      ? $provider->startTrial($acc, ['interval' => $acc['pendingInterval'] ?? ($acc['interval'] ?? null)], now_ms())
+      : $provider->attachCard($acc);
+    $store->putAccount($acc);
     send(200, array_merge(['result' => $r], $stateResponse($acc)));
   }
   if ($path === '/v1/billing/retry' && $method === 'POST') {
+    // Retry only when a charge is actually DUE (failed charge, or the trial/period has
+    // ended and tick hasn't run yet). Without this guard a direct API call would charge
+    // a LIVE trial/period immediately (ending a free trial early / double-charging).
+    $st = $acc['status'] ?? '';
+    $due = $st === 'past_due'
+      || ($st === 'trialing' && now_ms() >= ($acc['trialEndsAt'] ?? 0))
+      || ($st === 'active' && now_ms() >= ($acc['currentPeriodEnd'] ?? 0));
+    if (!$due) send(409, array_merge(['error' => 'not_past_due'], $stateResponse($acc)));
     $r = $provider->chargeRecurring($acc, now_ms()); $store->putAccount($acc);
     send(200, array_merge(['result' => $r], $stateResponse($acc)));
   }
@@ -271,23 +315,25 @@ try {
             if (!empty($a['pendingTrial'])) {
               $a['status'] = 'trialing';
               $a['trialEndsAt'] = now_ms() + TRIAL_DAYS * DAY_MS;
-              $a['pendingTrial'] = false;
               $a['trialUsed'] = true;
+              unset($a['pendingTrial'], $a['pendingPaid'], $a['pendingPaymentId'], $a['pendingInterval']);
             }
-            if (!empty($ev['PaymentId']) && $paid && method_exists($provider, 'cancelPayment')) {
-              $provider->cancelPayment((string) $ev['PaymentId']); // return the ~1 ₽
+            // One refund per payment — confirm-card may already have returned this ~1 ₽.
+            $pid = (string) ($ev['PaymentId'] ?? '');
+            if ($pid !== '' && $paid && ($a['refundedPaymentId'] ?? '') !== $pid && method_exists($provider, 'cancelPayment')) {
+              $provider->cancelPayment($pid); $a['refundedPaymentId'] = $pid;
             }
           }
           // A failed verification (REJECTED) simply leaves a pending trial un-activated.
         } elseif ($isSignup) {
           // Paid signup (sub-…): a returning user with no free trial left is charged the FULL
-          // period up front. On success → active for that period; the full charge is NOT refunded.
-          // No second free trial is ever granted (trialUsed stays true).
+          // period up front. On success → active for the interval that was paid for (snapshot
+          // at Init); the charge is NOT refunded and no second free trial is ever granted.
           if ($paid && !empty($a['pendingPaid'])) {
             $a['status'] = 'active';
-            $a['currentPeriodEnd'] = now_ms() + (($a['interval'] ?? '') === 'year' ? 365 : 30) * DAY_MS;
-            $a['pendingPaid'] = false;
+            $a['currentPeriodEnd'] = now_ms() + ((($a['pendingInterval'] ?? $a['interval'] ?? '') === 'year') ? 365 : 30) * DAY_MS;
             $a['trialUsed'] = true;
+            unset($a['pendingTrial'], $a['pendingPaid'], $a['pendingPaymentId'], $a['pendingInterval']);
           }
           // A failed charge (REJECTED) leaves the account pending — no access granted.
         } else {

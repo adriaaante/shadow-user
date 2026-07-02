@@ -4,7 +4,7 @@ body{overflow:auto;background:radial-gradient(1200px 600px at 80% -10%,rgba(124,
   padding:14px 22px;background:rgba(8,8,12,.75);backdrop-filter:blur(16px);border-bottom:1px solid var(--border)}
 .brand{display:flex;align-items:center;gap:10px;text-decoration:none;color:var(--text)}
 .brand .logo{width:30px;height:30px}
-.brand .name{font-family:var(--font-display);font-weight:700;font-size:18px}
+.brand .name{font-family:var(--font-display);font-weight:700;font-size:18px;margin:0}
 .brand .name b{background:var(--grad);-webkit-background-clip:text;background-clip:text;color:transparent}
 .brand .name i{font-style:normal;font-size:12px;color:var(--muted);font-weight:500;vertical-align:middle}
 .wbar-right{display:flex;align-items:center;gap:12px}
@@ -221,3 +221,16 @@ hr.sep{border:0;border-top:1px solid var(--border2);margin:20px 0}
 @keyframes runpulse{0%,100%{box-shadow:0 0 0 0 rgba(45,212,191,0)}50%{box-shadow:0 0 18px 1px rgba(45,212,191,.5)}}
 h3{font-size:15px;margin-bottom:4px}
 .hint{color:var(--muted);font-size:12.5px;margin-bottom:14px}
+
+/* Sandbox idle state: while stopped, the demo dims and invites a Run press. */
+.stage .sand-os,.stage .cursor{transition:opacity .45s ease,filter .45s ease}
+.stage.idle .sand-os{opacity:.45;filter:saturate(.55)}
+.stage.idle .cursor{opacity:0}
+.stage.idle .sand-pops{display:none}
+.stage-hint{position:absolute;inset:0;display:none;align-items:center;justify-content:center;text-align:center;
+  padding:0 26px;color:var(--text);font-size:.92rem;line-height:1.5;pointer-events:none;z-index:4;
+  background:radial-gradient(ellipse 62% 46% at 50% 50%,rgba(8,8,12,.86) 0%,rgba(8,8,12,.55) 60%,transparent 100%);
+  text-shadow:0 1px 8px rgba(8,8,12,.9)}
+.stage.idle .stage-hint{display:flex}
+/* Async buttons show a busy state instead of accepting double clicks. */
+button.busy{opacity:.55;pointer-events:none}

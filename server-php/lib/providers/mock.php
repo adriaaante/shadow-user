@@ -19,8 +19,9 @@ class MockProvider {
     $acc['interval'] = (($pd['interval'] ?? '') === 'year') ? 'year' : 'month';
     $acc['_simFail'] = in_array($card, ['tok_insufficient', 'tok_fail'], true);
     // Free 3-day trial granted ONCE per account. A returning user (trial already used) is
-    // charged the full period immediately — no second free trial.
-    if (empty($acc['trialUsed'])) {
+    // charged the full period immediately — no second free trial. A persisted trialEndsAt
+    // covers accounts created before the trialUsed flag existed.
+    if (empty($acc['trialUsed']) && empty($acc['trialEndsAt'])) {
       $acc['status'] = 'trialing';
       $acc['trialEndsAt'] = $now + TRIAL_DAYS * DAY_MS;
       $acc['currentPeriodEnd'] = null;

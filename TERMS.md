@@ -15,14 +15,17 @@
 одновременно и в веб-версии, и в десктоп-версии для одного аккаунта.
 
 **2. Пробный период.** При подключении банковской карты предоставляется **бесплатный пробный
-период — 3 (три) календарных дня**. В течение пробного периода плата не взимается.
+период — 3 (три) календарных дня**. В течение пробного периода абонентская плата не взимается.
+Пробный период предоставляется **однократно для одного аккаунта (email)** за всё время. Если
+пробный период по аккаунту уже был использован, при повторном оформлении подписки абонентская
+плата за выбранный период списывается сразу при оформлении, без нового пробного периода.
 
 **3. Автоматическое продление (рекуррентные платежи).** По окончании пробного периода, если
 подписка не отменена, **автоматически списывается абонентская плата**, и далее списывается
 периодически (раз в расчётный период) до отмены подписки. Подключая карту, пользователь даёт
 согласие на регулярные автоматические списания (рекуррентные платежи).
 
-**4. Стоимость.** Стоимость подписки: **249 ₽ в месяц** либо **2500 ₽ в год** (выгода ≈ 16%);
+**4. Стоимость.** Стоимость подписки: **199 ₽ в месяц** либо **1999 ₽ в год** (выгода ≈ 16%);
 актуальная цена указывается в приложении и на сайте на момент оформления. Правообладатель вправе
 изменять стоимость с предварительным уведомлением; изменение не затрагивает уже оплаченный период.
 По 54-ФЗ при оплате формируется кассовый чек (онлайн-касса платёжного провайдера) на email
@@ -39,8 +42,14 @@
 **7. Отмена.** Пользователь может отменить подписку в любой момент в разделе «Подписка». После
 отмены доступ сохраняется до конца уже оплаченного периода, далее автосписания прекращаются.
 
-**8. Возвраты.** Условия возврата определяются законодательством о защите прав потребителей и
-политикой правообладателя; пробный период предоставляется именно для оценки продукта до оплаты.
+**8. Возвраты.** Возврат уже списанной абонентской платы за начавшийся оплаченный период по
+общему правилу не производится (при первом оформлении для оценки продукта предоставляется
+бесплатный пробный период), за исключением случаев, прямо предусмотренных законодательством РФ,
+в том числе Законом «О защите прав потребителей». Спорные ситуации — по обращению на email поддержки.
+
+**8а. Устройства.** Подписка действует одновременно не более чем на 2 (двух) устройствах.
+При входе на третьем устройстве доступ на самом раннем из ранее подключённых устройств
+прекращается.
 
 **9. Данные.** Driftly не собирает данные об активности пользователя — они хранятся локально. Для
 работы подписки обрабатываются только email и платёжный статус аккаунта (см. PRIVACY.md).
@@ -60,14 +69,18 @@
 ## EN — Summary
 
 Driftly is proprietary software (web + desktop) owned by the rights holder. A subscription
-grants the right to use it; **one subscription covers both the web and desktop versions**.
-Connecting a card starts a **3-day free trial**; afterwards the subscription fee is charged
-**automatically and recurrently** until cancelled (the user consents to recurring charges by
-adding a card). Price: 249 ₽/month or 2500 ₽/year (shown at checkout). Payments are processed by
-**T‑Bank**; Driftly never stores card data. **If a charge fails, access to both
-apps is paused until payment succeeds.** Cancel anytime — access continues until the end of the
-paid period. Activity data is never collected (local only); only email + billing status are
-processed (see PRIVACY.md). Software is provided "as is" (see LICENSE).
+grants the right to use it; **one subscription covers both the web and desktop versions** (up
+to 2 devices at a time; signing in on a third device signs out the oldest one). Connecting a
+card starts a **3-day free trial**; afterwards the subscription fee is charged **automatically
+and recurrently** until cancelled (the user consents to recurring charges by adding a card).
+**The free trial is granted once per account (email)** — re-subscribing after the trial has been
+used charges the full period price immediately, with no second trial. Price: 199 ₽/month or
+1999 ₽/year (shown at checkout). Payments are processed by **T‑Bank**; Driftly never stores card
+data. **If a charge fails, access to both apps is paused until payment succeeds.** Cancel
+anytime — access continues until the end of the paid period. Paid periods that have started are
+generally non-refundable except as required by law. Activity data is never collected (local
+only); only email + billing status are processed (see PRIVACY.md). Software is provided "as is"
+(see LICENSE).
 
 > The published, user-facing versions live at `docs/legal/oferta.html` (public offer) and
 > `docs/legal/privacy.html` (privacy policy). Keep this file and those pages in sync; fill in the

@@ -165,6 +165,14 @@ const server = http.createServer(async (req, res) => {
     }
 
     if (p === '/v1/billing/retry' && req.method === 'POST') {
+      // Retry only when a charge is actually DUE (failed charge, or the trial/period has
+      // ended and the tick hasn't run yet) — otherwise a direct call would charge a LIVE
+      // trial/period immediately (see server-php/index.php).
+      const st = acc.status || '';
+      const due = st === 'past_due'
+        || (st === 'trialing' && Date.now() >= (acc.trialEndsAt || 0))
+        || (st === 'active' && Date.now() >= (acc.currentPeriodEnd || 0));
+      if (!due) return send(res, 409, Object.assign({ error: 'not_past_due' }, stateResponse(acc)));
       const r = await provider.chargeRecurring(acc, Date.now());
       store.putAccount(acc);
       return send(res, 200, Object.assign({ result: r }, stateResponse(acc)));

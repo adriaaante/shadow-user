@@ -12,7 +12,7 @@
     return { ctx, w: cssW, h };
   }
 
-  function gauge(canvas, value) {
+  function gauge(canvas, value, label) {
     const { ctx, w, h } = setup(canvas, 200);
     const cx = w / 2, cy = h / 2, r = Math.min(w, h) / 2 - 14;
     const start = Math.PI * 0.75, end = Math.PI * 2.25;
@@ -32,7 +32,7 @@
     ctx.font = '600 40px "Space Grotesk", sans-serif';
     ctx.fillText(Math.round(value), cx, cy - 4);
     ctx.fillStyle = 'rgba(242,242,248,.5)'; ctx.font = '500 12px Inter, sans-serif';
-    ctx.fillText('активность', cx, cy + 26);
+    ctx.fillText(label || 'активность', cx, cy + 26);
   }
 
   function area(canvas, series, opts) {

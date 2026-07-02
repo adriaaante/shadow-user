@@ -1,18 +1,22 @@
 <?php
-/* providers/tbank.php — T-Bank (Tinkoff) acquiring. Port of tbank.js to real HTTPS.
+/* providers/tbank.php — T-Bank (Tinkoff) acquiring.
  *
  * Recurring model (https://developer.tbank.ru/eacq/):
- *   startTrial → AddCard {CheckType:3DS, CustomerKey} → PaymentURL for 0₽ card binding.
- *                The trial is FREE — nothing is charged now. The binding notification
- *                carries RebillId; we store it + set cardOnFile.
- *   chargeRecurring → Init a new payment, then Charge {PaymentId, RebillId} (no user) —
- *                the FIRST real charge, run by tick.php only when the trial/period ends.
+ *   startTrial, first time  → Init {Recurrent:Y, ~1 ₽, OrderId trial-…} → card form.
+ *                The CONFIRMED webhook carries RebillId (AddCard on this acquirer does
+ *                NOT); the ~1 ₽ is refunded (Cancel) and the free 3-day trial activates.
+ *   startTrial, returning   → the trial is once-per-account: Init {Recurrent:Y, FULL
+ *                period amount, OrderId sub-…} → paid subscription activates on
+ *                confirmation, nothing is refunded, no second trial.
+ *   attachCard → same ~1 ₽ verify (trial-…) to change the saved card; never touches
+ *                the trial/period.
+ *   chargeRecurring → Init + Charge {PaymentId, RebillId} (no user) — renewals, run by
+ *                tick.php when the trial/period ends (OrderId renew-…).
  *   webhook → T-Bank POSTs status; Token verified by recomputing the signature.
  *
- * ⚠️ AddCard/Charge are recurrent methods — the terminal must have рекуррентные
- * платежи enabled, and NotificationURL/SuccessURL set in the Т-Касса cabinet (AddCard
- * doesn't take them per-request). Validate the round-trips on the TEST terminal before
- * going live. The Token signature IS deterministic and unit-tested. */
+ * ⚠️ Recurrent methods need рекуррентные платежи enabled on the terminal and
+ * NotificationURL/SuccessURL set in the Т-Касса cabinet. The Token signature IS
+ * deterministic and unit-tested. */
 
 require_once __DIR__ . '/../config.php';
 require_once __DIR__ . '/../entitlement.php';
@@ -111,18 +115,29 @@ class TbankProvider {
     $acc['provider'] = 'tbank'; $acc['plan'] = 'pro';
     $acc['interval'] = (($pd['interval'] ?? '') === 'year') ? 'year' : 'month';
     $acc['canceled'] = false; $acc['cardOnFile'] = false;
-    unset($acc['trialEndsAt']);
-    // The free 3-day trial is granted ONCE per account for all time. If this account has
-    // already used its trial (trialUsed), do NOT hand out another one — charge the full
-    // period now and activate a paid subscription (active, not trialing) on confirmation.
-    if (empty($acc['trialUsed'])) {
+    // The free 3-day trial is granted ONCE per account for all time. trialUsed is the
+    // explicit marker; a persisted trialEndsAt covers accounts created before the flag
+    // existed (every account that ever activated a trial has one).
+    $firstTime = empty($acc['trialUsed']) && empty($acc['trialEndsAt']);
+    if ($firstTime) {
       $acc['status'] = 'pending'; $acc['pendingTrial'] = true; $acc['pendingPaid'] = false;
       $amount = $this->verifyKopecks();
-      return $this->initPayment($acc, $now, $amount, 'trial-', $this->verifyDesc($amount), 'Привязка карты Driftly');
+      $r = $this->initPayment($acc, $now, $amount, 'trial-', $this->verifyDesc($amount), 'Привязка карты Driftly');
+    } else {
+      $acc['status'] = 'pending'; $acc['pendingPaid'] = true; $acc['pendingTrial'] = false;
+      $acc['trialUsed'] = true; // normalize accounts from before the flag existed
+      $amount = $this->amountKopecks($acc);
+      $r = $this->initPayment($acc, $now, $amount, 'sub-', 'Driftly Pro — подписка', 'Подписка Driftly Pro');
     }
-    $acc['status'] = 'pending'; $acc['pendingPaid'] = true; $acc['pendingTrial'] = false;
-    $amount = $this->amountKopecks($acc);
-    return $this->initPayment($acc, $now, $amount, 'sub-', 'Driftly Pro — подписка', 'Подписка Driftly Pro');
+    if (!empty($r['ok'])) {
+      // Bind the pending activation to THIS payment. confirm-card must verify this exact
+      // payment cleared — a later ~1 ₽ attach-card payment (which also sets cardOnFile)
+      // must never be able to confirm a full 'sub-' activation. Snapshot the interval too,
+      // so switching plans while pending can't stretch a month's payment into a year.
+      $acc['pendingPaymentId'] = $acc['providerPaymentId'];
+      $acc['pendingInterval'] = $acc['interval'];
+    }
+    return $r;
   }
 
   /** Re-bind or change the saved card WITHOUT resetting the trial/period (~1 ₽, refunded). */
@@ -173,13 +188,16 @@ class TbankProvider {
     if (empty($acc['providerRebillId'])) { $acc['status'] = 'past_due'; return ['ok' => false, 'status' => 'past_due', 'reason' => 'no_rebill_id']; }
     $amount = $this->amountKopecks($acc);
     $init = $this->call('Init', ['Amount' => $amount,
-      'OrderId' => 'renew-' . $acc['email'] . '-' . $now, 'CustomerKey' => $acc['email'], 'Description' => 'Driftly Pro renewal',
+      'OrderId' => 'renew-' . $acc['email'] . '-' . $now, 'CustomerKey' => $acc['email'], 'Description' => 'Driftly Pro — продление подписки',
       'Receipt' => $this->receipt((string) ($acc['email'] ?? ''), $amount, 'Подписка Driftly Pro')]);
     if (empty($init['Success']) || empty($init['PaymentId'])) { $acc['status'] = 'past_due'; return ['ok' => false, 'status' => 'past_due', 'reason' => 'init_failed']; }
     $charge = $this->call('Charge', ['PaymentId' => $init['PaymentId'], 'RebillId' => $acc['providerRebillId']]);
     if (!empty($charge['Success']) && ($charge['Status'] ?? '') === 'CONFIRMED') {
       $acc['status'] = 'active';
       $acc['currentPeriodEnd'] = $now + (($acc['interval'] ?? '') === 'year' ? 365 : 30) * DAY_MS;
+      // A successful charge supersedes any pending signup — clear the flags so a stale
+      // pending payment can't later trigger a second activation.
+      unset($acc['pendingTrial'], $acc['pendingPaid'], $acc['pendingPaymentId'], $acc['pendingInterval']);
       return ['ok' => true, 'status' => 'active', 'currentPeriodEnd' => $acc['currentPeriodEnd']];
     }
     $acc['status'] = 'past_due';

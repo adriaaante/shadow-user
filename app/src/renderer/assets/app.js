@@ -58,8 +58,8 @@
       subActive: 'Подписка активна', renews: 'Продление', inactive: 'Подписка неактивна',
       pastDue: 'Необходимо оплатить', pastDueDesc: 'Списание не прошло. Оплатите, чтобы продолжить.',
       retryPay: 'Повторить оплату', cancelSub: 'Отменить подписку', goSub: 'Открыть подписку',
-      pwTitle: 'Требуется подписка', pwTextNone: 'Подключите карту и получите 3 дня бесплатно. Доступ к Driftly — и в вебе, и в десктопе.',
-      apiSaved: 'Сервер сохранён', trialStarted: '3 дня бесплатно активированы!', payRetried: 'Оплата повторно проведена.',
+      pwTitle: 'Требуется подписка', pwTextNone: 'Подключите карту и получите 3 дня бесплатно. Доступ к Driftly — и в вебе, и в десктопе.', pwTextUsed: 'Оформите подписку — 199 ₽/мес или 1999 ₽/год. Доступ к Driftly — и в вебе, и в десктопе.',
+      apiSaved: 'Сервер сохранён', trialStarted: '3 дня бесплатно активированы!', subStarted: 'Подписка оформлена!', payRetried: 'Оплата повторно проведена.',
       needEmail: 'Введите корректный email.', testCard: 'тестовая карта (демо):', cardOk: 'успешно', cardFail: 'нет средств',
       getCode: 'Получить код', sendCode: 'Код отправлен на почту', enterCode: 'Введите код из письма', codeBad: 'Неверный код',
       resume: 'Возобновить', accessUntil: 'доступ до', trialCanceledNote: 'Пробный период отменён', subCanceledNote: 'Подписка отменена', noRenew: 'продление не произойдёт',
@@ -77,8 +77,8 @@
       subActive: 'Subscription active', renews: 'Renews', inactive: 'Subscription inactive',
       pastDue: 'Payment required', pastDueDesc: 'The charge failed. Please pay to continue.',
       retryPay: 'Retry payment', cancelSub: 'Cancel subscription', goSub: 'Open subscription',
-      pwTitle: 'Subscription required', pwTextNone: 'Add a card and get 3 days free. Driftly unlocks on web and desktop.',
-      apiSaved: 'Server saved', trialStarted: '3 free days activated!', payRetried: 'Payment retried.',
+      pwTitle: 'Subscription required', pwTextNone: 'Add a card and get 3 days free. Driftly unlocks on web and desktop.', pwTextUsed: 'Subscribe — 199 ₽/mo or 1999 ₽/yr. Driftly unlocks on web and desktop.',
+      apiSaved: 'Server saved', trialStarted: '3 free days activated!', subStarted: 'Subscription activated!', payRetried: 'Payment retried.',
       needEmail: 'Enter a valid email.', testCard: 'test card (demo):', cardOk: 'success', cardFail: 'no funds',
       getCode: 'Get code', sendCode: 'Code sent to your email', enterCode: 'Enter the code from the email', codeBad: 'Invalid code',
       resume: 'Resume', accessUntil: 'access until', trialCanceledNote: 'Trial cancelled', subCanceledNote: 'Subscription cancelled', noRenew: 'will not renew',
@@ -268,7 +268,7 @@
   $('opt-login').addEventListener('change', (e) => patch({ prefs: { launchAtLogin: e.target.checked } }));
 
   /* ------------------------------ subscription ------------------------------- */
-  const PRICE = (window.DriftlyEntitlement && window.DriftlyEntitlement.PLAN) || { priceMonthly: 249, priceYearly: 2500, yearlyDiscountPct: 16 };
+  const PRICE = (window.DriftlyEntitlement && window.DriftlyEntitlement.PLAN) || { priceMonthly: 199, priceYearly: 1999, yearlyDiscountPct: 16 };
   let selectedInterval = 'month';
   function fmtDate(ms) { try { return new Date(ms).toLocaleDateString(lang === 'ru' ? 'ru-RU' : 'en-US'); } catch (_) { return ''; } }
   function statusBox(cls, ic, title, desc) { return `<div class="sub-status ${cls}"><span class="ic">${ic}</span><div><div class="t">${title}</div><div class="d">${desc || ''}</div></div></div>`; }
@@ -312,7 +312,7 @@
     if (blocked && activeView !== 'subscription') {
       pw.style.display = 'flex';
       $('pw-title').textContent = e.needsPayment ? t('pastDue') : t('pwTitle');
-      $('pw-text').textContent = e.needsPayment ? t('pastDueDesc') : t('pwTextNone');
+      $('pw-text').textContent = e.needsPayment ? t('pastDueDesc') : (info.account && info.account.trialUsed ? t('pwTextUsed') : t('pwTextNone'));
       $('pw-cta').textContent = t('goSub');
       const rb = $('pw-retry');
       if (e.needsPayment) { rb.style.display = 'inline-flex'; rb.textContent = t('retryPay'); } else rb.style.display = 'none';
@@ -344,7 +344,7 @@
 
   function applyInfo(info) { if (!status) status = {}; status.license = info; renderLicense(); renderStatus(); }
 
-  async function doTrial() { const card = ($('dev-card') && $('dev-card').value) || 'tok_ok'; const r = await api.licenseStartTrial(card, selectedInterval); applyInfo(r.info); toast(r.info.entitlement && r.info.entitlement.access ? t('trialStarted') : t('pastDue')); }
+  async function doTrial() { const card = ($('dev-card') && $('dev-card').value) || 'tok_ok'; const r = await api.licenseStartTrial(card, selectedInterval); applyInfo(r.info); toast(r.info.entitlement && r.info.entitlement.access ? (r.info.account && r.info.account.trialUsed && r.info.entitlement.reason !== 'trial' ? t('subStarted') : t('trialStarted')) : t('pastDue')); }
   async function doRetry() { const r = await api.licenseRetry(); applyInfo(r.info); toast(r.info.entitlement && r.info.entitlement.access ? t('payRetried') : t('pastDue')); }
   async function doCancel() { const r = await api.licenseCancel(); applyInfo(r.info); }
   async function doResume() { const r = await api.licenseResume(); applyInfo(r.info); }

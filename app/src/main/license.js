@@ -51,7 +51,9 @@ function info() {
 
 async function call(method, p, body) {
   const res = await fetch(apiBase() + p, { method, headers: authHeaders(), body: body ? JSON.stringify(body) : undefined });
-  return res.json();
+  const j = await res.json();
+  if (j && j.account) state.account = j.account; // keep info().account fresh on billing calls
+  return j;
 }
 
 async function refresh() {

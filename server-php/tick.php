@@ -8,6 +8,11 @@ require_once __DIR__ . '/lib/store.php';
 require_once __DIR__ . '/lib/entitlement.php';
 require_once __DIR__ . '/lib/providers.php';
 
+// One tick at a time: an overlapping CRON run (e.g. slow provider HTTP) would otherwise
+// charge the same due account twice before currentPeriodEnd is persisted.
+$lockFile = fopen(sys_get_temp_dir() . '/driftly-tick.lock', 'c');
+if (!$lockFile || !flock($lockFile, LOCK_EX | LOCK_NB)) { echo "[tick] another tick is running, skip\n"; exit(0); }
+
 $store = Store::fromEnv();
 $provider = provider_select();
 $now = now_ms();

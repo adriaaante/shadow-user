@@ -10,18 +10,18 @@
   const rnd = (a, b) => a + Math.random() * (b - a);
 
   /* -------------------------------- i18n -------------------------------- */
-  let lang = localStorage.getItem('driftly.lang') || 'ru';
+  let lang = localStorage.getItem('driftly.lang') || localStorage.getItem('driftly-lang') || 'ru';
   const L = {
     ru: { running: 'Работает', paused: 'Пауза', moves: 'движ/мин', clicks: 'клик/мин', scrolls: 'прокр/мин',
       exported: 'Файл сохранён', reset: 'Сброшено', wakeOn: 'Экран удерживается активным.', wakeOff: 'Удержание экрана выключено.',
       wakeIdle: 'Экран будет удерживаться, пока приложение работает.',
       wakeHidden: 'Вкладка свёрнута — экран может гаснуть. Вернитесь на вкладку Driftly (или скачайте десктоп для работы в фоне).',
-      wakeNo: 'Этот браузер не умеет удерживать экран активным.', wakeErr: 'Не удалось удержать экран активным (нужен HTTPS).' },
+      wakeNo: 'Этот браузер не умеет удерживать экран активным.', wakeErr: 'Не удалось удержать экран активным (нужен HTTPS).', gaugeLabel: 'активность' },
     en: { running: 'Running', paused: 'Paused', moves: 'moves/min', clicks: 'clicks/min', scrolls: 'scrolls/min',
       exported: 'File saved', reset: 'Reset', wakeOn: 'Screen is kept awake.', wakeOff: 'Wake Lock off.',
       wakeIdle: 'The screen will be kept awake while the app is running.',
       wakeHidden: 'This tab is in the background — the screen may sleep. Return to the Driftly tab (or get the desktop app for background use).',
-      wakeNo: 'Wake Lock is not supported by this browser.', wakeErr: 'Could not enable Wake Lock (needs HTTPS).' },
+      wakeNo: 'Wake Lock is not supported by this browser.', wakeErr: 'Could not enable Wake Lock (needs HTTPS).', gaugeLabel: 'activity' },
   };
   const t = (k) => L[lang][k];
   function applyLang() {
@@ -54,7 +54,7 @@
     load() { try { JSON.parse(localStorage.getItem('driftly.metrics') || '[]').forEach((b) => this.buckets.set(b.ts, b)); } catch (_) {} },
     save() { localStorage.setItem('driftly.metrics', JSON.stringify([...this.buckets.values()].slice(-1440))); },
     bucket(ts) { const m = Math.floor(ts / MIN) * MIN; let b = this.buckets.get(m); if (!b) { b = { ts: m, genEnabled: this.genOn, synthetic: { move: 0, click: 0, scroll: 0 }, real: { move: 0, click: 0, scroll: 0 } }; this.buckets.set(m, b); } if (this.genOn) b.genEnabled = true; return b; },
-    record(kind, synthetic) { const ts = now(); const b = this.bucket(ts); const bag = synthetic ? b.synthetic : b.real; if (bag[kind] !== undefined) bag[kind] += 1; this.recent.push({ ts, synthetic }); const cut = ts - 10000; while (this.recent.length && this.recent[0].ts < cut) this.recent.shift(); },
+    record(kind, synthetic) { if (synthetic && !this.genOn) return; const ts = now(); const b = this.bucket(ts); const bag = synthetic ? b.synthetic : b.real; if (bag[kind] !== undefined) bag[kind] += 1; this.recent.push({ ts, synthetic }); const cut = ts - 10000; while (this.recent.length && this.recent[0].ts < cut) this.recent.shift(); },
     live() { const w = this.recent; const syn = w.filter((e) => e.synthetic).length; return { gauge: Math.min(100, Math.round(w.length * 2.2)), events: w.length, synthetic: syn, real: w.length - syn }; },
     // Total actions in the trailing hour (summed from the per-minute buckets).
     lastHour() { const cut = now() - 3600000; let s = 0, r = 0; for (const b of this.buckets.values()) { if (b.ts >= cut) { s += b.synthetic.move + b.synthetic.click + b.synthetic.scroll; r += b.real.move + b.real.click + b.real.scroll; } } return { total: s + r, synthetic: s, real: r }; },
@@ -109,19 +109,18 @@
   }
   function ripple(x, y) { const el = document.createElement('div'); el.className = 'ripple'; el.style.left = x + 'px'; el.style.top = y + 'px'; stage.appendChild(el); setTimeout(() => el.remove(), 620); }
   function press(el) { el.classList.add('pressed'); setTimeout(() => el.classList.remove('pressed'), 240); }
+  let typeIv = null;
   function typeWord(el, done) {
     if (!el) { if (done) done(); return; }
     const words = lang === 'ru' ? ['Отчёт.docx', 'Привет', 'Данные', 'Задача', 'Готово'] : ['Report.docx', 'Hello', 'Data', 'Task', 'Done'];
     const w = words[Math.floor(Math.random() * words.length)]; el.textContent = ''; let i = 0;
-    const iv = setInterval(() => { el.textContent += w[i++] || ''; if (i >= w.length) { clearInterval(iv); if (done) setTimeout(done, rnd(280, 600)); } }, rnd(60, 100));
+    typeIv = setInterval(() => { el.textContent += w[i++] || ''; if (i >= w.length) { clearInterval(typeIv); typeIv = null; if (done) setTimeout(done, rnd(280, 600)); } }, rnd(60, 100));
   }
   function clearInput() { const el = $('sand-type'); if (el) el.textContent = ''; }
-  function popup(label) {
+  function popup(kind) {
     if (!sandPops) return;
-    let text;
-    if (label && /Сверн|Minim/.test(label)) text = lang === 'ru' ? 'Свернуто' : 'Minimized';
-    else if (label && /Откр|Open/.test(label)) text = lang === 'ru' ? 'Окно открыто' : 'Window opened';
-    else text = lang === 'ru' ? 'Файл сохранён' : 'File saved';
+    const texts = { min: ['Свернуто', 'Minimized'], open: ['Окно открыто', 'Window opened'], save: ['Файл сохранён', 'File saved'] };
+    const text = (texts[kind] || texts.save)[lang === 'ru' ? 0 : 1];
     const el = document.createElement('div'); el.className = 'sand-pop'; el.innerHTML = '<i></i>' + text;
     sandPops.appendChild(el); while (sandPops.children.length > 3) sandPops.removeChild(sandPops.firstChild);
     setTimeout(() => { el.classList.add('out'); setTimeout(() => el.remove(), 360); }, 1600);
@@ -144,6 +143,7 @@
     moveTo(c, () => {
       M.record('move', true);                          // the move is counted once it completes
       setTimeout(() => {                               // brief settle before the press (no click-before-aim)
+        if (!M.genOn) return;                          // Stop pressed mid-scene → freeze, no ghost click
         try { press(el); ripple(c.x, c.y); M.record('click', true); } catch (_) {}
         if (cb) cb();
       }, rnd(220, 420));
@@ -169,7 +169,7 @@
             clickAt(btn, () => {                        // 3. travel to the button, settle, press it
               input.classList.remove('focused');
               clearInput();                             //    the text disappears
-              popup(btn.textContent || '');             //    confirmation appears
+              popup(/Откр|Open/.test(btn.textContent || '') ? 'open' : 'save'); // confirmation appears
               setTimeout(() => { formBusy = false; if (after) after(); }, rnd(900, 1500)); // rest before next scene
             });
           }, rnd(1100, 1600));
@@ -198,6 +198,7 @@
       M.record('move', true);
       let n = 1 + Math.floor(Math.random() * 3); const dir = Math.random() < 0.5 ? 1 : -1;
       (function stepScroll() {
+        if (!M.genOn) return;                              // stopped mid-scene
         if (n-- <= 0) { setTimeout(() => { formBusy = false; if (after) after(); }, rnd(500, 900)); return; }
         scrollList(dir); M.record('scroll', true);
         setTimeout(stepScroll, rnd(280, 480));
@@ -225,10 +226,11 @@
     moveTo(centerOf(bar), () => {                          // 1. travel to the title bar
       M.record('move', true);
       setTimeout(() => {                                   // 2. click → minimize
+        if (!M.genOn) return;                              // stopped mid-scene
         const c = centerOf(bar); ripple(c.x, c.y); M.record('click', true);
-        win.classList.add('min'); popup('Свернуть');
+        win.classList.add('min'); popup('min');
         setTimeout(() => {                                 // 3. restore → "open"
-          win.classList.remove('min'); M.record('click', true); popup('Открыть');
+          win.classList.remove('min'); M.record('click', true); popup('open');
           setTimeout(() => { formBusy = false; if (after) after(); }, rnd(700, 1100));
         }, rnd(1100, 1700));
       }, rnd(220, 420));
@@ -245,7 +247,7 @@
     if (!cfg.running || formBusy) return;
     if (cfg.pauseOnUser && now() - lastReal < 3000) { genTimer = setTimeout(tick, 2400); return; }
     // Every few scenes, play a window minimize/open animation (mirrors the desktop).
-    if (++sinceScene >= winEvery) { sinceScene = 0; winEvery = 7 + Math.floor(Math.random() * 6); actions++; runWindow(schedule); return; }
+    if (rates().click > 0 && ++sinceScene >= winEvery) { sinceScene = 0; winEvery = 7 + Math.floor(Math.random() * 6); actions++; runWindow(schedule); return; }
     let action = chooseAction(); actions++;
     if (action !== 'click' && rates().click > 0 && ++sinceClick >= clickEvery) action = 'click';
     if (action === 'click') { sinceClick = 0; clickEvery = 4 + Math.floor(Math.random() * 4); }
@@ -257,8 +259,23 @@
       runMove(schedule); return;
     } catch (_) { formBusy = false; schedule(); }
   }
-  function startGen() { if (genTimer) return; M.genOn = true; formBusy = false; cur = { x: 40, y: 40 }; genTimer = setTimeout(tick, 300); syncWake(); }
-  function stopGen() { M.genOn = false; formBusy = false; if (genTimer) { clearTimeout(genTimer); genTimer = null; } syncWake(); }
+  function startGen() {
+    if (genTimer) return; M.genOn = true; formBusy = false; cur = { x: 40, y: 40 };
+    stage.classList.remove('idle');
+    genTimer = setTimeout(tick, 300); syncWake();
+  }
+  function stopGen() {
+    M.genOn = false; formBusy = false;
+    if (genTimer) { clearTimeout(genTimer); genTimer = null; }
+    // Freeze the sandbox mid-flight: no travelling cursor, typing, or stuck states after Stop.
+    cancelAnimationFrame(moveRAF);
+    if (typeIv) { clearInterval(typeIv); typeIv = null; }
+    const inp = stage.querySelector('.sand-input'); if (inp) inp.classList.remove('focused');
+    clearInput();
+    stage.querySelectorAll('.swin.min').forEach((w) => w.classList.remove('min'));
+    stage.classList.add('idle');
+    syncWake();
+  }
 
   /* ------------------------------ wake lock ----------------------------- */
   // The browser keeps the screen awake ONLY while this tab is visible — every
@@ -306,6 +323,7 @@
     $('custom-wrap').style.display = cfg.level === 'custom' ? 'block' : 'none';
   }
   async function refreshCharts() {
+    if (!window.Charts) return;
     window.Charts.area($('chart'), M.series(60), { height: 170 });
     const s = M.summary();
     $('cmp-shadow').style.width = Math.min(100, s.shadow) + '%'; $('cmp-shadow-v').textContent = s.shadow;
@@ -332,7 +350,7 @@
   $('exp-csv').addEventListener('click', () => { download('driftly-web-metrics.csv', '\uFEFF' + M.csv(), 'text/csv;charset=utf-8'); toast(t('exported')); });
   $('exp-json').addEventListener('click', () => { download('driftly-web-metrics.json', M.json(), 'application/json'); toast(t('exported')); });
   $('reset').addEventListener('click', () => { M.reset(); refreshCharts(); toast(t('reset')); });
-  document.querySelectorAll('#lang-ru,#lang-en').forEach((b) => b.addEventListener('click', () => { lang = b.id.endsWith('ru') ? 'ru' : 'en'; localStorage.setItem('driftly.lang', lang); applyLang(); window.dispatchEvent(new Event('driftly-lang-changed')); }));
+  document.querySelectorAll('#lang-ru,#lang-en').forEach((b) => b.addEventListener('click', () => { lang = b.id.endsWith('ru') ? 'ru' : 'en'; localStorage.setItem('driftly.lang', lang); localStorage.setItem('driftly-lang', lang); applyLang(); window.dispatchEvent(new Event('driftly-lang-changed')); }));
   let toastTimer; function toast(m, kind) { const el = $('toast'); el.textContent = m; el.className = 'toast show' + (kind ? ' ' + kind : ''); clearTimeout(toastTimer); toastTimer = setTimeout(() => el.classList.remove('show'), 2600); }
   window.DriftlyToast = toast; // prominent notifications, reused by web-account.js
   // Styled confirmation dialog (replaces window.confirm), returns a Promise<boolean>.
@@ -353,7 +371,7 @@
   window.DriftlyConfirm = driftlyConfirm;
 
   /* --------------------------------- loop ------------------------------- */
-  setInterval(() => { const lv = M.live(); const h = M.lastHour(); window.Charts.gauge($('gauge'), lv.gauge); $('kpi-events').textContent = h.total; $('kpi-syn').textContent = h.synthetic; $('kpi-real').textContent = h.real; }, 1000);
+  setInterval(() => { if (!window.Charts) return; const lv = M.live(); const h = M.lastHour(); window.Charts.gauge($('gauge'), lv.gauge, t('gaugeLabel')); $('kpi-events').textContent = h.total; $('kpi-syn').textContent = h.synthetic; $('kpi-real').textContent = h.real; }, 1000);
   setInterval(refreshCharts, 2500);
   setInterval(() => M.save(), 15000);
   window.addEventListener('beforeunload', () => M.save());
@@ -362,7 +380,8 @@
   /* --------------------------------- init ------------------------------- */
   $('opt-clicks').checked = cfg.includeClicks; $('opt-scroll').checked = cfg.includeScroll;
   $('opt-pause').checked = cfg.pauseOnUser; $('opt-wake').checked = cfg.wake; $('intensity').value = cfg.intensity; $('intensity-val').textContent = cfg.intensity;
-  applyLang(); renderStatus(); renderRates(); renderWakeNote(); window.Charts.gauge($('gauge'), 0); refreshCharts();
+  applyLang(); renderStatus(); renderRates(); renderWakeNote(); if (window.Charts) window.Charts.gauge($('gauge'), 0, t('gaugeLabel')); refreshCharts();
+  stage.classList.add('idle'); // sandbox starts stopped — show the idle state
 
   /* --------------------------------- tabs ------------------------------- */
   // Section tabs: Приложение (engine) / Подписка / Аккаунт. The panels keep all
@@ -378,7 +397,7 @@
   }
   document.querySelectorAll('#tabs button').forEach((b) => b.addEventListener('click', () => showTab(b.dataset.tab)));
   window.DriftlyTabs = { show: showTab };
-  showTab(localStorage.getItem('driftly.tab') || 'app');
+  showTab(location.hash === '#sub-panel' ? 'sub' : (localStorage.getItem('driftly.tab') || 'app'));
 
   // PWA service worker (offline app shell) — optional, ignore failures.
   if ('serviceWorker' in navigator) navigator.serviceWorker.register('sw.js').catch(() => {});

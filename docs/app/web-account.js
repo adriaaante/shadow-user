@@ -44,24 +44,40 @@
   function headers() { return { 'Content-Type': 'application/json', Authorization: 'Bearer ' + state.token }; }
   function emit() { window.dispatchEvent(new Event('driftly-access-changed')); render(); }
 
+  var triedServer = false; // first /v1/status attempt finished (success or not)
+  function dropSession() {
+    // Token rejected (evicted by the device cap or revoked) — clear the ghost session.
+    state.token = null; state.license = null; state.serverEnt = null; state.account = null; persist();
+    if (window.DriftlyToast) window.DriftlyToast(t('sessionEnded'), 'warn');
+  }
   async function refresh() {
     if (preview() || !state.token) { emit(); return; }
     try {
       var r = await fetch(state.api + '/v1/status', { headers: headers() });
+      if (r.status === 401) { state.online = true; triedServer = true; dropSession(); emit(); return; }
       var j = await r.json();
       if (j.license) state.license = j.license;
       state.serverEnt = j.entitlement || null; state.account = j.account || null; state.online = true; persist();
     } catch (e) { state.online = false; }
+    triedServer = true;
     emit();
   }
-  async function call(method, p, body) {
-    var r = await fetch(state.api + p, { method: method, headers: headers(), body: body ? JSON.stringify(body) : undefined });
-    var j = await r.json();
-    if (j.license) state.license = j.license;
-    if (j.entitlement) state.serverEnt = j.entitlement;
-    if (j.account) state.account = j.account;
-    state.online = true; persist(); emit();
-    return j;
+  async function call(method, p, body, quiet) {
+    try {
+      var r = await fetch(state.api + p, { method: method, headers: headers(), body: body ? JSON.stringify(body) : undefined });
+      if (r.status === 401) { state.online = true; dropSession(); emit(); return { ok: false, error: 'unauthorized' }; }
+      var j = await r.json();
+      if (j.license) state.license = j.license;
+      if (j.entitlement) state.serverEnt = j.entitlement;
+      if (j.account) state.account = j.account;
+      state.online = true; persist(); emit();
+      return j;
+    } catch (e) {
+      // Offline / server unreachable: tell the user instead of failing silently.
+      state.online = false; emit();
+      if (!quiet && window.DriftlyToast) window.DriftlyToast(t('errOffline'), 'warn');
+      return { ok: false, error: 'offline' };
+    }
   }
   async function authRequest(email) {
     try { var r = await fetch(state.api + '/v1/auth/request', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ email: email }) }); return await r.json(); }
@@ -86,8 +102,8 @@
 
   /* ------------------------------- rendering ------------------------------- */
   var L = {
-    ru: { preview: 'Демо-режим: сервер лицензий не подключён — доступ открыт.', signin: 'Войдите, чтобы управлять подпиской.', trial: 'Подключить карту — 3 дня бесплатно', subscribe: 'Оформить подписку', trialActive: 'Пробный период', daysLeft: 'дн. осталось', active: 'Подписка активна', renews: 'Продление', inactive: 'Подписка неактивна', pastDue: 'Необходимо оплатить', pastDueDesc: 'Списание не прошло. Оплатите, чтобы продолжить.', retry: 'Повторить оплату', cancel: 'Отменить подписку', updateCard: 'Изменить карту', activating: 'Активируем подписку… несколько секунд', confirmCancel: 'Отменить подписку? Доступ сохранится до конца оплаченного периода, автосписание не произойдёт.', confirmPlanQ: 'Перейти на тариф', bindFailed: 'Не удалось привязать карту. Попробуйте ещё раз.', pwText: 'Подключите карту и получите 3 дня бесплатно. Driftly работает и в браузере, и в десктоп-приложении.', goSub: 'Открыть подписку', codeBad: 'Неверный код', emailEmpty: 'Введите email', emailBad: 'Неверный формат email', codeSent: 'Код отправлен — проверьте почту', sentTo: 'Код отправлен на', resend: 'Отправить ещё раз', changeEmail: 'Изменить email', codeValidFor: 'Код действителен ещё', codeExpired: 'Код истёк — запросите новый', resume: 'Возобновить', accessUntil: 'доступ до', trialCanceled: 'Пробный период отменён', subCanceled: 'Подписка отменена', noRenew: 'продление не произойдёт', monthly: 'Помесячно', yearly: 'За год', perMonth: '₽/мес', perYear: '₽/год', planYearWord: 'годовая', planMonthWord: 'месячная', changePlan: 'Тариф', intervalNote: 'Смена тарифа применится со следующего списания.', planCur: 'Текущий тариф', planUntil: 'активен до', planFrom: 'С этого момента вы перейдёте на тариф', planTrialUntil: 'Пробный период активен до', planTrialThen: 'По его окончании спишется', planConfirmQ: 'Подтвердить смену тарифа?' },
-    en: { preview: 'Demo mode: no licensing server — access is open.', signin: 'Sign in to manage your subscription.', trial: 'Add a card — 3 days free', subscribe: 'Subscribe', trialActive: 'Free trial', daysLeft: 'days left', active: 'Subscription active', renews: 'Renews', inactive: 'Subscription inactive', pastDue: 'Payment required', pastDueDesc: 'The charge failed. Pay to continue.', retry: 'Retry payment', cancel: 'Cancel subscription', updateCard: 'Change card', activating: 'Activating your subscription… a few seconds', confirmCancel: 'Cancel subscription? Access stays until the end of the paid period; no auto-charge will happen.', confirmPlanQ: 'Switch to plan', bindFailed: 'Could not link the card. Please try again.', pwText: 'Add a card and get 3 days free. Driftly works in the browser and in the desktop app.', goSub: 'Open subscription', codeBad: 'Invalid code', emailEmpty: 'Enter your email', emailBad: 'Invalid email format', codeSent: 'Code sent — check your email', sentTo: 'Code sent to', resend: 'Resend code', changeEmail: 'Change email', codeValidFor: 'Code valid for', codeExpired: 'Code expired — request a new one', resume: 'Resume', accessUntil: 'access until', trialCanceled: 'Trial cancelled', subCanceled: 'Subscription cancelled', noRenew: 'will not renew', monthly: 'Monthly', yearly: 'Yearly', perMonth: '₽/mo', perYear: '₽/yr', planYearWord: 'yearly', planMonthWord: 'monthly', changePlan: 'Plan', intervalNote: 'The plan change applies from your next charge.', planCur: 'Current plan', planUntil: 'is active until', planFrom: 'From then you switch to', planTrialUntil: 'Free trial is active until', planTrialThen: 'When it ends you will be charged', planConfirmQ: 'Confirm the plan change?' },
+    ru: { preview: 'Демо-режим: сервер лицензий не подключён — доступ открыт.', signin: 'Войдите, чтобы управлять подпиской.', trial: 'Подключить карту — 3 дня бесплатно', subscribe: 'Оформить подписку', trialActive: 'Пробный период', daysLeft: 'дн. осталось', active: 'Подписка активна', renews: 'Продление', inactive: 'Подписка неактивна', pastDue: 'Необходимо оплатить', pastDueDesc: 'Списание не прошло. Оплатите, чтобы продолжить.', retry: 'Повторить оплату', cancel: 'Отменить подписку', updateCard: 'Изменить карту', activating: 'Активируем подписку… несколько секунд', confirmCancel: 'Отменить подписку? Доступ сохранится до конца оплаченного периода, автосписание не произойдёт.', confirmPlanQ: 'Перейти на тариф', bindFailed: 'Не удалось привязать карту. Попробуйте ещё раз.', pwText: 'Подключите карту и получите 3 дня бесплатно. Driftly работает и в браузере, и в десктоп-приложении.', pwTextUsed: 'Пробный период уже использован. Оформите подписку, чтобы продолжить — Driftly работает и в браузере, и в десктоп-приложении.', errOffline: 'Нет соединения с сервером', errSend: 'Не удалось отправить код. Попробуйте ещё раз.', errLocked: 'Слишком много попыток — запросите новый код', offlineNote: 'Нет связи с сервером — показаны сохранённые данные.', sessionEnded: 'Сеанс завершён — войдите снова.', goSub: 'Открыть подписку', codeBad: 'Неверный код', emailEmpty: 'Введите email', emailBad: 'Неверный формат email', codeSent: 'Код отправлен — проверьте почту', sentTo: 'Код отправлен на', resend: 'Отправить ещё раз', changeEmail: 'Изменить email', codeValidFor: 'Код действителен ещё', codeExpired: 'Код истёк — запросите новый', resume: 'Возобновить', accessUntil: 'доступ до', trialCanceled: 'Пробный период отменён', subCanceled: 'Подписка отменена', noRenew: 'продление не произойдёт', monthly: 'Помесячно', yearly: 'За год', perMonth: '₽/мес', perYear: '₽/год', planYearWord: 'годовая', planMonthWord: 'месячная', changePlan: 'Тариф', intervalNote: 'Смена тарифа применится со следующего списания.', planCur: 'Текущий тариф', planUntil: 'активен до', planFrom: 'С этого момента вы перейдёте на тариф', planTrialUntil: 'Пробный период активен до', planTrialThen: 'По его окончании спишется', planConfirmQ: 'Подтвердить смену тарифа?' },
+    en: { preview: 'Demo mode: no licensing server — access is open.', signin: 'Sign in to manage your subscription.', trial: 'Add a card — 3 days free', subscribe: 'Subscribe', trialActive: 'Free trial', daysLeft: 'days left', active: 'Subscription active', renews: 'Renews', inactive: 'Subscription inactive', pastDue: 'Payment required', pastDueDesc: 'The charge failed. Pay to continue.', retry: 'Retry payment', cancel: 'Cancel subscription', updateCard: 'Change card', activating: 'Activating your subscription… a few seconds', confirmCancel: 'Cancel subscription? Access stays until the end of the paid period; no auto-charge will happen.', confirmPlanQ: 'Switch to plan', bindFailed: 'Could not link the card. Please try again.', pwText: 'Add a card and get 3 days free. Driftly works in the browser and in the desktop app.', pwTextUsed: 'Your free trial has been used. Subscribe to continue — Driftly works in the browser and in the desktop app.', errOffline: 'No connection to the server', errSend: 'Could not send the code. Try again.', errLocked: 'Too many attempts — request a new code', offlineNote: 'No connection — showing cached data.', sessionEnded: 'Session ended — please sign in again.', goSub: 'Open subscription', codeBad: 'Invalid code', emailEmpty: 'Enter your email', emailBad: 'Invalid email format', codeSent: 'Code sent — check your email', sentTo: 'Code sent to', resend: 'Resend code', changeEmail: 'Change email', codeValidFor: 'Code valid for', codeExpired: 'Code expired — request a new one', resume: 'Resume', accessUntil: 'access until', trialCanceled: 'Trial cancelled', subCanceled: 'Subscription cancelled', noRenew: 'will not renew', monthly: 'Monthly', yearly: 'Yearly', perMonth: '₽/mo', perYear: '₽/yr', planYearWord: 'yearly', planMonthWord: 'monthly', changePlan: 'Plan', intervalNote: 'The plan change applies from your next charge.', planCur: 'Current plan', planUntil: 'is active until', planFrom: 'From then you switch to', planTrialUntil: 'Free trial is active until', planTrialThen: 'When it ends you will be charged', planConfirmQ: 'Confirm the plan change?' },
   };
   function lang() { return localStorage.getItem('driftly.lang') || 'ru'; }
   function t(k) { return L[lang()][k]; }
@@ -118,7 +134,7 @@
       pw.style.display = show ? 'flex' : 'none';
       if (show) {
         $('pw-title').textContent = e.needsPayment ? t('pastDue') : t('goSub');
-        $('pw-text').textContent = e.needsPayment ? t('pastDueDesc') : t('pwText');
+        $('pw-text').textContent = e.needsPayment ? t('pastDueDesc') : (state.account && state.account.trialUsed ? t('pwTextUsed') : t('pwText'));
         $('pw-retry').style.display = e.needsPayment ? 'inline-flex' : 'none';
         $('pw-retry').textContent = t('retry');
         $('pw-cta').textContent = t('goSub');
@@ -146,6 +162,8 @@
     else if (e.needsPayment) box.innerHTML = sb('bad', '⚠', t('pastDue'), t('pastDueDesc'))
       + '<div class="sub-actions"><button class="btn primary" data-acc="retry">' + t('retry') + '</button><button class="btn ghost" data-acc="attach-card">' + t('updateCard') + '</button></div>';
     else box.innerHTML = sb('', '🔓', t('inactive'), '') + tbtn();
+    // Connectivity is a different problem than "no subscription" — say so explicitly.
+    if (triedServer && !state.online) box.innerHTML += '<div class="mode-note">' + t('offlineNote') + '</div>';
   }
   function sb(c, ic, ti, d) { return '<div class="sub-status ' + c + '"><span class="ic">' + ic + '</span><div><div class="t">' + ti + '</div><div class="d">' + (d || '') + '</div></div></div>'; }
   function ptoggle() {
@@ -205,19 +223,19 @@
       return;
     }
     var act = a.dataset.acc;
-    if (act === 'trial') {
-      call('POST', '/v1/billing/start-trial', { interval: selectedInterval }).then(function (j) {
-        var url = j && j.result && j.result.redirectUrl;
-        if (url) window.location.href = url; // T-Bank: card binding (AddCard) + 3-D Secure
-      });
+    // Disable the pressed button until the request settles — double clicks on a slow
+    // network would otherwise open two payment sessions.
+    function busy(p) { a.disabled = true; a.classList.add('busy'); return p.then(function (j) { a.disabled = false; a.classList.remove('busy'); return j; }); }
+    // The provider answered but gave no payment URL (and nothing got activated) — say so.
+    function expectRedirect(j) {
+      var url = j && j.result && j.result.redirectUrl;
+      if (url) { window.location.href = url; return; } // T-Bank: card form + 3-D Secure
+      var st = j && j.account && j.account.status;
+      if (j && j.error !== 'offline' && st !== 'trialing' && st !== 'active' && window.DriftlyToast) window.DriftlyToast(t('bindFailed'), 'warn');
     }
-    else if (act === 'attach-card') {
-      call('POST', '/v1/billing/attach-card').then(function (j) {
-        var url = j && j.result && j.result.redirectUrl;
-        if (url) window.location.href = url; // T-Bank: card binding (AddCard)
-      });
-    }
-    else if (act === 'retry') call('POST', '/v1/billing/retry');
+    if (act === 'trial') busy(call('POST', '/v1/billing/start-trial', { interval: selectedInterval })).then(expectRedirect);
+    else if (act === 'attach-card') busy(call('POST', '/v1/billing/attach-card')).then(expectRedirect);
+    else if (act === 'retry') busy(call('POST', '/v1/billing/retry'));
     else if (act === 'cancel') { (window.DriftlyConfirm ? window.DriftlyConfirm(t('confirmCancel')) : Promise.resolve(window.confirm(t('confirmCancel')))).then(function (ok) { if (ok) call('POST', '/v1/billing/cancel'); }); }
     else if (act === 'resume') call('POST', '/v1/billing/resume');
   });
@@ -279,7 +297,7 @@
       OTP.focusFirst();
       return true;
     }
-    notify(t('codeBad'), 'warn');
+    notify(r && r.error === 'offline' ? t('errOffline') : t('errSend'), 'warn');
     return false;
   }
   // Resume the code row after a tab reload while the code is still valid.
@@ -290,7 +308,8 @@
     var email = ($('sub-email').value || '').trim();
     if (!email) { notify(t('emailEmpty'), 'warn'); $('sub-email').focus(); return; }
     if (!/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(email)) { notify(t('emailBad'), 'warn'); $('sub-email').focus(); return; }
-    sendCode(email);
+    var b = $('btn-getcode'); b.disabled = true; b.classList.add('busy');
+    sendCode(email).then(function () { b.disabled = false; b.classList.remove('busy'); });
   });
   // "Resend" / "Change email" links live inside the countdown note.
   if ($('sub-auth-note')) $('sub-auth-note').addEventListener('click', function (e) {
@@ -314,8 +333,12 @@
     verifying = true;
     var r = await authVerify(email, code);
     verifying = false;
-    if (r && r.ok) { clearCode(); }
-    else { notify(t('codeBad'), 'warn'); OTP.clear(); OTP.focusFirst(); }
+    if (r && r.ok) { clearCode(); return; }
+    if (r && r.error === 'code_expired') { localStorage.setItem('driftly.codeExp', String(Date.now() - 1)); runCodeTimer(); OTP.clear(); return; }
+    var msg = r && r.error === 'offline' ? t('errOffline') : (r && r.error === 'too_many_attempts' ? t('errLocked') : t('codeBad'));
+    notify(msg, 'warn'); OTP.clear(); OTP.focusFirst();
+    // notify() replaced the countdown note — restore it so «Отправить ещё раз» stays reachable.
+    setTimeout(function () { if (localStorage.getItem('driftly.codeEmail') && !codeExpired()) runCodeTimer(); }, 2200);
   }
   // Per-digit code boxes: auto-advance, backspace-to-previous, paste-to-fill, auto-submit on the 6th.
   OTP.each(function (box, i, boxes) {
@@ -338,7 +361,7 @@
   if ($('btn-signout')) $('btn-signout').addEventListener('click', function () {
     // Best-effort: free this device's seat on the server, then clear locally.
     if (state.api && state.token) { try { fetch(state.api + '/v1/auth/signout', { method: 'POST', headers: { Authorization: 'Bearer ' + state.token } }); } catch (e) {} }
-    state.token = null; state.license = null; state.serverEnt = null; persist(); emit();
+    state.token = null; state.license = null; state.serverEnt = null; state.account = null; persist(); emit();
   });
   if ($('pw-cta')) $('pw-cta').addEventListener('click', function () { dismissed = true; render(); showView('subscription'); });
   if ($('pw-retry')) $('pw-retry').addEventListener('click', function () { call('POST', '/v1/billing/retry'); });
@@ -354,7 +377,7 @@
     activating = true; render();
     var tries = 0;
     var run = function () {
-      call('POST', '/v1/billing/confirm-card').then(function () {
+      call('POST', '/v1/billing/confirm-card', null, true).then(function () {
         var e = entitlement();
         if (e.reason === 'trial' || e.reason === 'active') { activating = false; render(); return; }
         // Fast for the first ~20 s (2 s steps — GetState confirms the payment almost at once),

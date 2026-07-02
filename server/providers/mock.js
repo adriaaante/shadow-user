@@ -28,7 +28,8 @@ module.exports = {
     acc._simFail = (card === 'tok_insufficient' || card === 'tok_fail');
     // The free 3-day trial is granted ONCE per account for all time. A returning user
     // (trial already used) is charged the full period immediately — no second free trial.
-    if (!acc.trialUsed) {
+    // A persisted trialEndsAt covers accounts created before the trialUsed flag existed.
+    if (!acc.trialUsed && !acc.trialEndsAt) {
       acc.status = 'trialing';
       acc.trialEndsAt = now + TRIAL_DAYS * DAY;
       acc.currentPeriodEnd = null;
