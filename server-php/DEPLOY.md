@@ -94,26 +94,6 @@ curl https://api.driftly.site/v1/config      # price 199 / 1999
 ```
 Updating later: `cd ~/driftly-src && git pull` (CRON + API pick it up immediately).
 
-## Second product on the same hosting (multi-instance)
-The server is product-agnostic: name, prices, trial length and email sender come from `.env`,
-and every default equals the Driftly value (empty `.env` = Driftly, byte-for-byte). To ship
-another product (e.g. «FutureFlow Маркетолог» 990/9990 ₽ or «FutureFlow Счета» 299/2990 ₽),
-deploy a SECOND instance — instances share nothing:
-1. **Own folder** — a separate checkout/copy, e.g. `~/futureflow-api/server-php` (each
-   instance keeps its own `.env` and `.keys/` next to its `index.php`).
-2. **Own MySQL DB** (Панель → Базы данных) — never share tables between products.
-3. **Own subdomain + SSL** (e.g. `api.<product>.site`) with the same real-directory docroot
-   + one-line shim as step 3 (shim `require` points into the instance folder).
-4. **Own `.env`** — `cp .env.example .env`, fill `DB_*`, `TBANK_*` (its own terminal),
-   URLs, `MAIL_FROM_EMAIL`/`MAIL_FROM_NAME`, and the product block:
-   `PRODUCT_NAME=FutureFlow Маркетолог`, `PRICE_MONTHLY=990`, `PRICE_YEARLY=9990`
-   (Счета: `299` / `2990`); `TRIAL_DAYS` only if it differs from 3.
-5. **Own keypair** — `php keygen.php` in THAT folder (step 5). Never reuse Driftly's keys:
-   each product's clients embed their own public key.
-6. **Own CRON line** (step 6): `/usr/bin/php /home/uXXXXXXX/futureflow-api/server-php/tick.php`.
-Verify with `curl https://api.<product>/v1/config` — it must return the product's name/prices.
-Driftly's own `.env` needs no changes.
-
 ## Front-end (driftly.site) — deploy after changing `docs/`
 The live `driftly.site` front is a **real-directory copy** on `u3544543@server135`, NOT a
 symlink and NOT auto-updated by git — sync it from the checkout after every `docs/` change:

@@ -23,10 +23,6 @@ function env(string $key, $default = null) {
   return $v === false ? $default : $v;
 }
 
-/** Product name shown in user-facing texts (sign-in email, T-Bank payment/receipt
- *  descriptions). The same code serves other products via .env; default = Driftly. */
-function product_name(): string { return env('PRODUCT_NAME', 'Driftly'); }
-
 /** TEMP diagnostics: append a line to a debug log while DRIFTLY_TEST_PAY is set. Remove the flag to disable. */
 function dbg_log(string $tag, $data): void {
   if (!env('DRIFTLY_TEST_PAY')) return;
