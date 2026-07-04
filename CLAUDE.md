@@ -80,6 +80,11 @@ Note: `node:sqlite` prints an ExperimentalWarning (harmless; stable in Node 24+)
 
 ## Gotchas
 - **Recopy `shared/` after editing** (see above) — the #1 footgun.
+- **`server-php/` is multi-product via `.env`** (for FutureFlow Маркетолог/Счета etc.): `PRODUCT_NAME`,
+  `PRICE_MONTHLY`/`PRICE_YEARLY`, `YEARLY_DISCOUNT_PCT` (default = computed), `TRIAL_DAYS`, `MAIL_FROM_*`
+  drive pricing + all user-facing texts (sign-in email, T-Bank payment/receipt descriptions; plan name =
+  `<PRODUCT_NAME> Pro`). Empty `.env` = exact Driftly behavior (199/1999/16/3). A second product = a second
+  instance: own folder+DB+subdomain+`.env`+keypair+CRON — see DEPLOY.md «Second product on the same hosting».
 - **Desktop window-switching (opt-in):** the generator can Alt+Tab/Cmd+Tab between open programs +
   minimize/restore so the monitor visibly changes (`input-backend.switchWindow/minimizeWindow`,
   `generator` `window` action). Off by default (`generator.switchWindows`), UI toggle «Переключать

@@ -101,7 +101,7 @@ class TbankProvider {
 
   /** ~1 ₽ card-verification Init (refunded once confirmed). */
   private function verifyDesc(int $amount): string {
-    return 'Driftly — привязка карты (возврат ' . number_format($amount / 100, 2, '.', '') . ' ₽)';
+    return product_name() . ' — привязка карты (возврат ' . number_format($amount / 100, 2, '.', '') . ' ₽)';
   }
 
   /** Refund/reverse the verification payment so the ~1 ₽ is returned. */
@@ -122,12 +122,13 @@ class TbankProvider {
     if ($firstTime) {
       $acc['status'] = 'pending'; $acc['pendingTrial'] = true; $acc['pendingPaid'] = false;
       $amount = $this->verifyKopecks();
-      $r = $this->initPayment($acc, $now, $amount, 'trial-', $this->verifyDesc($amount), 'Привязка карты Driftly');
+      $r = $this->initPayment($acc, $now, $amount, 'trial-', $this->verifyDesc($amount), 'Привязка карты ' . product_name());
     } else {
       $acc['status'] = 'pending'; $acc['pendingPaid'] = true; $acc['pendingTrial'] = false;
       $acc['trialUsed'] = true; // normalize accounts from before the flag existed
       $amount = $this->amountKopecks($acc);
-      $r = $this->initPayment($acc, $now, $amount, 'sub-', 'Driftly Pro — подписка', 'Подписка Driftly Pro');
+      $pn = ent_plan()['name'];
+      $r = $this->initPayment($acc, $now, $amount, 'sub-', "$pn — подписка", "Подписка $pn");
     }
     if (!empty($r['ok'])) {
       // Bind the pending activation to THIS payment. confirm-card must verify this exact
@@ -144,7 +145,7 @@ class TbankProvider {
   function attachCard(array &$acc): array {
     $acc['provider'] = 'tbank';
     $amount = $this->verifyKopecks();
-    return $this->initPayment($acc, now_ms(), $amount, 'trial-', $this->verifyDesc($amount), 'Привязка карты Driftly');
+    return $this->initPayment($acc, now_ms(), $amount, 'trial-', $this->verifyDesc($amount), 'Привязка карты ' . product_name());
   }
 
   /** Raw GetState for a payment (diagnostics + reliable RebillId capture without the webhook). */
@@ -187,9 +188,10 @@ class TbankProvider {
     if (!empty($acc['canceled'])) { $acc['status'] = 'expired'; return ['ok' => false, 'status' => 'expired']; }
     if (empty($acc['providerRebillId'])) { $acc['status'] = 'past_due'; return ['ok' => false, 'status' => 'past_due', 'reason' => 'no_rebill_id']; }
     $amount = $this->amountKopecks($acc);
+    $pn = ent_plan()['name'];
     $init = $this->call('Init', ['Amount' => $amount,
-      'OrderId' => 'renew-' . $acc['email'] . '-' . $now, 'CustomerKey' => $acc['email'], 'Description' => 'Driftly Pro — продление подписки',
-      'Receipt' => $this->receipt((string) ($acc['email'] ?? ''), $amount, 'Подписка Driftly Pro')]);
+      'OrderId' => 'renew-' . $acc['email'] . '-' . $now, 'CustomerKey' => $acc['email'], 'Description' => "$pn — продление подписки",
+      'Receipt' => $this->receipt((string) ($acc['email'] ?? ''), $amount, "Подписка $pn")]);
     if (empty($init['Success']) || empty($init['PaymentId'])) { $acc['status'] = 'past_due'; return ['ok' => false, 'status' => 'past_due', 'reason' => 'init_failed']; }
     $charge = $this->call('Charge', ['PaymentId' => $init['PaymentId'], 'RebillId' => $acc['providerRebillId']]);
     if (!empty($charge['Success']) && ($charge['Status'] ?? '') === 'CONFIRMED') {

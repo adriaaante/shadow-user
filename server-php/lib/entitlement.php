@@ -2,7 +2,9 @@
 /* server-php/lib/entitlement.php — port of shared/entitlement.js (access logic).
  * Times are in MILLISECONDS to match the JS clients (Date.now()). */
 
-const TRIAL_DAYS = 3;
+require_once __DIR__ . '/config.php';
+
+define('TRIAL_DAYS', (int) env('TRIAL_DAYS', 3));
 const DAY_MS = 86400000;
 
 function now_ms(): int { return (int) round(microtime(true) * 1000); }
@@ -13,11 +15,11 @@ function ent_features(): array {
 }
 
 function ent_plan(): array {
-  $m = 199; $y = 1999;
+  $m = (int) env('PRICE_MONTHLY', 199); $y = (int) env('PRICE_YEARLY', 1999);
   return [
-    'id' => 'pro', 'name' => 'Driftly Pro', 'currency' => 'RUB',
+    'id' => 'pro', 'name' => product_name() . ' Pro', 'currency' => 'RUB',
     'priceMonthly' => $m, 'priceYearly' => $y, 'trialDays' => TRIAL_DAYS,
-    'yearlyDiscountPct' => (int) round((1 - $y / ($m * 12)) * 100),
+    'yearlyDiscountPct' => (int) env('YEARLY_DISCOUNT_PCT', round((1 - $y / ($m * 12)) * 100)),
     'features' => ent_features(),
   ];
 }
