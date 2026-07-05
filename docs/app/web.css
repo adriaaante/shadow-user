@@ -234,3 +234,9 @@ h3{font-size:15px;margin-bottom:4px}
 .stage.idle .stage-hint{display:flex}
 /* Async buttons show a busy state instead of accepting double clicks. */
 button.busy{opacity:.55;pointer-events:none}
+
+/* Animated spinner for the "activating subscription" state. */
+.sub-status .spinner{display:inline-block;width:20px;height:20px;border-radius:50%;
+  border:2.5px solid rgba(124,92,255,.25);border-top-color:var(--accent,#7c5cff);
+  animation:drift-spin .8s linear infinite;vertical-align:middle}
+@keyframes drift-spin{to{transform:rotate(360deg)}}
