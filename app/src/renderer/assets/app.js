@@ -59,7 +59,7 @@
       pastDue: 'Необходимо оплатить', pastDueDesc: 'Списание не прошло. Оплатите, чтобы продолжить.',
       retryPay: 'Повторить оплату', cancelSub: 'Отменить подписку', goSub: 'Открыть подписку',
       pwTitle: 'Требуется подписка', pwTextNone: 'Подключите карту и получите 3 дня бесплатно. Доступ к Driftly — и в вебе, и в десктопе.', pwTextUsed: 'Оформите подписку — 199 ₽/мес или 1999 ₽/год. Доступ к Driftly — и в вебе, и в десктопе.',
-      apiSaved: 'Сервер сохранён', trialStarted: '3 дня бесплатно активированы!', subStarted: 'Подписка оформлена!', payRetried: 'Оплата повторно проведена.',
+      apiSaved: 'Сервер сохранён', trialStarted: '3 дня бесплатно активированы!', subStarted: 'Подписка оформлена!', payRetried: 'Оплата повторно проведена.', trialUsedEnded: 'Пробный период использован — закончился', subWasUntil: 'подписка действовала до', noTrialNote: 'Пробный период уже был использован и повторно не предоставляется — абонентская плата спишется сразу при оформлении.',
       needEmail: 'Введите корректный email.', testCard: 'тестовая карта (демо):', cardOk: 'успешно', cardFail: 'нет средств',
       getCode: 'Получить код', sendCode: 'Код отправлен на почту', enterCode: 'Введите код из письма', codeBad: 'Неверный код',
       resume: 'Возобновить', accessUntil: 'доступ до', trialCanceledNote: 'Пробный период отменён', subCanceledNote: 'Подписка отменена', noRenew: 'продление не произойдёт',
@@ -78,7 +78,7 @@
       pastDue: 'Payment required', pastDueDesc: 'The charge failed. Please pay to continue.',
       retryPay: 'Retry payment', cancelSub: 'Cancel subscription', goSub: 'Open subscription',
       pwTitle: 'Subscription required', pwTextNone: 'Add a card and get 3 days free. Driftly unlocks on web and desktop.', pwTextUsed: 'Subscribe — 199 ₽/mo or 1999 ₽/yr. Driftly unlocks on web and desktop.',
-      apiSaved: 'Server saved', trialStarted: '3 free days activated!', subStarted: 'Subscription activated!', payRetried: 'Payment retried.',
+      apiSaved: 'Server saved', trialStarted: '3 free days activated!', subStarted: 'Subscription activated!', payRetried: 'Payment retried.', trialUsedEnded: 'Free trial used — ended', subWasUntil: 'subscription was active until', noTrialNote: 'The free trial has already been used and is not granted again — the fee is charged immediately at checkout.',
       needEmail: 'Enter a valid email.', testCard: 'test card (demo):', cardOk: 'success', cardFail: 'no funds',
       getCode: 'Get code', sendCode: 'Code sent to your email', enterCode: 'Enter the code from the email', codeBad: 'Invalid code',
       resume: 'Resume', accessUntil: 'access until', trialCanceledNote: 'Trial cancelled', subCanceledNote: 'Subscription cancelled', noRenew: 'will not renew',
@@ -285,8 +285,18 @@
     const used = !!(info && info.account && info.account.trialUsed);
     const price = selectedInterval === 'year' ? `${PRICE.priceYearly} ${t('perYear')}` : `${PRICE.priceMonthly} ${t('perMonth')}`;
     const label = used ? `${t('subscribe')} — ${price}` : t('startTrial');
-    return planToggle() + `<button class="btn primary btn-lg" data-act="trial">${label}</button>
-      <div class="devcard">${t('testCard')}<select id="dev-card"><option value="tok_ok">${t('cardOk')}</option><option value="tok_insufficient">${t('cardFail')}</option></select></div>`;
+    return planToggle() + `<button class="btn primary btn-lg" data-act="trial">${label}</button>`
+      + (used ? `<div class="mode-note">${t('noTrialNote')}</div>` : '')
+      + `<div class="devcard">${t('testCard')}<select id="dev-card"><option value="tok_ok">${t('cardOk')}</option><option value="tok_insufficient">${t('cardFail')}</option></select></div>`;
+  }
+  // For an inactive returning account: when the one-time trial ended and until when the
+  // last paid period ran — so "no trial this time" isn't a surprise.
+  function endedInfo(info) {
+    const a = info && info.account; if (!a) return '';
+    const parts = [];
+    if (a.trialUsed && a.trialEndsAt) parts.push(`${t('trialUsedEnded')} ${fmtDate(a.trialEndsAt)}`);
+    if (a.currentPeriodEnd && a.currentPeriodEnd < Date.now()) parts.push(`${t('subWasUntil')} ${fmtDate(a.currentPeriodEnd)}`);
+    return parts.join(' · ');
   }
   function planWord(e) { return e.interval === 'year' ? t('planYearWord') : t('planMonthWord'); }
   function cancelBlock() { return `<button class="btn ghost" data-act="cancel" style="margin-top:12px">${t('cancelSub')}</button>`; }
@@ -339,7 +349,7 @@
       ? statusBox('ok', '✓', t('subCanceledNote'), `${t('accessUntil')} ${fmtDate(e.renewsAt)} · ${t('noRenew')}`) + resumeBlock()
       : statusBox('ok', '✓', `${t('subActive')} · ${planWord(e)}`, `${t('renews')}: ${fmtDate(e.renewsAt)}`) + cancelBlock();
     else if (e.needsPayment) box.innerHTML = statusBox('bad', '⚠', t('pastDue'), t('pastDueDesc')) + `<button class="btn primary" data-act="retry">${t('retryPay')}</button>`;
-    else box.innerHTML = statusBox('', '🔓', t('inactive'), '') + trialBlock(info);
+    else box.innerHTML = statusBox('', '🔓', t('inactive'), endedInfo(info)) + trialBlock(info);
   }
 
   function applyInfo(info) { if (!status) status = {}; status.license = info; renderLicense(); renderStatus(); }
