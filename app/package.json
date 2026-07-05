@@ -1,7 +1,7 @@
 {
   "name": "driftly",
   "productName": "Driftly",
-  "version": "1.0.0",
+  "version": "1.1.0",
   "description": "Keep your session alive — and measure it. Synthetic activity generator + activity benchmark. Local-only, no telemetry.",
   "author": "The Driftly Owner",
   "license": "SEE LICENSE IN ../LICENSE",
@@ -28,11 +28,37 @@
   "build": {
     "appId": "app.driftly.desktop",
     "productName": "Driftly",
-    "directories": { "output": "release", "buildResources": "build" },
-    "files": ["src/**/*", "package.json"],
-    "win": { "target": ["nsis"], "icon": "build/icon.png" },
-    "mac": { "target": ["zip"], "icon": "build/icon.png", "category": "public.app-category.utilities" },
-    "linux": { "target": ["AppImage"], "icon": "build/icon.png", "category": "Utility" },
-    "nsis": { "oneClick": false, "allowToChangeInstallationDirectory": true }
+    "directories": {
+      "output": "release",
+      "buildResources": "build"
+    },
+    "files": [
+      "src/**/*",
+      "package.json"
+    ],
+    "win": {
+      "target": [
+        "nsis"
+      ],
+      "icon": "build/icon.png"
+    },
+    "mac": {
+      "target": [
+        "zip"
+      ],
+      "icon": "build/icon.png",
+      "category": "public.app-category.utilities"
+    },
+    "linux": {
+      "target": [
+        "AppImage"
+      ],
+      "icon": "build/icon.png",
+      "category": "Utility"
+    },
+    "nsis": {
+      "oneClick": false,
+      "allowToChangeInstallationDirectory": true
+    }
   }
 }

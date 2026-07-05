@@ -21,10 +21,12 @@ contextBridge.exposeInMainWorld('driftly', {
 
   // subscription / licensing
   licenseGet: () => ipcRenderer.invoke('license:get'),
-  licenseSetApi: (url) => ipcRenderer.invoke('license:setApi', url),
   licenseAuthRequest: (email) => ipcRenderer.invoke('license:authRequest', email),
   licenseAuthVerify: (email, code) => ipcRenderer.invoke('license:authVerify', email, code),
   licenseStartTrial: (card, interval) => ipcRenderer.invoke('license:startTrial', card, interval),
+  licenseConfirmCard: () => ipcRenderer.invoke('license:confirmCard'),
+  licenseAttachCard: () => ipcRenderer.invoke('license:attachCard'),
+  licenseChangeInterval: (interval) => ipcRenderer.invoke('license:changeInterval', interval),
   licenseRetry: () => ipcRenderer.invoke('license:retry'),
   licenseCancel: () => ipcRenderer.invoke('license:cancel'),
   licenseResume: () => ipcRenderer.invoke('license:resume'),

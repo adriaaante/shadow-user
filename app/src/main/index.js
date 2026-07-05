@@ -126,7 +126,6 @@ function registerIpc() {
 
   // ---- subscription / licensing ----
   ipcMain.handle('license:get', () => license.info());
-  ipcMain.handle('license:setApi', async (_e, url) => { const i = await license.setApi(url); reconcile(); return i; });
   ipcMain.handle('license:authRequest', async (_e, email) => license.authRequest(email));
   ipcMain.handle('license:authVerify', async (_e, email, code) => { const r = await license.authVerify(email, code); reconcile(); return { result: r, info: license.info() }; });
   ipcMain.handle('license:startTrial', async (_e, card, interval) => {
@@ -136,6 +135,14 @@ function registerIpc() {
     reconcile();
     return { result: r, info: license.info() };
   });
+  ipcMain.handle('license:confirmCard', async () => { const i = await license.confirmCard(); reconcile(); return i; });
+  ipcMain.handle('license:attachCard', async () => {
+    const r = await license.attachCard();
+    if (r && r.result && r.result.redirectUrl) { try { shell.openExternal(r.result.redirectUrl); } catch (_) { /* noop */ } }
+    reconcile();
+    return { result: r, info: license.info() };
+  });
+  ipcMain.handle('license:changeInterval', async (_e, interval) => { const r = await license.changeInterval(interval); reconcile(); return { result: r, info: license.info() }; });
   ipcMain.handle('license:retry', async () => { const r = await license.retry(); reconcile(); return { result: r, info: license.info() }; });
   ipcMain.handle('license:cancel', async () => { const r = await license.cancel(); reconcile(); return { result: r, info: license.info() }; });
   ipcMain.handle('license:resume', async () => { const r = await license.resume(); reconcile(); return { result: r, info: license.info() }; });

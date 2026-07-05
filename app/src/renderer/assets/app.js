@@ -30,7 +30,9 @@
       onTick: (cb) => setInterval(() => cb({ live: { gauge: 38 + Math.round(24 * Math.random()), eventsLastHour: 1240 + Math.round(80 * Math.random()), synthetic: 950, real: 300 }, status: status() }), 1000),
       onStatus: () => {}, onConfigChanged: () => {},
       licenseGet: () => Promise.resolve(previewLicense),
-      licenseSetApi: () => Promise.resolve(previewLicense),
+      licenseConfirmCard: () => Promise.resolve(previewLicense),
+      licenseAttachCard: () => Promise.resolve({ result: { ok: false }, info: previewLicense }),
+      licenseChangeInterval: () => Promise.resolve({ result: { ok: false }, info: previewLicense }),
       licenseAuthRequest: () => Promise.resolve({ ok: false, error: 'no_api' }),
       licenseAuthVerify: () => Promise.resolve({ result: { ok: false }, info: previewLicense }),
       licenseStartTrial: () => Promise.resolve({ result: { ok: false }, info: previewLicense }),
@@ -59,8 +61,8 @@
       pastDue: 'Необходимо оплатить', pastDueDesc: 'Списание не прошло. Оплатите, чтобы продолжить.',
       retryPay: 'Повторить оплату', cancelSub: 'Отменить подписку', goSub: 'Открыть подписку',
       pwTitle: 'Требуется подписка', pwTextNone: 'Подключите карту и получите 3 дня бесплатно. Доступ к Driftly — и в вебе, и в десктопе.', pwTextUsed: 'Оформите подписку — 199 ₽/мес или 1999 ₽/год. Доступ к Driftly — и в вебе, и в десктопе.',
-      apiSaved: 'Сервер сохранён', trialStarted: '3 дня бесплатно активированы!', subStarted: 'Подписка оформлена!', payRetried: 'Оплата повторно проведена.', trialUsedEnded: 'Пробный период использован — закончился', subWasUntil: 'подписка действовала до', noTrialNote: 'Пробный период уже был использован и повторно не предоставляется — абонентская плата спишется сразу при оформлении.',
-      needEmail: 'Введите корректный email.', testCard: 'тестовая карта (демо):', cardOk: 'успешно', cardFail: 'нет средств',
+      activating: 'Активируем подписку…', activatingDesc: 'Завершите оплату в браузере — статус обновится сам.', openedBrowser: 'Открыли форму оплаты в браузере', payNotConfirmed: 'Платёж не подтверждён. Попробуйте ещё раз.', updateCard: 'Изменить карту', intervalNote: 'Смена тарифа применится со следующего списания.', planSwitchQ: 'Перейти на тариф', trialStarted: '3 дня бесплатно активированы!', subStarted: 'Подписка оформлена!', payRetried: 'Оплата повторно проведена.', trialUsedEnded: 'Пробный период использован — закончился', subWasUntil: 'подписка действовала до', noTrialNote: 'Пробный период уже был использован и повторно не предоставляется — абонентская плата спишется сразу при оформлении.',
+      needEmail: 'Введите корректный email.',
       getCode: 'Получить код', sendCode: 'Код отправлен на почту', enterCode: 'Введите код из письма', codeBad: 'Неверный код',
       resume: 'Возобновить', accessUntil: 'доступ до', trialCanceledNote: 'Пробный период отменён', subCanceledNote: 'Подписка отменена', noRenew: 'продление не произойдёт',
       monthly: 'Помесячно', yearly: 'За год', perMonth: '₽/мес', perYear: '₽/год', planYearWord: 'годовая', planMonthWord: 'месячная',
@@ -78,8 +80,8 @@
       pastDue: 'Payment required', pastDueDesc: 'The charge failed. Please pay to continue.',
       retryPay: 'Retry payment', cancelSub: 'Cancel subscription', goSub: 'Open subscription',
       pwTitle: 'Subscription required', pwTextNone: 'Add a card and get 3 days free. Driftly unlocks on web and desktop.', pwTextUsed: 'Subscribe — 199 ₽/mo or 1999 ₽/yr. Driftly unlocks on web and desktop.',
-      apiSaved: 'Server saved', trialStarted: '3 free days activated!', subStarted: 'Subscription activated!', payRetried: 'Payment retried.', trialUsedEnded: 'Free trial used — ended', subWasUntil: 'subscription was active until', noTrialNote: 'The free trial has already been used and is not granted again — the fee is charged immediately at checkout.',
-      needEmail: 'Enter a valid email.', testCard: 'test card (demo):', cardOk: 'success', cardFail: 'no funds',
+      activating: 'Activating your subscription…', activatingDesc: 'Finish the payment in the browser — the status updates automatically.', openedBrowser: 'Opened the payment form in your browser', payNotConfirmed: 'The payment was not confirmed. Try again.', updateCard: 'Change card', intervalNote: 'The plan change applies from your next charge.', planSwitchQ: 'Switch to plan', trialStarted: '3 free days activated!', subStarted: 'Subscription activated!', payRetried: 'Payment retried.', trialUsedEnded: 'Free trial used — ended', subWasUntil: 'subscription was active until', noTrialNote: 'The free trial has already been used and is not granted again — the fee is charged immediately at checkout.',
+      needEmail: 'Enter a valid email.',
       getCode: 'Get code', sendCode: 'Code sent to your email', enterCode: 'Enter the code from the email', codeBad: 'Invalid code',
       resume: 'Resume', accessUntil: 'access until', trialCanceledNote: 'Trial cancelled', subCanceledNote: 'Subscription cancelled', noRenew: 'will not renew',
       monthly: 'Monthly', yearly: 'Yearly', perMonth: '₽/mo', perYear: '₽/yr', planYearWord: 'yearly', planMonthWord: 'monthly',
@@ -286,8 +288,7 @@
     const price = selectedInterval === 'year' ? `${PRICE.priceYearly} ${t('perYear')}` : `${PRICE.priceMonthly} ${t('perMonth')}`;
     const label = used ? `${t('subscribe')} — ${price}` : t('startTrial');
     return planToggle() + `<button class="btn primary btn-lg" data-act="trial">${label}</button>`
-      + (used ? `<div class="mode-note">${t('noTrialNote')}</div>` : '')
-      + `<div class="devcard">${t('testCard')}<select id="dev-card"><option value="tok_ok">${t('cardOk')}</option><option value="tok_insufficient">${t('cardFail')}</option></select></div>`;
+      + (used ? `<div class="mode-note">${t('noTrialNote')}</div>` : '');
   }
   // For an inactive returning account: when the one-time trial ended and until when the
   // last paid period ran — so "no trial this time" isn't a surprise.
@@ -299,7 +300,14 @@
     return parts.join(' · ');
   }
   function planWord(e) { return e.interval === 'year' ? t('planYearWord') : t('planMonthWord'); }
-  function cancelBlock() { return `<button class="btn ghost" data-act="cancel" style="margin-top:12px">${t('cancelSub')}</button>`; }
+  function actsBlock() { return `<div class="sub-actions" style="margin-top:12px;display:flex;gap:10px;flex-wrap:wrap"><button class="btn ghost" data-act="attach-card">${t('updateCard')}</button><button class="btn ghost" data-act="cancel">${t('cancelSub')}</button></div>`; }
+  function itoggle(current) {
+    const yr = current === 'year';
+    return `<div class="mode-note" style="margin-top:16px">${t('intervalNote')}</div><div class="plan-toggle">
+      <button class="${yr ? '' : 'on'}" data-interval="month"><b>${PRICE.priceMonthly} ${t('perMonth')}</b><span>${t('monthly')}</span></button>
+      <button class="${yr ? 'on' : ''}" data-interval="year"><b>${PRICE.priceYearly} ${t('perYear')}</b><span>${t('yearly')}</span></button>
+    </div>`;
+  }
   function resumeBlock() { return `<button class="btn primary" data-act="resume" style="margin-top:12px">${t('resume')}</button>`; }
 
   function licInfo() { return status && status.license; }
@@ -333,8 +341,6 @@
 
     // subscription view
     $('price-main').textContent = PRICE.priceMonthly + ' ₽';
-    $('sub-api').value = info.api || '';
-    $('sub-api-state').textContent = info.preview ? t('subPreview') : `${info.api} · ${info.online ? t('online') : t('offline')}`;
     $('sub-signin').style.display = info.signedIn ? 'none' : 'block';
     $('sub-signedin').style.display = info.signedIn ? 'block' : 'none';
     if (info.signedIn) $('sub-who').textContent = e.account || '';
@@ -342,19 +348,61 @@
     const box = $('sub-state');
     if (info.preview) { box.innerHTML = statusBox('trial', '✨', t('previewTitle'), t('subPreview')); return; }
     if (!info.signedIn) { box.innerHTML = statusBox('', '👤', t('signInFirst'), ''); return; }
+    // Waiting for the browser payment to be confirmed (poll runs in the background).
+    if (activatingD && !(e.reason === 'trial' || e.reason === 'active')) { box.innerHTML = statusBox('trial', '<i class="spinner"></i>', t('activating'), t('activatingDesc')); return; }
     if (e.reason === 'trial') box.innerHTML = e.canceled
       ? statusBox('trial', '✨', t('trialCanceledNote'), `${t('accessUntil')} ${fmtDate(e.renewsAt)}`) + resumeBlock()
-      : statusBox('trial', '✨', t('trialActive'), `${e.trialDaysLeft} ${t('daysLeft')}`) + cancelBlock();
+      : statusBox('trial', '✨', t('trialActive'), `${e.trialDaysLeft} ${t('daysLeft')}`) + actsBlock() + itoggle(e.interval);
     else if (e.reason === 'active') box.innerHTML = e.canceled
       ? statusBox('ok', '✓', t('subCanceledNote'), `${t('accessUntil')} ${fmtDate(e.renewsAt)} · ${t('noRenew')}`) + resumeBlock()
-      : statusBox('ok', '✓', `${t('subActive')} · ${planWord(e)}`, `${t('renews')}: ${fmtDate(e.renewsAt)}`) + cancelBlock();
-    else if (e.needsPayment) box.innerHTML = statusBox('bad', '⚠', t('pastDue'), t('pastDueDesc')) + `<button class="btn primary" data-act="retry">${t('retryPay')}</button>`;
+      : statusBox('ok', '✓', `${t('subActive')} · ${planWord(e)}`, `${t('renews')}: ${fmtDate(e.renewsAt)}`) + actsBlock() + itoggle(e.interval);
+    else if (e.needsPayment) box.innerHTML = statusBox('bad', '⚠', t('pastDue'), t('pastDueDesc')) + `<div class="sub-actions" style="margin-top:12px;display:flex;gap:10px"><button class="btn primary" data-act="retry">${t('retryPay')}</button><button class="btn ghost" data-act="attach-card">${t('updateCard')}</button></div>`;
     else box.innerHTML = statusBox('', '🔓', t('inactive'), endedInfo(info)) + trialBlock(info);
   }
 
   function applyInfo(info) { if (!status) status = {}; status.license = info; renderLicense(); renderStatus(); }
 
-  async function doTrial() { const card = ($('dev-card') && $('dev-card').value) || 'tok_ok'; const r = await api.licenseStartTrial(card, selectedInterval); applyInfo(r.info); toast(r.info.entitlement && r.info.entitlement.access ? (r.info.account && r.info.account.trialUsed && r.info.entitlement.reason !== 'trial' ? t('subStarted') : t('trialStarted')) : t('pastDue')); }
+  // Signup flow with T-Bank: main opened the payment form in the browser; here we show an
+  // "activating…" state and poll confirm-card until the payment clears (~3.5 min cap:
+  // typing card details takes a while), then report the result.
+  let activatingD = false;
+  function pollSignup() {
+    let tries = 0;
+    const run = async () => {
+      const info = await api.licenseConfirmCard();
+      applyInfo(info);
+      const e = info.entitlement || {};
+      if (e.reason === 'trial' || e.reason === 'active') {
+        activatingD = false; renderLicense();
+        toast(e.reason === 'trial' ? t('trialStarted') : t('subStarted'));
+        return;
+      }
+      if (++tries >= 40) { activatingD = false; renderLicense(); toast(t('payNotConfirmed')); return; }
+      setTimeout(run, tries < 10 ? 3000 : 6000);
+    };
+    setTimeout(run, 2000);
+  }
+  async function doTrial() {
+    const r = await api.licenseStartTrial('tok_ok', selectedInterval);
+    applyInfo(r.info);
+    const url = r.result && r.result.result && r.result.result.redirectUrl;
+    const e = (r.info && r.info.entitlement) || {};
+    if (url) { activatingD = true; renderLicense(); toast(t('openedBrowser')); pollSignup(); return; }
+    if (e.access) toast(e.reason === 'trial' ? t('trialStarted') : t('subStarted'));
+    else toast(t('pastDue'));
+  }
+  // Card change: form opens in the browser; confirm quietly in the background (the
+  // subscription itself is untouched, so no blocking state).
+  async function doAttach() {
+    const r = await api.licenseAttachCard();
+    applyInfo(r.info);
+    const url = r.result && r.result.result && r.result.result.redirectUrl;
+    if (!url) return;
+    toast(t('openedBrowser'));
+    let tries = 0;
+    const run = async () => { applyInfo(await api.licenseConfirmCard()); if (++tries < 8) setTimeout(run, 4000); };
+    setTimeout(run, 4000);
+  }
   async function doRetry() { const r = await api.licenseRetry(); applyInfo(r.info); toast(r.info.entitlement && r.info.entitlement.access ? t('payRetried') : t('pastDue')); }
   async function doCancel() { const r = await api.licenseCancel(); applyInfo(r.info); }
   async function doResume() { const r = await api.licenseResume(); applyInfo(r.info); }
@@ -378,15 +426,26 @@
     else toast(t('codeBad'));
   });
   $('btn-signout').addEventListener('click', async () => applyInfo(await api.licenseSignOut()));
-  $('btn-setapi').addEventListener('click', async () => { const info = await api.licenseSetApi($('sub-api').value.trim()); applyInfo(info); toast(t('apiSaved')); });
   $('pw-cta').addEventListener('click', () => showView('subscription'));
   $('pw-retry').addEventListener('click', doRetry);
   document.addEventListener('click', (ev) => {
     const a = ev.target.closest('[data-act],[data-go-sub],[data-interval]'); if (!a) return;
     if (a.hasAttribute('data-go-sub')) { showView('subscription'); return; }
     const act = a.dataset.act;
-    if (a.dataset.interval) { selectedInterval = a.dataset.interval; renderLicense(); return; }
-    if (act === 'trial') doTrial(); else if (act === 'retry') doRetry(); else if (act === 'cancel') doCancel(); else if (act === 'resume') doResume();
+    if (a.dataset.interval) {
+      const info = licInfo(); const e = (info && info.entitlement) || {};
+      // Live subscription → switch the plan on the server (confirmed); otherwise it's the pre-subscribe choice.
+      if (info && info.signedIn && !info.preview && (e.reason === 'trial' || e.reason === 'active') && a.dataset.interval !== e.interval) {
+        const yr = a.dataset.interval === 'year';
+        const price = yr ? `${PRICE.priceYearly} ${t('perYear')}` : `${PRICE.priceMonthly} ${t('perMonth')}`;
+        const name = yr ? t('yearly') : t('monthly');
+        if (window.confirm(`${t('planSwitchQ')} «${name}» — ${price}?\n${t('intervalNote')}`)) {
+          api.licenseChangeInterval(a.dataset.interval).then((r) => applyInfo(r.info));
+        } else renderLicense();
+      } else { selectedInterval = a.dataset.interval; renderLicense(); }
+      return;
+    }
+    if (act === 'trial') doTrial(); else if (act === 'retry') doRetry(); else if (act === 'cancel') doCancel(); else if (act === 'resume') doResume(); else if (act === 'attach-card') doAttach();
   });
 
   /* ---------------------------------- tick ----------------------------------- */
