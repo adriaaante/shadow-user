@@ -20,8 +20,11 @@ let uiohook = null;
 try {
   // eslint-disable-next-line global-require
   uiohook = require('uiohook-napi');
-} catch (_) {
+} catch (e) {
   uiohook = null;
+  // Surfaces in the app logs: without this, real vs synthetic can't be measured
+  // (only self-reported synthetic events), so "реальные (вы): 0" is expected.
+  console.error('[monitor] global input monitor unavailable → self-report only. Reason:', e && e.message);
 }
 
 const GRACE_MS = 50; // synthetic events may be delivered slightly after injection ends

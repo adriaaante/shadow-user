@@ -20,8 +20,10 @@ let nut = null;
 try {
   // eslint-disable-next-line global-require
   nut = require('@nut-tree-fork/nut-js');
-} catch (_) {
+} catch (e) {
   nut = null;
+  // Surfaces in the app logs so a "stuck in Симуляция" report is diagnosable.
+  console.error('[input-backend] real input backend unavailable → simulation. Reason:', e && e.message);
 }
 
 function clamp(v, min, max) { return Math.max(min, Math.min(max, v)); }

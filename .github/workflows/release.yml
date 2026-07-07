@@ -30,7 +30,11 @@ jobs:
           node-version: 20
       - name: Установка зависимостей
         working-directory: app
-        run: npm install --omit=optional --no-audit --no-fund
+        # ВАЖНО: без --omit=optional — иначе не установятся нативные модули реального
+        # ввода (@nut-tree-fork/nut-js) и мониторинга (uiohook-napi), и приложение
+        # навсегда останется в режиме «Симуляция». Оба поставляют готовые N-API
+        # бинарники (prebuilds), пересборка не нужна.
+        run: npm install --no-audit --no-fund
       - name: Сборка установщика
         working-directory: app
         # --publish never: только собрать (публикацией занимается отдельная job ниже,

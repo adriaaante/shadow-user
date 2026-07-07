@@ -1,7 +1,7 @@
 {
   "name": "driftly",
   "productName": "Driftly",
-  "version": "1.1.0",
+  "version": "1.1.1",
   "description": "Keep your session alive — and measure it. Synthetic activity generator + activity benchmark. Local-only, no telemetry.",
   "author": "The Driftly Owner",
   "license": "SEE LICENSE IN ../LICENSE",
@@ -28,13 +28,19 @@
   "build": {
     "appId": "app.driftly.desktop",
     "productName": "Driftly",
+    "npmRebuild": false,
     "directories": {
       "output": "release",
       "buildResources": "build"
     },
     "files": [
       "src/**/*",
-      "package.json"
+      "package.json",
+      "node_modules/**/*"
+    ],
+    "asarUnpack": [
+      "node_modules/@nut-tree-fork/**",
+      "node_modules/uiohook-napi/**"
     ],
     "win": {
       "target": [
