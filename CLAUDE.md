@@ -51,8 +51,14 @@ recopy to both (see Commands), or clients run stale logic. `entitlement.js`, `li
      (no `docs/CNAME`). So after changing `docs/`: push → `git pull` on server135 → sync into the
      `driftly.site` docroot.
 - **Desktop:** `cd app && npm run dist` (electron-builder → Win/macOS/Linux installers) →
-  upload to **GitHub Releases**; site download buttons point there. Native input modules are
-  optional — without them the app runs in **simulation mode** (full UI still works).
+  upload to **GitHub Releases**; site download buttons point there. The two native modules —
+  `@nut-tree-fork/nut-js` (real cursor/click/scroll/Alt+Tab) and `uiohook-napi` (global monitor
+  that separates real vs synthetic input) — **must ship**, or the app falls back to «Симуляция» +
+  «Только синтетика» (no cursor movement, `реальные (вы): 0`). They are N-API **prebuilts** (no
+  compiler needed). Build requirements, all three are load-bearing: (1) install WITHOUT
+  `--omit=optional`; (2) `build.files` must include `node_modules/**/*`; (3) `build.asarUnpack`
+  must unpack `node_modules/@nut-tree-fork/**` + `node_modules/uiohook-napi/**` (native `.node`
+  can't load from inside asar); (4) `npmRebuild:false` (N-API prebuilts load in Electron as-is).
 - **Server:** deploy **`server-php/`** to the REG shared hosting (PHP 8 + MySQL + CRON) —
   free, no VPS. Steps in `server-php/DEPLOY.md`: MySQL DB, `api.driftly.site` subdomain + SSL,
   `.env`, `php keygen.php` (→ replace `shared/license-public.pem` with the printed key + recopy
