@@ -18,7 +18,7 @@
     const previewLicense = { api: '', preview: true, online: false, signedIn: false, entitlement: { plan: 'preview', status: 'preview', access: true, blocked: false, isPro: true, needsPayment: false, reason: 'preview', preview: true, features: [], trialDaysLeft: 0, account: null, renewsAt: null } };
     const status = () => ({ runMode: cfg.runMode, generatorOn: cfg.runMode !== 'off', scheduleActive: true, minutesUntilScheduleChange: 42, backendMode: 'simulation', monitorMode: 'self-report', genStats: { actions: 128 }, license: previewLicense });
     return {
-      getInitial: () => Promise.resolve({ config: cfg, status: status(), paths: { dir: '/preview' } }),
+      getInitial: () => Promise.resolve({ config: cfg, status: status(), paths: { dir: '/preview' }, version: 'preview' }),
       patchConfig: (p) => { cfg = deepAssign(cfg, p); return Promise.resolve({ config: cfg, status: status() }); },
       setRunMode: (m) => { cfg.runMode = m; return Promise.resolve({ config: cfg, status: status() }); },
       metricsSeries: (n) => Promise.resolve(series.slice(-n)),
@@ -106,6 +106,7 @@
 
   /* --------------------------------- state ----------------------------------- */
   let cfg = null; let status = null;
+  let activatingD = false; // showing the animated "activating…" state after a browser payment
   const $ = (id) => document.getElementById(id);
 
   async function patch(p) { const r = await api.patchConfig(p); cfg = r.config; status = r.status; }
@@ -365,7 +366,6 @@
   // Signup flow with T-Bank: main opened the payment form in the browser; here we show an
   // "activating…" state and poll confirm-card until the payment clears (~3.5 min cap:
   // typing card details takes a while), then report the result.
-  let activatingD = false;
   function pollSignup() {
     let tries = 0;
     const run = async () => {
@@ -468,6 +468,7 @@
   (async function init() {
     const r = await api.getInitial();
     cfg = r.config; status = r.status; lang = (cfg.prefs && cfg.prefs.lang) || 'ru';
+    if (r.version && $('ver')) $('ver').textContent = r.version; // real build version in the footer
     $('opt-tray').checked = cfg.prefs.minimizeToTray; $('opt-login').checked = cfg.prefs.launchAtLogin;
     applyLang(); renderActivity(); renderStatus(); renderBadges(); renderSchedule(); renderLicense();
     window.Charts.gauge($('gauge'), 0);

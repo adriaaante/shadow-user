@@ -87,6 +87,7 @@ function registerIpc() {
     config: store.getConfig(),
     status: status(),
     paths: store.paths(),
+    version: app.getVersion(),
   }));
 
   ipcMain.handle('config:patch', (_e, patch) => {
