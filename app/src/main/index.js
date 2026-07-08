@@ -38,13 +38,29 @@ function desiredGeneratorOn() {
 // OS-level screen keep-awake. Unlike the browser's Wake Lock, this holds even
 // when the window is minimized or in the background, so while the generator runs
 // the display never sleeps — the guarantee the web version can't make.
-let psbId = null;
+// We hold BOTH a display-sleep and an app-suspension blocker, and RE-ASSERT them on a
+// timer (see the keep-awake interval in bootstrap). Re-asserting matters because on some
+// Windows power plans / GPU drivers the execution state can be dropped after a while or
+// when the window is minimized/unfocused — a single start-once call then silently lapses
+// and the screen sleeps even though the cursor is moving (synthetic mouse motion does not
+// reliably reset the OS idle timer). Re-grabbing it guarantees the display stays on for as
+// long as Driftly is generating, regardless of focus or minimize state.
+let psbDisplay = null;
+let psbSuspend = null;
+function keepAwakeHeld() {
+  try { return psbDisplay !== null && powerSaveBlocker.isStarted(psbDisplay); } catch (_) { return false; }
+}
 function syncPowerBlocker(on) {
   try {
-    const held = psbId !== null && powerSaveBlocker.isStarted(psbId);
-    if (on && !held) psbId = powerSaveBlocker.start('prevent-display-sleep');
-    else if (!on && held) { powerSaveBlocker.stop(psbId); psbId = null; }
-  } catch (_) { /* noop */ }
+    if (on) {
+      if (psbDisplay === null || !powerSaveBlocker.isStarted(psbDisplay)) psbDisplay = powerSaveBlocker.start('prevent-display-sleep');
+      if (psbSuspend === null || !powerSaveBlocker.isStarted(psbSuspend)) psbSuspend = powerSaveBlocker.start('prevent-app-suspension');
+    } else {
+      if (psbDisplay !== null && powerSaveBlocker.isStarted(psbDisplay)) powerSaveBlocker.stop(psbDisplay);
+      if (psbSuspend !== null && powerSaveBlocker.isStarted(psbSuspend)) powerSaveBlocker.stop(psbSuspend);
+      psbDisplay = null; psbSuspend = null;
+    }
+  } catch (e) { console.error('[keepawake]', e && e.message); }
 }
 
 function reconcile() {
@@ -76,6 +92,7 @@ function status() {
     minutesUntilScheduleChange: scheduler.minutesUntilChange(),
     backendMode: backend.mode,         // 'real' | 'simulation'
     monitorMode: monitor.mode,         // 'global' | 'self-report'
+    keepAwake: keepAwakeHeld(),        // display kept awake right now?
     genStats: generator.stats,
     license: license.info(),           // subscription/entitlement state
   };
@@ -173,6 +190,7 @@ function createWindow() {
       contextIsolation: true,
       nodeIntegration: false,
       sandbox: false,
+      backgroundThrottling: false, // don't throttle when minimized/hidden — keep timers live
     },
   });
   win.loadFile(path.join(__dirname, '..', 'renderer', 'index.html'));
@@ -267,6 +285,22 @@ if (!gotLock) {
       if (win && !win.isDestroyed()) win.webContents.send('tick', { live: metrics.live(), status: status() });
     }, 1000);
     saveTimer = setInterval(persistMetrics, 30000);
+
+    // Keep-awake watchdog: re-assert the display blocker every 20 s so a dropped execution
+    // state (some Windows power plans do this, especially while minimized) can never leave
+    // the screen free to sleep while the generator is running.
+    setInterval(() => { try { syncPowerBlocker(desiredGeneratorOn()); } catch (_) { /* noop */ } }, 20000);
+
+    // Keep-awake input nudge (real backend only): the display blocker stops the monitor
+    // powering off, but NOT the screensaver, and a synthetic cursor move may not reset the
+    // OS idle timer. An invisible F15 key tap — the classic harmless anti-idle key — resets
+    // BOTH idle timers via SendInput. Only fires after ~25 s of genuine idle (skips it while
+    // the real user is active) and is bracketed so it's tagged synthetic, not real input.
+    setInterval(async () => {
+      if (!desiredGeneratorOn() || backend.mode !== 'real') return;
+      if (monitor.msSinceRealActivity() < 25000) return;
+      try { monitor.beginInject(); await backend.tapKey('f15'); } catch (_) { /* noop */ } finally { monitor.endInject(); }
+    }, 25000);
 
     app.on('activate', () => { if (BrowserWindow.getAllWindows().length === 0) createWindow(); });
   });
