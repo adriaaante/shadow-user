@@ -62,7 +62,7 @@
       retryPay: 'Повторить оплату', cancelSub: 'Отменить подписку', goSub: 'Открыть подписку',
       pwTitle: 'Требуется подписка', pwTextNone: 'Подключите карту и получите 3 дня бесплатно. Доступ к Driftly — и в вебе, и в десктопе.', pwTextUsed: 'Оформите подписку — 199 ₽/мес или 1999 ₽/год. Доступ к Driftly — и в вебе, и в десктопе.',
       activating: 'Активируем подписку…', activatingDesc: 'Завершите оплату в браузере — статус обновится сам.', openedBrowser: 'Открыли форму оплаты в браузере', payNotConfirmed: 'Платёж не подтверждён. Попробуйте ещё раз.', updateCard: 'Изменить карту', intervalNote: 'Смена тарифа применится со следующего списания.', planSwitchQ: 'Перейти на тариф', trialStarted: '3 дня бесплатно активированы!', subStarted: 'Подписка оформлена!', payRetried: 'Оплата повторно проведена.', trialUsedEnded: 'Пробный период использован — закончился', subWasUntil: 'подписка действовала до', noTrialNote: 'Пробный период уже был использован и повторно не предоставляется — абонентская плата спишется сразу при оформлении.',
-      needEmail: 'Введите корректный email.',
+      gaugeLabel: 'активность', needEmail: 'Введите корректный email.',
       getCode: 'Получить код', sendCode: 'Код отправлен на почту', enterCode: 'Введите код из письма', codeBad: 'Неверный код',
       resume: 'Возобновить', accessUntil: 'доступ до', trialCanceledNote: 'Пробный период отменён', subCanceledNote: 'Подписка отменена', noRenew: 'продление не произойдёт',
       monthly: 'Помесячно', yearly: 'За год', perMonth: '₽/мес', perYear: '₽/год', planYearWord: 'годовая', planMonthWord: 'месячная',
@@ -81,7 +81,7 @@
       retryPay: 'Retry payment', cancelSub: 'Cancel subscription', goSub: 'Open subscription',
       pwTitle: 'Subscription required', pwTextNone: 'Add a card and get 3 days free. Driftly unlocks on web and desktop.', pwTextUsed: 'Subscribe — 199 ₽/mo or 1999 ₽/yr. Driftly unlocks on web and desktop.',
       activating: 'Activating your subscription…', activatingDesc: 'Finish the payment in the browser — the status updates automatically.', openedBrowser: 'Opened the payment form in your browser', payNotConfirmed: 'The payment was not confirmed. Try again.', updateCard: 'Change card', intervalNote: 'The plan change applies from your next charge.', planSwitchQ: 'Switch to plan', trialStarted: '3 free days activated!', subStarted: 'Subscription activated!', payRetried: 'Payment retried.', trialUsedEnded: 'Free trial used — ended', subWasUntil: 'subscription was active until', noTrialNote: 'The free trial has already been used and is not granted again — the fee is charged immediately at checkout.',
-      needEmail: 'Enter a valid email.',
+      gaugeLabel: 'activity', needEmail: 'Enter a valid email.',
       getCode: 'Get code', sendCode: 'Code sent to your email', enterCode: 'Enter the code from the email', codeBad: 'Invalid code',
       resume: 'Resume', accessUntil: 'access until', trialCanceledNote: 'Trial cancelled', subCanceledNote: 'Subscription cancelled', noRenew: 'will not renew',
       monthly: 'Monthly', yearly: 'Yearly', perMonth: '₽/mo', perYear: '₽/yr', planYearWord: 'yearly', planMonthWord: 'monthly',
@@ -451,7 +451,7 @@
   /* ---------------------------------- tick ----------------------------------- */
   api.onTick((data) => {
     if (data.live) {
-      window.Charts.gauge($('gauge'), data.live.gauge);
+      window.Charts.gauge($('gauge'), data.live.gauge, t('gaugeLabel'));
       $('kpi-events').textContent = data.live.eventsLastHour;
       $('kpi-syn').textContent = data.live.synthetic;
       $('kpi-real').textContent = data.live.real;
@@ -471,7 +471,7 @@
     if (r.version && $('ver')) $('ver').textContent = r.version; // real build version in the footer
     $('opt-tray').checked = cfg.prefs.minimizeToTray; $('opt-login').checked = cfg.prefs.launchAtLogin;
     applyLang(); renderActivity(); renderStatus(); renderBadges(); renderSchedule(); renderLicense();
-    window.Charts.gauge($('gauge'), 0);
+    window.Charts.gauge($('gauge'), 0, t('gaugeLabel'));
     const deep = (location.hash || '').replace('#', '');
     showView(TITLES[deep] ? deep : 'dashboard');
   }());

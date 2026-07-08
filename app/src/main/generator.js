@@ -113,6 +113,19 @@ class Generator {
     };
   }
 
+  // Clicks land in the safe CENTRAL area (~15% inset) — away from the taskbar, the Start
+  // button, window close/minimize buttons and the system tray — so a synthetic left-click
+  // can never hit something destructive. Cursor MOVES may still roam the whole screen.
+  _clickTarget() {
+    const { width, height } = this._size;
+    const mx = Math.round(width * 0.15);
+    const my = Math.round(height * 0.15);
+    return {
+      x: Math.round(rnd(mx, width - mx)),
+      y: Math.round(rnd(my, height - my)),
+    };
+  }
+
   async _inject(fn, kind, reportXY) {
     monitor.beginInject();
     try { await fn(); } finally { monitor.endInject(); }
@@ -139,10 +152,10 @@ class Generator {
         const t = this._target();
         await this._inject(() => backend.moveTo(t.x, t.y, Math.round(rnd(14, 30))), 'move', t);
       } else if (action === 'click') {
-        if (Math.random() < 0.6) {
-          const t = this._target();
-          await this._inject(() => backend.moveTo(t.x, t.y, Math.round(rnd(12, 24))), 'move', t);
-        }
+        // Always travel to a safe central spot first, then left-click there — never click
+        // at an unknown/edge position left over from a prior move.
+        const t = this._clickTarget();
+        await this._inject(() => backend.moveTo(t.x, t.y, Math.round(rnd(12, 24))), 'move', t);
         await this._inject(() => backend.click('left'), 'click');
       } else if (action === 'scroll') {
         const amount = pick([-3, -2, -1, 1, 2, 3]);

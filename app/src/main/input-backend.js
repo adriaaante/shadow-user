@@ -86,17 +86,26 @@ function createRealBackend() {
     async switchWindow() {
       // Alt+Tab (Win/Linux) / Cmd+Tab (mac): switch to another open window so the
       // monitor visibly changes between programs — reads as a real user working.
-      // Hold the modifier briefly so the OS switcher registers, then release. The
-      // finally block guarantees no modifier is ever left stuck down.
+      // A SINGLE Tab only ever flip-flops between the two most-recent windows, so we
+      // hold the switcher open and tap Tab a random number of times (occasionally with
+      // Shift to go backwards) → a DIFFERENT window almost every time. The finally block
+      // guarantees no modifier is ever left stuck down.
       const mod = process.platform === 'darwin' ? Key.LeftSuper : Key.LeftAlt;
+      const reverse = Math.random() < 0.3;            // sometimes cycle backwards
+      const steps = 1 + Math.floor(Math.random() * 3); // 1..3 windows deep into the MRU list
       try {
         await keyboard.pressKey(mod);
-        await keyboard.pressKey(Key.Tab);
-        await new Promise((r) => setTimeout(r, 70));
-        await keyboard.releaseKey(Key.Tab);
-        await new Promise((r) => setTimeout(r, 220));
+        if (reverse) await keyboard.pressKey(Key.LeftShift);
+        for (let i = 0; i < steps; i += 1) {
+          await keyboard.pressKey(Key.Tab);
+          await new Promise((r) => setTimeout(r, 55));
+          await keyboard.releaseKey(Key.Tab);
+          await new Promise((r) => setTimeout(r, 85)); // let the switcher advance the highlight
+        }
+        await new Promise((r) => setTimeout(r, 180));  // rest on the target before committing
       } finally {
         try { await keyboard.releaseKey(Key.Tab); } catch (_) { /* noop */ }
+        if (reverse) { try { await keyboard.releaseKey(Key.LeftShift); } catch (_) { /* noop */ } }
         try { await keyboard.releaseKey(mod); } catch (_) { /* noop */ }
       }
     },
