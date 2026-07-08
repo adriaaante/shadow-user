@@ -82,11 +82,22 @@ class Generator {
     this._timer = setTimeout(() => this._tick().catch(() => {}), ms);
   }
 
+  // Slow ebb-and-flow (period ~6 min) that scales the gap between actions, so activity
+  // comes in gentle bursts instead of a uniform metronome — reads like a human who works,
+  // pauses, then works again. Centered so the AVERAGE rate over a full period is unchanged
+  // (factor mean ≈ 1.0, range ~0.55 busy .. 1.45 calm). `now` is injectable for tests.
+  _waveFactor(now) {
+    const period = 6 * 60000;
+    const phase = ((now == null ? Date.now() : now) % period) / period; // 0..1
+    const s = (Math.sin(phase * 2 * Math.PI) + 1) / 2;                   // 0..1
+    return 0.55 + (1 - s) * 0.9;                                         // 0.55 .. 1.45, mean 1.0
+  }
+
   _nextDelay() {
     const r = this.rates();
     const perMin = Math.max(0.1, r.move + r.click + r.scroll + r.key + r.window);
     const base = 60000 / perMin;
-    return Math.round(base * rnd(0.55, 1.6));
+    return Math.round(base * rnd(0.55, 1.6) * this._waveFactor());
   }
 
   _chooseAction() {

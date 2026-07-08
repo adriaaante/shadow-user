@@ -407,6 +407,48 @@
   async function doCancel() { const r = await api.licenseCancel(); applyInfo(r.info); }
   async function doResume() { const r = await api.licenseResume(); applyInfo(r.info); }
 
+  // Per-digit sign-in code boxes (matches the web app): auto-advance, backspace to the
+  // previous box, paste-to-fill, and auto-submit the instant the 6th digit is entered.
+  const OTP = (function () {
+    function boxes() { const el = $('sub-otp'); return el ? Array.prototype.slice.call(el.querySelectorAll('input')) : []; }
+    return {
+      val() { return boxes().map((b) => (b.value || '').replace(/\D/g, '')).join(''); },
+      set(v) { const d = (v || '').replace(/\D/g, '').slice(0, 6).split(''); boxes().forEach((b, i) => { b.value = d[i] || ''; }); },
+      clear() { boxes().forEach((b) => { b.value = ''; }); },
+      focusFirst() { const b = boxes(); if (b[0]) b[0].focus(); },
+    };
+  }());
+  let verifying = false;
+  async function verifyCode() {
+    if (verifying) return;
+    const code = OTP.val(); if (code.length !== 6) return;
+    const email = $('sub-email').value.trim();
+    verifying = true;
+    const r = await api.licenseAuthVerify(email, code);
+    verifying = false;
+    if (r.result && r.result.ok) { $('sub-step-code').style.display = 'none'; $('sub-auth-note').textContent = ''; OTP.clear(); applyInfo(r.info); }
+    else { toast(t('codeBad')); OTP.clear(); OTP.focusFirst(); }
+  }
+  (function wireOtp() {
+    const el = $('sub-otp'); if (!el) return;
+    const bs = Array.prototype.slice.call(el.querySelectorAll('input'));
+    bs.forEach((box, i) => {
+      box.addEventListener('input', () => {
+        box.value = (box.value || '').replace(/\D/g, '').slice(0, 1);
+        if (box.value && i < bs.length - 1) bs[i + 1].focus();
+        if (OTP.val().length === bs.length) verifyCode();
+      });
+      box.addEventListener('keydown', (e) => {
+        if (e.key === 'Backspace' && !box.value && i > 0) { bs[i - 1].focus(); bs[i - 1].value = ''; e.preventDefault(); }
+      });
+      box.addEventListener('paste', (e) => {
+        e.preventDefault();
+        OTP.set((e.clipboardData || window.clipboardData).getData('text') || '');
+        if (OTP.val().length === bs.length) verifyCode(); else { const n = OTP.val().length; (bs[n] || bs[bs.length - 1]).focus(); }
+      });
+    });
+  }());
+
   // two-step passwordless sign-in
   $('btn-getcode').addEventListener('click', async () => {
     const email = $('sub-email').value.trim();
@@ -415,16 +457,12 @@
     if (r && r.ok) {
       $('sub-step-code').style.display = 'flex';
       $('sub-auth-note').textContent = t('sendCode') + (r.devCode ? ` (dev: ${r.devCode})` : '');
-      if (r.devCode) $('sub-code').value = r.devCode;
-      $('sub-code').focus();
+      OTP.clear();
+      if (r.devCode) OTP.set(r.devCode); // dev/preview convenience
+      OTP.focusFirst();
     } else toast(t('needEmail'));
   });
-  $('btn-verify').addEventListener('click', async () => {
-    const email = $('sub-email').value.trim(); const code = $('sub-code').value.trim();
-    const r = await api.licenseAuthVerify(email, code);
-    if (r.result && r.result.ok) { $('sub-step-code').style.display = 'none'; $('sub-auth-note').textContent = ''; applyInfo(r.info); }
-    else toast(t('codeBad'));
-  });
+  $('btn-verify').addEventListener('click', verifyCode);
   $('btn-signout').addEventListener('click', async () => applyInfo(await api.licenseSignOut()));
   $('pw-cta').addEventListener('click', () => showView('subscription'));
   $('pw-retry').addEventListener('click', doRetry);

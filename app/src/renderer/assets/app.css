@@ -153,3 +153,8 @@
   border:2.5px solid rgba(124,92,255,.25);border-top-color:#7c5cff;
   animation:drift-spin .8s linear infinite;vertical-align:middle}
 @keyframes drift-spin{to{transform:rotate(360deg)}}
+
+/* Per-digit sign-in code boxes (matches the web app). */
+.otp{display:flex;gap:8px;flex:1;min-width:0}
+.otp input{flex:1;min-width:0;width:100%;text-align:center;font-size:19px;font-weight:700;font-variant-numeric:tabular-nums;padding:12px 0;color:var(--text);background:var(--s2);border:1px solid var(--border);border-radius:12px;outline:none;transition:border-color .15s,box-shadow .15s,background .15s}
+.otp input:focus{border-color:var(--brand2);background:var(--s1);box-shadow:0 0 0 3px rgba(124,92,255,.2)}
