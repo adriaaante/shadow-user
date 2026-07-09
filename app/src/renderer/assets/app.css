@@ -158,3 +158,8 @@
 .otp{display:flex;gap:8px;flex:1;min-width:0}
 .otp input{flex:1;min-width:0;width:100%;text-align:center;font-size:19px;font-weight:700;font-variant-numeric:tabular-nums;padding:12px 0;color:var(--text);background:var(--s2);border:1px solid var(--border);border-radius:12px;outline:none;transition:border-color .15s,box-shadow .15s,background .15s}
 .otp input:focus{border-color:var(--brand2);background:var(--s1);box-shadow:0 0 0 3px rgba(124,92,255,.2)}
+
+/* Recurring-charge consent checkbox (required before starting a subscription). */
+.consent{display:flex;gap:10px;align-items:flex-start;margin:6px 0 12px;font-size:12.5px;line-height:1.5;color:var(--muted);cursor:pointer}
+.consent input{margin-top:2px;width:17px;height:17px;flex:none;accent-color:var(--brand2,#7c5cff);cursor:pointer}
+.btn.btn-lg[disabled]{opacity:.5;pointer-events:none}

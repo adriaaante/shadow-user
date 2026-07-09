@@ -65,7 +65,7 @@
       gaugeLabel: 'активность', keepAwakeOn: 'Экран удерживается активным — не погаснет даже в свёрнутом виде.', keepAwakeFail: 'Не удалось удержать экран активным.', needEmail: 'Введите корректный email.',
       getCode: 'Получить код', sendCode: 'Код отправлен на почту', enterCode: 'Введите код из письма', codeBad: 'Неверный код',
       resume: 'Возобновить', accessUntil: 'доступ до', trialCanceledNote: 'Пробный период отменён', subCanceledNote: 'Подписка отменена', noRenew: 'продление не произойдёт',
-      monthly: 'Помесячно', yearly: 'За год', perMonth: '₽/мес', perYear: '₽/год', planYearWord: 'годовая', planMonthWord: 'месячная',
+      monthly: 'Помесячно', yearly: 'За год', perMonth: '₽/мес', perYear: '₽/год', planYearWord: 'годовая', planMonthWord: 'месячная', monthWord: 'в месяц', yearWord: 'в год', consentTrial: 'Я соглашаюсь, что после бесплатного пробного периода (3 дня) с меня будет автоматически списываться {amt} до отмены подписки (рекуррентный платёж).', consentPaid: 'Я соглашаюсь на автоматическое списание {amt} до отмены подписки (рекуррентный платёж).',
       days: ['Пн', 'Вт', 'Ср', 'Чт', 'Пт', 'Сб', 'Вс'] },
     en: { active: 'Active', paused: 'Paused', waiting: 'Waiting for schedule', moves: 'moves/min', clicks: 'clicks/min', scrolls: 'scrolls/min',
       bReal: 'Real input', bSim: 'Simulation', mGlobal: 'Global monitoring', mSelf: 'Synthetic only',
@@ -84,7 +84,7 @@
       gaugeLabel: 'activity', keepAwakeOn: 'Screen is kept awake — it will not sleep even when minimized.', keepAwakeFail: 'Could not keep the screen awake.', needEmail: 'Enter a valid email.',
       getCode: 'Get code', sendCode: 'Code sent to your email', enterCode: 'Enter the code from the email', codeBad: 'Invalid code',
       resume: 'Resume', accessUntil: 'access until', trialCanceledNote: 'Trial cancelled', subCanceledNote: 'Subscription cancelled', noRenew: 'will not renew',
-      monthly: 'Monthly', yearly: 'Yearly', perMonth: '₽/mo', perYear: '₽/yr', planYearWord: 'yearly', planMonthWord: 'monthly',
+      monthly: 'Monthly', yearly: 'Yearly', perMonth: '₽/mo', perYear: '₽/yr', planYearWord: 'yearly', planMonthWord: 'monthly', monthWord: 'per month', yearWord: 'per year', consentTrial: 'I agree that after the free 3-day trial, {amt} will be charged automatically until I cancel (recurring payment).', consentPaid: 'I agree to an automatic charge of {amt} until I cancel (recurring payment).',
       days: ['Mo', 'Tu', 'We', 'Th', 'Fr', 'Sa', 'Su'] },
   };
   const t = (k) => L[lang][k];
@@ -279,6 +279,7 @@
   /* ------------------------------ subscription ------------------------------- */
   const PRICE = (window.DriftlyEntitlement && window.DriftlyEntitlement.PLAN) || { priceMonthly: 199, priceYearly: 1999, yearlyDiscountPct: 16 };
   let selectedInterval = 'month';
+  let consented = false; // T-Bank: explicit user consent to recurring charges before subscribing
   function fmtDate(ms) { try { return new Date(ms).toLocaleDateString(lang === 'ru' ? 'ru-RU' : 'en-US'); } catch (_) { return ''; } }
   function statusBox(cls, ic, title, desc) { return `<div class="sub-status ${cls}"><span class="ic">${ic}</span><div><div class="t">${title}</div><div class="d">${desc || ''}</div></div></div>`; }
   function planToggle() {
@@ -292,9 +293,15 @@
     // The one-time free trial is only offered while the account hasn't used it yet; a returning
     // user (trialUsed) subscribes and is charged immediately, so the button says so.
     const used = !!(info && info.account && info.account.trialUsed);
-    const price = selectedInterval === 'year' ? `${PRICE.priceYearly} ${t('perYear')}` : `${PRICE.priceMonthly} ${t('perMonth')}`;
+    const yr = selectedInterval === 'year';
+    const price = yr ? `${PRICE.priceYearly} ${t('perYear')}` : `${PRICE.priceMonthly} ${t('perMonth')}`;
     const label = used ? `${t('subscribe')} — ${price}` : t('startTrial');
-    return planToggle() + `<button class="btn primary btn-lg" data-act="trial">${label}</button>`
+    const amt = `${yr ? PRICE.priceYearly : PRICE.priceMonthly} ₽ ${yr ? t('yearWord') : t('monthWord')}`;
+    const consentTxt = (used ? t('consentPaid') : t('consentTrial')).replace('{amt}', amt);
+    // T-Bank requirement: show amount + periodicity and require an explicit, user-ticked consent.
+    return planToggle()
+      + `<label class="consent"><input type="checkbox" id="sub-consent"${consented ? ' checked' : ''}><span>${consentTxt}</span></label>`
+      + `<button class="btn primary btn-lg" data-act="trial"${consented ? '' : ' disabled'}>${label}</button>`
       + (used ? `<div class="mode-note">${t('noTrialNote')}</div>` : '');
   }
   // For an inactive returning account: when the one-time trial ended and until when the
@@ -399,6 +406,7 @@
     setTimeout(run, 2000);
   }
   async function doTrial() {
+    if (!consented) return;
     const r = await api.licenseStartTrial('tok_ok', selectedInterval);
     applyInfo(r.info);
     const url = r.result && r.result.result && r.result.result.redirectUrl;
@@ -496,10 +504,19 @@
         if (window.confirm(`${t('planSwitchQ')} «${name}» — ${price}?\n${t('intervalNote')}`)) {
           api.licenseChangeInterval(a.dataset.interval).then((r) => applyInfo(r.info));
         } else renderLicense();
-      } else { selectedInterval = a.dataset.interval; renderLicense(); }
+      } else { selectedInterval = a.dataset.interval; consented = false; renderLicense(); }
       return;
     }
     if (act === 'trial') doTrial(); else if (act === 'retry') doRetry(); else if (act === 'cancel') doCancel(); else if (act === 'resume') doResume(); else if (act === 'attach-card') doAttach();
+  });
+
+  // Consent checkbox toggles the subscribe button (recurring-charge consent).
+  document.addEventListener('change', (ev) => {
+    if (ev.target && ev.target.id === 'sub-consent') {
+      consented = !!ev.target.checked;
+      const btn = document.querySelector('[data-act="trial"]');
+      if (btn) btn.disabled = !consented;
+    }
   });
 
   /* ---------------------------------- tick ----------------------------------- */
