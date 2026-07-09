@@ -188,23 +188,33 @@ class TbankProvider {
 
   function chargeRecurring(array &$acc, int $now): array {
     if (!empty($acc['canceled'])) { $acc['status'] = 'expired'; return ['ok' => false, 'status' => 'expired']; }
-    if (empty($acc['providerRebillId'])) { $acc['status'] = 'past_due'; return ['ok' => false, 'status' => 'past_due', 'reason' => 'no_rebill_id']; }
+    // Record WHY a charge failed so the clients can show it (and support can diagnose). code =
+    // localizable key; message/detail = raw provider text. Cleared on any successful charge.
+    $fail = function (string $code, array $tb = null) use (&$acc, $now) {
+      $acc['status'] = 'past_due';
+      $acc['lastError'] = ['code' => $code, 'message' => (string) ($tb['Message'] ?? ''), 'detail' => (string) ($tb['Details'] ?? ''), 'tbCode' => (string) ($tb['ErrorCode'] ?? ''), 'at' => $now];
+      dbg_log('chargeFail', $acc['lastError']);
+      return ['ok' => false, 'status' => 'past_due', 'reason' => $code, 'lastError' => $acc['lastError']];
+    };
+    if (empty($acc['providerRebillId'])) return $fail('no_rebill_id');
     $amount = $this->amountKopecks($acc);
     $init = $this->call('Init', ['Amount' => $amount,
       'OrderId' => 'renew-' . $acc['email'] . '-' . $now, 'CustomerKey' => $acc['email'], 'Description' => 'Driftly Pro — продление подписки',
       'Receipt' => $this->receipt((string) ($acc['email'] ?? ''), $amount, 'Подписка Driftly Pro')]);
-    if (empty($init['Success']) || empty($init['PaymentId'])) { $acc['status'] = 'past_due'; return ['ok' => false, 'status' => 'past_due', 'reason' => 'init_failed']; }
+    if (empty($init['Success']) || empty($init['PaymentId'])) return $fail('init_failed', $init);
     $charge = $this->call('Charge', ['PaymentId' => $init['PaymentId'], 'RebillId' => $acc['providerRebillId']]);
     if (!empty($charge['Success']) && ($charge['Status'] ?? '') === 'CONFIRMED') {
       $acc['status'] = 'active';
       $acc['currentPeriodEnd'] = $now + (($acc['interval'] ?? '') === 'year' ? 365 : 30) * DAY_MS;
-      // A successful charge supersedes any pending signup — clear the flags so a stale
-      // pending payment can't later trigger a second activation.
-      unset($acc['pendingTrial'], $acc['pendingPaid'], $acc['pendingPaymentId'], $acc['pendingInterval']);
+      // A successful charge supersedes any pending signup / prior failure — clear the flags so
+      // a stale pending payment can't later trigger a second activation, and drop lastError.
+      unset($acc['pendingTrial'], $acc['pendingPaid'], $acc['pendingPaymentId'], $acc['pendingInterval'], $acc['lastError']);
       return ['ok' => true, 'status' => 'active', 'currentPeriodEnd' => $acc['currentPeriodEnd']];
     }
-    $acc['status'] = 'past_due';
-    return ['ok' => false, 'status' => 'past_due', 'reason' => $charge['Message'] ?? 'charge_failed'];
+    // A rejected recurrent charge usually means the saved card is bad/expired OR the RebillId
+    // no longer belongs to this terminal (e.g. after switching test→prod) — either way the fix
+    // is to re-attach the card, so flag it as a card problem the client can guide the user on.
+    return $fail('charge_declined', $charge);
   }
 
   /** TEMP (T-Bank certification): create a standard one-off payment (Init) so their

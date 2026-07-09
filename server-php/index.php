@@ -42,6 +42,7 @@ try {
       'cardOnFile' => (bool) ($a['cardOnFile'] ?? false), 'provider' => $a['provider'] ?? $provider->name(),
       'canceled' => (bool) ($a['canceled'] ?? false), 'interval' => $a['interval'] ?? 'month',
       'trialUsed' => (bool) ($a['trialUsed'] ?? false),
+      'lastError' => (($a['status'] ?? '') === 'past_due' && !empty($a['lastError'])) ? $a['lastError'] : null,
     ];
   };
   $stateResponse = function (array $a) use ($publicAccount): array {
@@ -123,7 +124,7 @@ try {
           $a['currentPeriodEnd'] = now_ms() + ((($a['pendingInterval'] ?? $a['interval'] ?? '') === 'year') ? 365 : 30) * DAY_MS;
         }
         $a['trialUsed'] = true;
-        unset($a['pendingTrial'], $a['pendingPaid'], $a['pendingPaymentId'], $a['pendingInterval']);
+        unset($a['pendingTrial'], $a['pendingPaid'], $a['pendingPaymentId'], $a['pendingInterval'], $a['lastError']);
       }
     }
     $store->putAccount($a);
@@ -230,7 +231,7 @@ try {
           $acc['currentPeriodEnd'] = now_ms() + ((($acc['pendingInterval'] ?? $acc['interval'] ?? '') === 'year') ? 365 : 30) * DAY_MS;
         }
         $acc['trialUsed'] = true;
-        unset($acc['pendingTrial'], $acc['pendingPaid'], $acc['pendingPaymentId'], $acc['pendingInterval']);
+        unset($acc['pendingTrial'], $acc['pendingPaid'], $acc['pendingPaymentId'], $acc['pendingInterval'], $acc['lastError']);
       }
     } else {
       $r = $provider->confirmCard($acc); // card change: confirm the new binding only
@@ -316,7 +317,7 @@ try {
               $a['status'] = 'trialing';
               $a['trialEndsAt'] = now_ms() + TRIAL_DAYS * DAY_MS;
               $a['trialUsed'] = true;
-              unset($a['pendingTrial'], $a['pendingPaid'], $a['pendingPaymentId'], $a['pendingInterval']);
+              unset($a['pendingTrial'], $a['pendingPaid'], $a['pendingPaymentId'], $a['pendingInterval'], $a['lastError']);
             }
             // One refund per payment — confirm-card may already have returned this ~1 ₽.
             $pid = (string) ($ev['PaymentId'] ?? '');
@@ -333,7 +334,7 @@ try {
             $a['status'] = 'active';
             $a['currentPeriodEnd'] = now_ms() + ((($a['pendingInterval'] ?? $a['interval'] ?? '') === 'year') ? 365 : 30) * DAY_MS;
             $a['trialUsed'] = true;
-            unset($a['pendingTrial'], $a['pendingPaid'], $a['pendingPaymentId'], $a['pendingInterval']);
+            unset($a['pendingTrial'], $a['pendingPaid'], $a['pendingPaymentId'], $a['pendingInterval'], $a['lastError']);
           }
           // A failed charge (REJECTED) leaves the account pending — no access granted.
         } else {

@@ -46,6 +46,7 @@ function publicAccount(acc) {
     trialEndsAt: acc.trialEndsAt || null, currentPeriodEnd: acc.currentPeriodEnd || null,
     cardOnFile: !!acc.cardOnFile, provider: acc.provider || provider.name, canceled: !!acc.canceled,
     interval: acc.interval || 'month', trialUsed: !!acc.trialUsed,
+    lastError: (acc.status === 'past_due' && acc.lastError) ? acc.lastError : null,
   };
 }
 

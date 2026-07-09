@@ -48,10 +48,11 @@ module.exports = {
     now = now || Date.now();
     // Cancelled → don't charge; the subscription simply ends (not past_due).
     if (acc.canceled) { acc.status = 'expired'; return { ok: false, status: 'expired' }; }
-    if (!acc.cardOnFile) { acc.status = 'past_due'; return { ok: false, status: 'past_due' }; }
-    if (acc._simFail) { acc.status = 'past_due'; return { ok: false, status: 'past_due' }; }
+    if (!acc.cardOnFile) { acc.status = 'past_due'; acc.lastError = { code: 'no_rebill_id', at: now }; return { ok: false, status: 'past_due' }; }
+    if (acc._simFail) { acc.status = 'past_due'; acc.lastError = { code: 'charge_declined', message: 'Insufficient funds (demo)', at: now }; return { ok: false, status: 'past_due' }; }
     acc.status = 'active';
     acc.currentPeriodEnd = now + (acc.interval === 'year' ? 365 : 30) * DAY;
+    delete acc.lastError;
     return { ok: true, status: 'active', currentPeriodEnd: acc.currentPeriodEnd };
   },
 

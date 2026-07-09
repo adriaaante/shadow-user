@@ -48,10 +48,11 @@ class MockProvider {
 
   function chargeRecurring(array &$acc, int $now): array {
     if (!empty($acc['canceled'])) { $acc['status'] = 'expired'; return ['ok' => false, 'status' => 'expired']; }
-    if (empty($acc['cardOnFile'])) { $acc['status'] = 'past_due'; return ['ok' => false, 'status' => 'past_due']; }
-    if (!empty($acc['_simFail'])) { $acc['status'] = 'past_due'; return ['ok' => false, 'status' => 'past_due']; }
+    if (empty($acc['cardOnFile'])) { $acc['status'] = 'past_due'; $acc['lastError'] = ['code' => 'no_rebill_id', 'at' => $now]; return ['ok' => false, 'status' => 'past_due']; }
+    if (!empty($acc['_simFail'])) { $acc['status'] = 'past_due'; $acc['lastError'] = ['code' => 'charge_declined', 'message' => 'Недостаточно средств (демо)', 'at' => $now]; return ['ok' => false, 'status' => 'past_due']; }
     $acc['status'] = 'active';
     $acc['currentPeriodEnd'] = $now + (($acc['interval'] ?? '') === 'year' ? 365 : 30) * DAY_MS;
+    unset($acc['lastError']);
     return ['ok' => true, 'status' => 'active', 'currentPeriodEnd' => $acc['currentPeriodEnd']];
   }
 
