@@ -37,6 +37,11 @@ class MockProvider {
 
   function attachCard(array &$acc): array {
     $acc['provider'] = 'mock';
+    $st = $acc['status'] ?? '';
+    // Same rule as tbank: no live sub + trial already used → re-subscribe (charge), else verify.
+    if (!in_array($st, ['active', 'trialing'], true) && !empty($acc['trialUsed'])) {
+      return $this->startTrial($acc, ['interval' => $acc['interval'] ?? 'month'], now_ms());
+    }
     $acc['providerMethodId'] = 'mock_pm_' . bin2hex(random_bytes(4));
     $acc['cardOnFile'] = true;
     return ['ok' => true];

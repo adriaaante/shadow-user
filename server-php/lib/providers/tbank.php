@@ -140,9 +140,19 @@ class TbankProvider {
     return $r;
   }
 
-  /** Re-bind or change the saved card WITHOUT resetting the trial/period (~1 ₽, refunded). */
+  /** Re-bind / change the saved card. Behaviour depends on whether a subscription is LIVE:
+   *  - active/trialing (already paid for the current period): ~1 ₽ verify, refunded — just
+   *    swap the card, never charge again.
+   *  - trial already used and NOT live (past_due / expired / needs payment): there is nothing
+   *    to protect, so this is a re-subscribe — charge the full selected period on the new card
+   *    (no 1 ₽) and activate, exactly like the returning-user signup. */
   function attachCard(array &$acc): array {
     $acc['provider'] = 'tbank';
+    $st = $acc['status'] ?? '';
+    $live = ($st === 'active' || $st === 'trialing');
+    if (!$live && !empty($acc['trialUsed'])) {
+      return $this->startTrial($acc, ['interval' => $acc['interval'] ?? 'month'], now_ms());
+    }
     $amount = $this->verifyKopecks();
     return $this->initPayment($acc, now_ms(), $amount, 'trial-', $this->verifyDesc($amount), 'Привязка карты Driftly');
   }

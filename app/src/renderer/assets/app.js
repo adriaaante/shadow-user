@@ -423,6 +423,11 @@
     const url = r.result && r.result.result && r.result.result.redirectUrl;
     if (!url) return;
     toast(t('openedBrowser'));
+    // If the card change turned into a paid re-subscribe (returning user, no live sub),
+    // the account goes 'pending' — show the activating state and poll to activation, like
+    // a signup. A plain card swap on a live sub just confirms quietly in the background.
+    const st = r.info && r.info.account && r.info.account.status;
+    if (st === 'pending') { activatingD = true; renderLicense(); pollSignup(); return; }
     let tries = 0;
     const run = async () => { applyInfo(await api.licenseConfirmCard()); if (++tries < 8) setTimeout(run, 4000); };
     setTimeout(run, 4000);
