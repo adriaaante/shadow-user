@@ -59,7 +59,6 @@
 
   /* --------------------------------- state ----------------------------------- */
   let cfg = null; let status = null;
-  let activatingD = false; // showing the animated "activating…" state after a browser payment
   const $ = (id) => document.getElementById(id);
 
   async function patch(p) { const r = await api.patchConfig(p); cfg = r.config; status = r.status; }
