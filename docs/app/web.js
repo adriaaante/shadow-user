@@ -332,15 +332,8 @@
 
   /* -------------------------------- events ------------------------------ */
   document.querySelectorAll('#runmode button').forEach((b) => b.addEventListener('click', () => {
-    if (b.dataset.mode === 'on' && window.DriftlyGate && !window.DriftlyGate.allowed()) { window.DriftlyGate.show(); return; }
     cfg.running = b.dataset.mode === 'on'; saveCfg(); if (cfg.running) startGen(); else stopGen(); renderStatus();
   }));
-  // Stop the engine immediately if access is revoked (e.g. trial ended / past_due).
-  window.addEventListener('driftly-access-changed', () => {
-    if (window.DriftlyGate && !window.DriftlyGate.allowed() && cfg.running) {
-      cfg.running = false; saveCfg(); stopGen(); renderStatus();
-    }
-  });
   document.querySelectorAll('#levels button').forEach((b) => b.addEventListener('click', () => { cfg.level = b.dataset.level; saveCfg(); renderRates(); }));
   $('intensity').addEventListener('input', (e) => { cfg.intensity = +e.target.value; $('intensity-val').textContent = e.target.value; renderRates(); });
   $('intensity').addEventListener('change', saveCfg);
@@ -384,21 +377,6 @@
   stage.classList.add('idle'); // sandbox starts stopped — show the idle state
 
   /* --------------------------------- tabs ------------------------------- */
-  // Section tabs: Приложение (engine) / Подписка / Аккаунт. The panels keep all
-  // their element ids, so web-account.js keeps rendering into them regardless of
-  // which tab is visible. window.DriftlyTabs.show lets the paywall jump to a tab.
-  function showTab(name) {
-    if (!document.querySelector('.tab-panel[data-panel="' + name + '"]')) name = 'app'; // guard stale/removed tabs (e.g. old "account")
-    document.querySelectorAll('#tabs button').forEach((b) => b.classList.toggle('active', b.dataset.tab === name));
-    document.querySelectorAll('.tab-panel').forEach((p) => { p.hidden = (p.dataset.panel !== name); });
-    try { localStorage.setItem('driftly.tab', name); } catch (_) {}
-    if (name === 'app') { try { refreshCharts(); } catch (_) {} } // re-render canvases sized while hidden
-    window.dispatchEvent(new Event('driftly-tab-changed')); // let the paywall react to the active section
-  }
-  document.querySelectorAll('#tabs button').forEach((b) => b.addEventListener('click', () => showTab(b.dataset.tab)));
-  window.DriftlyTabs = { show: showTab };
-  showTab(location.hash === '#sub-panel' ? 'sub' : (localStorage.getItem('driftly.tab') || 'app'));
-
   // PWA service worker (offline app shell) — optional, ignore failures.
   if ('serviceWorker' in navigator) navigator.serviceWorker.register('sw.js').catch(() => {});
 }());

@@ -44,8 +44,7 @@
      Transient API errors leave the original /releases/latest href intact. */
   (function () {
     var REPO = 'adriaaante/shadow-user';
-    // Strictly the three OS buttons in the download section (the pricing card
-    // also uses .dl-card, so don't match its trial CTA).
+    // Strictly the three OS buttons in the download section.
     var dlBtns = [].slice.call(doc.querySelectorAll('#download .dl-card .btn-primary'));
     if (!dlBtns.length) return;
     function osOf(btn) {

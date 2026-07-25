@@ -4,11 +4,11 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <title>Driftly в браузере — имитация активности и анти-сон экрана без установки</title>
-<meta name="description" content="Имитация активности и анти-сон экрана прямо в браузере, без установки. Песочница, измерение активности, экспорт CSV/JSON. 3 дня бесплатно.">
+<meta name="description" content="Имитация активности и анти-сон экрана прямо в браузере, без установки. Песочница, измерение активности, экспорт CSV/JSON. Полностью бесплатно.">
 <link rel="canonical" href="https://driftly.site/app/">
 <meta property="og:type" content="website">
 <meta property="og:title" content="Driftly в браузере — имитация активности без установки">
-<meta property="og:description" content="Анти-сон экрана и песочница активности в браузере. Одна подписка — веб и десктоп. 3 дня бесплатно.">
+<meta property="og:description" content="Анти-сон экрана и песочница активности в браузере. Бесплатно — веб и десктоп.">
 <meta property="og:url" content="https://driftly.site/app/">
 <meta property="og:image" content="https://driftly.site/assets/img/og.png">
 <meta name="theme-color" content="#08080c">
@@ -40,10 +40,6 @@
   <div id="acc-banner" class="note info" style="display:none;margin-bottom:18px"></div>
 
   <div class="shell">
-  <nav class="tabs" id="tabs">
-    <button data-tab="app" class="active" data-ru="Приложение" data-en="App">Приложение</button>
-    <button data-tab="sub" data-ru="Подписка" data-en="Subscription">Подписка</button>
-  </nav>
 
   <div class="panels">
   <!-- ════════════════ TAB: Приложение (рабочий экран) ════════════════ -->
@@ -145,68 +141,11 @@
     </section>
   </div>
 
-  <!-- ════════════════ TAB: Подписка ════════════════ -->
-  <div class="tab-panel" data-panel="sub" hidden>
-    <section class="card" id="sub-panel">
-      <!-- Вход / выход — управление подпиской доступно после входа -->
-      <div id="sub-auth">
-        <div class="section-title" data-ru="Аккаунт" data-en="Account">Аккаунт</div>
-        <div id="sub-signin">
-          <div class="range-row" id="sub-step-email"><input type="text" id="sub-email" inputmode="email" autocomplete="email" placeholder="you@email.com" style="flex:1;min-width:0">
-            <button class="btn primary" id="btn-getcode" data-ru="Получить код" data-en="Get code">Получить код</button></div>
-          <div class="range-row" id="sub-step-code" style="display:none">
-            <div class="otp" id="sub-otp">
-              <input type="text" inputmode="numeric" maxlength="1" autocomplete="one-time-code" aria-label="1">
-              <input type="text" inputmode="numeric" maxlength="1" aria-label="2">
-              <input type="text" inputmode="numeric" maxlength="1" aria-label="3">
-              <input type="text" inputmode="numeric" maxlength="1" aria-label="4">
-              <input type="text" inputmode="numeric" maxlength="1" aria-label="5">
-              <input type="text" inputmode="numeric" maxlength="1" aria-label="6">
-            </div>
-            <button class="btn primary" id="btn-verify" data-ru="Войти" data-en="Sign in">Войти</button></div>
-          <div class="mode-note" id="sub-auth-note"></div>
-        </div>
-        <div id="sub-signedin" style="display:none">
-          <div class="signed-row">
-            <span class="signed-as"><span class="muted" data-ru="Вы вошли как" data-en="Signed in as">Вы вошли как</span> <b id="sub-who"></b></span>
-            <button class="btn signout" id="btn-signout" data-ru="Выйти" data-en="Sign out">Выйти</button>
-          </div>
-        </div>
-        <hr class="sep">
-      </div>
-      <div class="plan-head">
-        <div>
-          <h3>Driftly Pro</h3>
-          <div class="hint" data-ru="Единая подписка: оплатив один раз, вы получаете доступ и в браузере, и в десктоп-приложении." data-en="One subscription: pay once, use it both in the browser and in the desktop app.">Единая подписка: оплатив один раз, вы получаете доступ и в браузере, и в десктоп-приложении.</div>
-        </div>
-        <div class="price"><div class="price-main"><b>199 ₽</b><span data-ru="/ мес" data-en="/ mo">/ мес</span></div><div class="price-year" data-ru="или 1999 ₽ / год · −16%" data-en="or 1999 ₽ / yr · −16%">или 1999 ₽ / год · −16%</div></div>
-      </div>
-      <div id="sub-state"></div>
-
-      <div class="note" style="margin-top:16px" data-ru="При подключении карты первые 3 дня — бесплатно (пробный период — один раз на аккаунт), далее автосписание (рекуррентный платёж) до отмены. Для проверки карты при её подключении или смене списывается и автоматически возвращается ~1 ₽. Отмена в любой момент — доступ сохранится до конца оплаченного периода. Если списание не прошло — доступ приостанавливается до оплаты. Платежи через Т‑Банк; Driftly не хранит данные карты. Отменить подписку можно в любой момент в этом разделе; по вопросам возврата и отмены — support@driftly.site" data-en="Connecting a card gives 3 free days (the trial is available once per account), then recurring billing until canceled. To verify the card when adding or changing it, ~1 ₽ is charged and automatically refunded. Cancel anytime — access stays until the end of the paid period. If a charge fails, access pauses until paid. Payments via T-Bank; Driftly does not store card data. You can cancel anytime in this section; for refunds and cancellation — support@driftly.site">…</div>
-      <div class="hint" style="margin-top:10px">
-        <span data-ru="Подключая карту, вы принимаете" data-en="By adding a card you accept the">Подключая карту, вы принимаете</span>
-        <a href="../legal/oferta.html" target="_blank" rel="noopener" data-ru="Оферту" data-en="Offer">Оферту</a>
-        <span data-ru="и" data-en="and">и</span>
-        <a href="../legal/privacy.html" target="_blank" rel="noopener" data-ru="Политику конфиденциальности" data-en="Privacy Policy">Политику конфиденциальности</a>.
-      </div>
-    </section>
-  </div>
-
   </div></div>
 
   <p class="foot muted" data-ru="100% локально · без сбора данных · © 2026 Driftly — все права защищены" data-en="100% local · no data collection · © 2026 Driftly — all rights reserved">100% локально · без сбора данных · © 2026 Driftly — все права защищены</p>
 </main>
 
-<div class="paywall" id="paywall" style="display:none">
-  <div class="paywall-box card">
-    <svg viewBox="0 0 24 24" width="40" height="40" fill="none" stroke="url(#pwg)" stroke-width="1.6"><defs><linearGradient id="pwg" x1="0" y1="0" x2="24" y2="24"><stop offset="0" stop-color="#7c5cff"/><stop offset="1" stop-color="#2dd4bf"/></linearGradient></defs><rect x="5" y="11" width="14" height="9" rx="2"/><path d="M8 11V8a4 4 0 0 1 8 0v3"/></svg>
-    <h2 id="pw-title" style="margin-top:14px"></h2>
-    <p id="pw-text" class="muted" style="margin:10px 0 20px;max-width:40ch"></p>
-    <button class="btn primary btn-lg" id="pw-cta"></button>
-    <button class="btn ghost" id="pw-retry" style="display:none;margin-top:10px"></button>
-  </div>
-</div>
 
 <div class="toast" id="toast"></div>
 <div class="modal-overlay" id="confirm-modal" style="display:none">
@@ -218,10 +157,7 @@
     </div>
   </div>
 </div>
-<script src="shared/entitlement.js"></script>
-<script src="shared/license.js"></script>
 <script src="assets/chart.js"></script>
 <script src="web.js"></script>
-<script src="web-account.js"></script>
 </body>
 </html>

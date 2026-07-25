@@ -1,7 +1,7 @@
 {
   "name": "driftly",
   "productName": "Driftly",
-  "version": "1.1.1",
+  "version": "1.2.0",
   "description": "Keep your session alive — and measure it. Synthetic activity generator + activity benchmark. Local-only, no telemetry.",
   "author": "The Driftly Owner",
   "license": "SEE LICENSE IN ../LICENSE",

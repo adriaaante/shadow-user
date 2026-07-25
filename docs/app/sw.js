@@ -3,15 +3,12 @@
  * cache-first policy would pin old code on returning users until the version bumps —
  * price changes and bug fixes would silently never arrive. Static assets (icons,
  * manifest) are cache-first. Bump CACHE on breaking asset renames only. */
-const CACHE = 'driftly-web-v2';
+const CACHE = 'driftly-web-v3';
 const SHELL = [
   './',
   './index.html',
   './web.css',
   './web.js',
-  './web-account.js',
-  './shared/entitlement.js',
-  './shared/license.js',
   './assets/theme.css',
   './assets/chart.js',
   './icon.svg',

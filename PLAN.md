@@ -180,39 +180,12 @@ self-contained assets, keyword-rich RU+EN copy, accessible contrast & alt text.
 
 ---
 
-## 6b. Monetization architecture (single subscription · web + desktop)
+## 6b. Pricing — free
 
-Driftly is a paid product with a **card-on-file 3-day free trial**. **One subscription,
-tied to the account (email), unlocks BOTH the web and desktop versions** — buy/trial on one
-and it's active on the other.
-
-```
-shared/                         the single source of truth, used by ALL surfaces
-├─ entitlement.js               plan + ACCESS logic (free trial / active / past_due / blocked)
-├─ license.js                   JWT-like token codec (decode only)
-├─ verify-node.js               Ed25519 verify (desktop offline + server self-test)
-└─ license-public.pem           public key embedded in the clients (committed)
-
-server/                         reference licensing & subscription backend (Node, no deps)
-├─ index.js                     accounts, license issuance, billing endpoints, auto-charge loop
-├─ lib.js                       Ed25519 token signing
-├─ keygen.js                    generate the keypair (private → server/.keys, gitignored)
-└─ providers/                   pluggable payments: mock | tbank (T‑Bank)
-```
-
-**Flow:** connect card → `trialing` (3 days) → server auto-charges → `active` (renews monthly).
-If a charge fails → `past_due` → **both clients block with a "необходимо оплатить" paywall**
-until paid. The server issues Ed25519-signed license tokens; the **desktop verifies them
-offline** (tamper-resistant, 7-day grace) while the **web app trusts the HTTPS response** and
-caches the token. `entitlement.compute()` always bounds real access by `trialEndsAt` /
-`currentPeriodEnd`, so a token can never outlive the dates it carries.
-
-**Privacy boundary:** only account + billing state lives on the server (and card data is
-handled by the payment provider, never by Driftly). **Activity data always stays local.**
-
-**Preview mode:** with no licensing API configured, both clients run open (full access + a
-visible banner) so they're usable before the server is deployed. Setting the API URL
-activates the real trial/paywall/past_due gating. See `server/README.md` and `TERMS.md`.
+Driftly is **completely free**: both the web and desktop apps, with no account, no sign-in and
+no payment. There is no subscription, trial, paywall or licensing server — every feature is
+available to everyone, and no personal or billing data is ever collected. **Activity data
+always stays local.** See `TERMS.md` and `PRIVACY.md`.
 
 ## 7. Build / release flow
 1. `cd app && npm install` → `npm start` (dev) — runs even without native modules (sim mode).

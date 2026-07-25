@@ -1,87 +1,41 @@
-# Условия подписки Driftly · Driftly Subscription Terms
-
-> Рабочий шаблон условий (публичной оферты). Перед запуском приёма платежей дайте его на
-> проверку юристу и подставьте реквизиты правообладателя (наименование/ИП, ИНН, контакты).
-> Working template of the terms (public offer). Have a lawyer review it and fill in the
-> owner's legal details before accepting real payments.
+# Условия использования Driftly · Driftly Terms of Use
 
 ---
 
-## RU — Условия использования и подписки
+## RU — Условия использования
 
 **1. Предмет.** Driftly — проприетарное программное обеспечение (веб-версия и десктоп-версия),
-права на которое полностью принадлежат правообладателю. Подписка предоставляет право
-использования Driftly на условиях настоящего документа. Это единая подписка: она действует
-одновременно и в веб-версии, и в десктоп-версии для одного аккаунта.
+права на которое полностью принадлежат правообладателю. Driftly предоставляется **бесплатно**:
+обе версии доступны без оплаты, регистрации и аккаунта.
 
-**2. Пробный период.** При подключении банковской карты предоставляется **бесплатный пробный
-период — 3 (три) календарных дня**. В течение пробного периода абонентская плата не взимается.
-Пробный период предоставляется **однократно для одного аккаунта (email)** за всё время. Если
-пробный период по аккаунту уже был использован, при повторном оформлении подписки абонентская
-плата за выбранный период списывается сразу при оформлении, без нового пробного периода.
+**2. Стоимость.** Driftly распространяется **бесплатно**. Подписки, пробного периода, платежей и
+платного доступа нет. Все функции доступны всем пользователям без ограничений.
 
-**3. Автоматическое продление (рекуррентные платежи).** По окончании пробного периода, если
-подписка не отменена, **автоматически списывается абонентская плата**, и далее списывается
-периодически (раз в расчётный период) до отмены подписки. Подключая карту, пользователь даёт
-согласие на регулярные автоматические списания (рекуррентные платежи).
+**3. Данные.** Driftly не собирает данные об активности пользователя — они хранятся локально на
+устройстве. Аккаунт не требуется, персональные и платёжные данные не обрабатываются (см. PRIVACY.md).
 
-**4. Стоимость.** Стоимость подписки: **199 ₽ в месяц** либо **1999 ₽ в год** (выгода ≈ 16%);
-актуальная цена указывается в приложении и на сайте на момент оформления. Правообладатель вправе
-изменять стоимость с предварительным уведомлением; изменение не затрагивает уже оплаченный период.
-По 54-ФЗ при оплате формируется кассовый чек (онлайн-касса платёжного провайдера) на email
-пользователя.
-
-**5. Способы оплаты.** Платежи обрабатываются платёжным провайдером **Т‑Банк**.
-Данные банковской карты обрабатываются и хранятся провайдером; Driftly не хранит данные карты.
-
-**6. Неуспешный платёж.** Если очередное списание не прошло (например, недостаточно средств),
-подписка переходит в статус «требует оплаты», и **доступ к веб- и десктоп-версии
-приостанавливается** до успешной оплаты. Пользователю показывается уведомление о необходимости
-оплаты и возможность повторить платёж.
-
-**7. Отмена.** Пользователь может отменить подписку в любой момент в разделе «Подписка». После
-отмены доступ сохраняется до конца уже оплаченного периода, далее автосписания прекращаются.
-
-**8. Возвраты.** Возврат уже списанной абонентской платы за начавшийся оплаченный период по
-общему правилу не производится (при первом оформлении для оценки продукта предоставляется
-бесплатный пробный период), за исключением случаев, прямо предусмотренных законодательством РФ,
-в том числе Законом «О защите прав потребителей». Спорные ситуации — по обращению на email поддержки.
-
-**8а. Устройства.** Подписка действует одновременно не более чем на 2 (двух) устройствах.
-При входе на третьем устройстве доступ на самом раннем из ранее подключённых устройств
-прекращается.
-
-**9. Данные.** Driftly не собирает данные об активности пользователя — они хранятся локально. Для
-работы подписки обрабатываются только email и платёжный статус аккаунта (см. PRIVACY.md).
-
-**10. Ответственное использование.** Driftly предназначен для автоматизации, защиты от простоя и
+**4. Ответственное использование.** Driftly предназначен для автоматизации, защиты от простоя и
 тестирования на системах, которыми пользователь владеет или которые ему разрешено использовать.
 Пользователь самостоятельно отвечает за соблюдение применимых правил и законов.
 
-**11. Права и гарантии.** Все права на Driftly принадлежат правообладателю. ПО предоставляется
+**5. Права и гарантии.** Все права на Driftly принадлежат правообладателю. ПО предоставляется
 «как есть», без гарантий; ответственность ограничена в пределах, допускаемых законом (см. LICENSE).
+Распространение и модификация не допускаются.
 
-**12. Контакты.** По любым вопросам — оплата, отмена, возврат, удаление аккаунта, поддержка —
-пишите на **support@driftly.site**. Срок ответа — несколько рабочих дней.
+**6. Контакты.** По любым вопросам — поддержка, работа приложения — пишите на
+**support@driftly.site**. Срок ответа — несколько рабочих дней.
 
 ---
 
 ## EN — Summary
 
-Driftly is proprietary software (web + desktop) owned by the rights holder. A subscription
-grants the right to use it; **one subscription covers both the web and desktop versions** (up
-to 2 devices at a time; signing in on a third device signs out the oldest one). Connecting a
-card starts a **3-day free trial**; afterwards the subscription fee is charged **automatically
-and recurrently** until cancelled (the user consents to recurring charges by adding a card).
-**The free trial is granted once per account (email)** — re-subscribing after the trial has been
-used charges the full period price immediately, with no second trial. Price: 199 ₽/month or
-1999 ₽/year (shown at checkout). Payments are processed by **T‑Bank**; Driftly never stores card
-data. **If a charge fails, access to both apps is paused until payment succeeds.** Cancel
-anytime — access continues until the end of the paid period. Paid periods that have started are
-generally non-refundable except as required by law. Activity data is never collected (local
-only); only email + billing status are processed (see PRIVACY.md). Software is provided "as is"
-(see LICENSE).
+Driftly is proprietary software (web + desktop) owned by the rights holder and provided
+**completely free** — no subscription, no trial, no payment and no account. Every feature is
+available to everyone. Driftly never collects activity data (local only) and processes no
+personal or payment data (see PRIVACY.md). Driftly is intended for automation, anti-idle and
+testing on systems you own or are authorized to use; you are responsible for complying with the
+rules and laws that apply to you. The software is provided "as is" (see LICENSE); redistribution
+and modification are not permitted.
 
-> The published, user-facing versions live at `docs/legal/oferta.html` (public offer) and
-> `docs/legal/privacy.html` (privacy policy). Keep this file and those pages in sync; fill in the
-> seller requisites (самозанятый/ИП/ООО, ИНН, contacts) before accepting real payments.
+> The published, user-facing privacy policy lives at `docs/legal/privacy.html`. Keep this file
+> and that page in sync.

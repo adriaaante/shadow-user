@@ -17,7 +17,6 @@ const monitor = require('./monitor');
 const generator = require('./generator');
 const scheduler = require('./scheduler');
 const backend = require('./input-backend');
-const license = require('./license');
 
 let win = null;
 let tray = null;
@@ -27,8 +26,7 @@ app.isQuiting = false;
 
 /* --------------------------- engine reconciliation --------------------------- */
 function desiredGeneratorOn() {
-  // A valid subscription (or preview mode) is required to run the generator.
-  if (!license.currentEntitlement().access) return false;
+  // Driftly is free — the generator runs purely by the chosen run mode.
   const mode = store.getConfig().runMode;
   if (mode === 'off') return false;
   if (mode === 'always') return true;
@@ -94,7 +92,6 @@ function status() {
     monitorMode: monitor.mode,         // 'global' | 'self-report'
     keepAwake: keepAwakeHeld(),        // display kept awake right now?
     genStats: generator.stats,
-    license: license.info(),           // subscription/entitlement state
   };
 }
 
@@ -141,31 +138,6 @@ function registerIpc() {
   });
 
   ipcMain.handle('app:openDataFolder', () => shell.openPath(store.paths().dir));
-
-  // ---- subscription / licensing ----
-  ipcMain.handle('license:get', () => license.info());
-  ipcMain.handle('license:authRequest', async (_e, email) => license.authRequest(email));
-  ipcMain.handle('license:authVerify', async (_e, email, code) => { const r = await license.authVerify(email, code); reconcile(); return { result: r, info: license.info() }; });
-  ipcMain.handle('license:startTrial', async (_e, card, interval) => {
-    const r = await license.startTrial(card, interval);
-    // T-Bank returns a card-binding/3-D Secure URL — open it in the user's browser.
-    if (r && r.result && r.result.redirectUrl) { try { shell.openExternal(r.result.redirectUrl); } catch (_) { /* noop */ } }
-    reconcile();
-    return { result: r, info: license.info() };
-  });
-  ipcMain.handle('license:confirmCard', async () => { const i = await license.confirmCard(); reconcile(); return i; });
-  ipcMain.handle('license:attachCard', async () => {
-    const r = await license.attachCard();
-    if (r && r.result && r.result.redirectUrl) { try { shell.openExternal(r.result.redirectUrl); } catch (_) { /* noop */ } }
-    reconcile();
-    return { result: r, info: license.info() };
-  });
-  ipcMain.handle('license:changeInterval', async (_e, interval) => { const r = await license.changeInterval(interval); reconcile(); return { result: r, info: license.info() }; });
-  ipcMain.handle('license:retry', async () => { const r = await license.retry(); reconcile(); return { result: r, info: license.info() }; });
-  ipcMain.handle('license:cancel', async () => { const r = await license.cancel(); reconcile(); return { result: r, info: license.info() }; });
-  ipcMain.handle('license:resume', async () => { const r = await license.resume(); reconcile(); return { result: r, info: license.info() }; });
-  ipcMain.handle('license:signOut', async () => { const i = license.signOut(); reconcile(); return i; });
-  ipcMain.handle('license:refresh', async () => { const i = await license.refresh(); reconcile(); return i; });
 }
 
 /* --------------------------------- window ---------------------------------- */
@@ -265,17 +237,12 @@ if (!gotLock) {
   app.whenReady().then(() => {
     store.init(app.getPath('userData'));
     metrics.load(store.loadMetrics());
-    license.init(store);
 
     monitor.onActivity((ev) => metrics.record(ev));
     monitor.start();
 
     scheduler.start(() => reconcile());
     applyConfig();
-
-    // refresh subscription state now and periodically (auto-applies past_due block)
-    license.refresh().then(() => { reconcile(); pushStatus(); });
-    setInterval(() => { license.refresh().then(() => { reconcile(); pushStatus(); }); }, 60000);
 
     registerIpc();
     createWindow();
